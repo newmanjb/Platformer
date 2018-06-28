@@ -29,18 +29,20 @@ public class GamePanel extends JPanel {
 
 
     GamePanel(List<Rectangle> collisionAreas) {
-        this.collisionAreas = new ArrayList<>();
+        //this.collisionAreas = new ArrayList<>();
 
-    //    jsw = collisionAreas.remove(0);
+        this.collisionAreas = collisionAreas;
 
-        jsw = new Rectangle(600,499,50,100);
+        jsw = collisionAreas.remove(0);
 
-        Rectangle c1 = new Rectangle(150, 570, 100,30);
-        Rectangle c2 = new Rectangle(1200, 100, 200,500);
-        Rectangle c3 = new Rectangle(900, 380, 200,100);
-        Rectangle c4 = new Rectangle(0, 600, 1200,20);
-        Rectangle c5 = new Rectangle(0, 0, 20,600);
-        this.collisionAreas.addAll(Arrays.asList(new Rectangle[]{c1,c2,c3,c4,c5}));
+//        jsw = new Rectangle(600,499,50,100);
+//
+//        Rectangle c1 = new Rectangle(150, 570, 100,30);
+//        Rectangle c2 = new Rectangle(1200, 100, 200,500);
+//        Rectangle c3 = new Rectangle(900, 380, 200,100);
+//        Rectangle c4 = new Rectangle(0, 600, 1200,20);
+//        Rectangle c5 = new Rectangle(0, 0, 20,600);
+//        this.collisionAreas.addAll(Arrays.asList(new Rectangle[]{c1,c2,c3,c4,c5}));
 
         for(Rectangle r : this.collisionAreas) {
             Point p = r.getLocation();
