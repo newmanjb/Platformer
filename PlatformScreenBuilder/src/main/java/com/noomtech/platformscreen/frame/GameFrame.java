@@ -18,17 +18,17 @@ public class GameFrame extends JFrame {
 
 
     private final GamePanel gamePanel;
-    //private final Session cassandraSession;
+    private final Session cassandraSession;
     private final Thread gameThread;
 
 
     public GameFrame() {
-//
-//        Cluster.Builder b = Cluster.builder().addContactPoint("10.130.84.52");
-//        Cluster cluster = b.build();
-//        cassandraSession = cluster.connect();
 
-        gamePanel = new GamePanel(null);//load());
+        Cluster.Builder b = Cluster.builder().addContactPoint("10.130.84.52");
+        Cluster cluster = b.build();
+        cassandraSession = cluster.connect();
+
+        gamePanel = new GamePanel(load());
 
         setTitle("Game");
 
@@ -76,33 +76,33 @@ public class GameFrame extends JFrame {
 
         setVisible(true);
     }
-//
-//    private List<Rectangle> load() {
-//        String selectStatement = "SELECT class,id,attributes,rectangle FROM jsw.COLLISION_AREAS";
-//        BoundStatement b = cassandraSession.prepare(selectStatement).bind();
-//        ResultSet rs = cassandraSession.execute(b);
-//        List<Rectangle> toReturn = new ArrayList<>();
-//        List<Row> rows = rs.all();
-//        for(Row row : rows) {
-//            String classVal = row.getString(0);
-//            long id = row.getLong(1);
-//            Map<String,String> attributes = row.getMap(2, String.class, String.class);
-//            TupleValue tupleValue = row.getTupleValue(3);
-//            TupleValue startTuple = tupleValue.get(0,TupleValue.class);
-//            Point start = new Point(startTuple.get(0,Integer.class), startTuple.get(1,Integer.class));
-//            TupleValue endTuple = tupleValue.get(1,TupleValue.class);
-//            Point end = new Point(endTuple.get(0,Integer.class), endTuple.get(1,Integer.class));
-//            Rectangle rectangle = new Rectangle(start.x, start.y, end.x - start.x, end.y - start.y);
-//
-//            if(attributes.containsKey("type") && attributes.get("type").equalsIgnoreCase("jsw")) {
-//                toReturn.add(0, rectangle);
-//            }
-//            else {
-//                toReturn.add(rectangle);
-//            }
-//        }
-//        return toReturn;
-//    }
+
+    private List<Rectangle> load() {
+        String selectStatement = "SELECT class,id,attributes,rectangle FROM jsw.COLLISION_AREAS";
+        BoundStatement b = cassandraSession.prepare(selectStatement).bind();
+        ResultSet rs = cassandraSession.execute(b);
+        List<Rectangle> toReturn = new ArrayList<>();
+        List<Row> rows = rs.all();
+        for(Row row : rows) {
+            String classVal = row.getString(0);
+            long id = row.getLong(1);
+            Map<String,String> attributes = row.getMap(2, String.class, String.class);
+            TupleValue tupleValue = row.getTupleValue(3);
+            TupleValue startTuple = tupleValue.get(0,TupleValue.class);
+            Point start = new Point(startTuple.get(0,Integer.class), startTuple.get(1,Integer.class));
+            TupleValue endTuple = tupleValue.get(1,TupleValue.class);
+            Point end = new Point(endTuple.get(0,Integer.class), endTuple.get(1,Integer.class));
+            Rectangle rectangle = new Rectangle(start.x, start.y, end.x - start.x, end.y - start.y);
+
+            if(attributes.containsKey("type") && attributes.get("type").equalsIgnoreCase("jsw")) {
+                toReturn.add(0, rectangle);
+            }
+            else {
+                toReturn.add(rectangle);
+            }
+        }
+        return toReturn;
+    }
 
     private void quit() {
         gamePanel.stop();
