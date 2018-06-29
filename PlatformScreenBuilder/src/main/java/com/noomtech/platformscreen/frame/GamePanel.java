@@ -5,23 +5,49 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 
+/**
+ * Currently this is where it all happens.  This panel class is responsible for the painting, control handling and collision detection in the game.
+ *
+ * The game itself is a simple Manic Miner/Jet Set Willy type thing i.e. with controls of "left", "right" and "jump" in a screen full of
+ * platforms.
+ *
+ * There is quite a lot of code around obtaining a high level of precision on the controls, as this is important in a platform game.
+ *
+ * Platforms or "collision areas" are represented on screen as {@link Rectangle}s and the main sprite is too, with the idea
+ * that these will be replaced with something nicer looking where only their boundaries are defined by rectangles.
+ *
+ * @author Joshua Newman
+ */
 public class GamePanel extends JPanel {
 
 
     private static final int SCREEN_SIZE = 1920;
 
+    //The game objects, with the first one in the list being the player sprite.
     private final List<Rectangle> collisionAreas;
     private volatile boolean started = false;
+    //The player sprite (jsw = "Jet Set Willy")
     private final Rectangle jsw;
+    //Coordinates the keyboard input and moves the player sprite in the appropriate direction
     private final JSWControlsHandler jSWControlsHandler;
+
+    //Each of thes arrays below is as long as the screen size (which is currently square).  The relevant boundary of each
+    //platform in relation to the direction that the player sprite happens to be moving forms its index in the appropriate array.
+    //These arrays are then used by the functionality that controls the player's movement in order to quickly detect
+    //whether they have collided with something e.g.
+
+    //if there is a platform (rectangle) at x = 50, y=70 that is 20 wide and 10 high then the left boundary (x=50) is the only thing
+    //that the player will be able to collide with when moving right, so this rectangle will be placed at index 50 in the
+    //array that is checked when the play is moving right.  The lower boundary at y=80 (70 + 10) will be what the functionality
+    //cares about when the player sprite is moving up, so the rectangle will be placed at index 80 in the list that is checked when
+    //the spring is moving up the screen.
+
     private final Rectangle[] goingRightCaresAbout = new Rectangle[SCREEN_SIZE];
     private final Rectangle[] goingLeftCaresAbout = new Rectangle[SCREEN_SIZE];
     private final Rectangle[] goingUpCaresAbout = new Rectangle[SCREEN_SIZE];
@@ -29,11 +55,12 @@ public class GamePanel extends JPanel {
 
 
     GamePanel(List<Rectangle> collisionAreas) {
-        //this.collisionAreas = new ArrayList<>();
 
         this.collisionAreas = collisionAreas;
 
         jsw = collisionAreas.remove(0);
+
+        //Some hard-coded data for when we can't access cassandra and want to do some testing
 
 //        jsw = new Rectangle(600,499,50,100);
 //
@@ -60,6 +87,7 @@ public class GamePanel extends JPanel {
     }
 
     void start() {
+        //The game thread that repaints, sleeps and then repaints again until the game is stopped
         started = true;
         while(started) {
             try {
@@ -103,9 +131,13 @@ public class GamePanel extends JPanel {
         private final char KEY_RIGHT = 'p';
         private final char KEY_JUMP = 'm';
 
-        private final Mover fallMover;
+        //Each of these instances handle the movement of the sprite in a particular direction.  They are Runnable instances
+        //that are run on separate threads that update the location of the player sprite in order to move it in particular directions.
+        //The sprite is then repainted by the repainting loop meaning that the player sprite is seen to move around the screen.
         private final Mover leftMover;
         private final Mover rightMover;
+        //Handles the movement for when the player sprite is falling
+        private final Mover fallMover;
         private final Mover jumpMover;
 
         private volatile boolean leftKeyPressed;
@@ -129,6 +161,7 @@ public class GamePanel extends JPanel {
             switch(e.getKeyChar()) {
                 case(KEY_LEFT): {
                     leftKeyPressed = true;
+                    //Can't move left if we're already moving left or already moving in any other direction
                     if(!leftMover.isRunning() && !rightMover.isRunning() && !jumpMover.isRunning() && !fallMover.isRunning()) {
                         leftMover.start();
                     }
@@ -143,7 +176,10 @@ public class GamePanel extends JPanel {
                 }
                 case(KEY_JUMP): {
                     jumpKeyPressed = true;
+                    //Can't jump if we're falling or already jumping
                     if(!fallMover.isRunning() && !jumpMover.isRunning()) {
+                        //If we're already moving left or right we will jump in that direction but we must stop the
+                        //movement first otherwise it will interfere with the jumping movment
                         if(leftMover.isRunning()) {
                             leftMover.requestStopAndWait();
                         }
@@ -158,12 +194,17 @@ public class GamePanel extends JPanel {
             }
         }
 
-        private void actionFinished(MovementType movementType, boolean falling) {
+        //Called when a movement has finished.  This could be because the player has collided with something, released
+        //the key for that movement or is now falling e.g. if they have walked off the end of a platform
+        private void movementFinished(MovementType movementType, boolean falling) {
 
+            //If we need to fall then this takes priority over everything else
             if(falling && movementType != MovementType.FALL) {
                 fallMover.start();
             }
             else if(movementType == MovementType.JUMP) {
+                //if we've just finished a jump and the user has been holding down the left or right key then start the
+                //player sprite moving in that direction
                 if(leftKeyPressed) {
                     leftMover.start();
                 }
@@ -172,6 +213,8 @@ public class GamePanel extends JPanel {
                 }
             }
             else if(movementType == MovementType.FALL) {
+                //if we've just finished falling and the user has been holding down the left, right or jump key then start the
+                //player sprite moving accordingly
                 if(jumpKeyPressed) {
                     jumpMover.start();
                 }
@@ -182,7 +225,11 @@ public class GamePanel extends JPanel {
                     rightMover.start();
                 }
             }
+            //if we've just finished moving left or right and the user has been holding down the key for moving
+            //in the opposite direction then start moving in that direction
             else if(movementType == MovementType.WALK_LEFT) {
+                //if we've just finished moving left or right and the user has been holding down the key for moving
+                //in the opposite direction then start moving in that direction
                 if(rightKeyPressed && jumpKeyPressed) {
                     jumpMover.start();
                 }
@@ -200,6 +247,7 @@ public class GamePanel extends JPanel {
             }
         }
 
+        //Stop the movement for that key when it's released
         @Override
         public void keyReleased(KeyEvent e) {
             switch (e.getKeyChar()) {
@@ -231,6 +279,7 @@ public class GamePanel extends JPanel {
         }
     }
 
+    //Represents all the possible movements of the player sprite
     private enum MovementType {
         WALK_LEFT,
         WALK_RIGHT,
@@ -238,15 +287,23 @@ public class GamePanel extends JPanel {
         FALL;
     }
 
+    //Runnable class that updates the location of a sprite
     private abstract class Mover implements Runnable {
 
 
         private final MovementType movementType;
+        //the service used to run this runnable
         private final ExecutorService executorService;
+        //true if this mover running
         private volatile boolean running;
+        //the distance that the sprite moves before sleeping or checking other variables
         protected final int numPixelsPerMovement;
+        //the num millis to sleep between the aforementioned movements (if applicable).  This is for controlling the
+        //speed at which the sprite moves.
         private final int numMillisBetweenMovements;
+        //true if a request has been made for the movement to stop e.g. if the key governing the movement has been released
         private volatile boolean stopRequestReceived;
+        //the process that is running the routine
         private Future future;
 
 
@@ -264,10 +321,18 @@ public class GamePanel extends JPanel {
             future = executorService.submit(this);
         }
 
+        /**
+         * Submits a request to stop and returns.  Doesn't block.  The {@link JSWControlsHandler} will be notified
+         * when this movement is finished.
+         */
         protected void requestStop() {
             stopRequestReceived = true;
         }
 
+        /**
+         * As for {@link #requestStop()} except this blocks until the thread for the routine has completed.
+         * The {@link JSWControlsHandler} will still be notified when this movement is finished.
+         */
         private void requestStopAndWait() {
             stopRequestReceived = true;
             try {
@@ -283,10 +348,15 @@ public class GamePanel extends JPanel {
             return running;
         }
 
-        private MovementType getMovementType() {
-            return movementType;
-        }
-
+        //Call the subclasses movement routine.  This will move the sprite the minimum distance required
+        //before the routine needs to pause.  If it returns true then the entire move has finished and we can
+        //stop moving if we have received a request to stop, otherwise we can start moving again.  For example, a jump may consist
+        //of many of these move-pause, move-pause, move-pause cycles before it finishes and returns true, as jumping moves
+        // the player sprite across quite a long distance, whereas moving left or right may only consist of one cycle.
+        // Once the movement has finished then a check is made to see if the sprite should now fall, and if so this
+        //will stop the movement even if it has not been requested to stop.
+        //Also note that most movement subclasses will move the sprite less than the minimumdistanc and immediately return
+        //true if they detect that the sprite has collided with something.
         public void run() {
             stopRequestReceived = false;
             boolean shouldFall = false;
@@ -301,7 +371,7 @@ public class GamePanel extends JPanel {
             }
 
             running = false;
-            jSWControlsHandler.actionFinished(movementType, shouldFall);
+            jSWControlsHandler.movementFinished(movementType, shouldFall);
         }
 
         protected abstract boolean doMove();
@@ -320,7 +390,7 @@ public class GamePanel extends JPanel {
         }
     }
 
-
+    //Handles the movement of a sprite when its falling
     private class FallMover extends Mover {
 
         private FallMover() {
@@ -349,9 +419,11 @@ public class GamePanel extends JPanel {
         }
     }
 
-
+    //Handles the movement of the sprite when its jumping
     private class JumpMover extends Mover {
 
+        //Defines the increments that need to be made to the sprite's location in order to get them to jump left, right
+        //or up.
 
         private final int[][] trajectoryRight;
         private final int[][] trajectoryLeft;
@@ -398,12 +470,22 @@ public class GamePanel extends JPanel {
         @Override
         public boolean doMove() {
 
+            //Get the trajectory depending on which direction we are jumping in
             if(trajectoryBeingUsed == null) {
                 trajectoryBeingUsed = jSWControlsHandler.leftKeyPressed ? trajectoryLeft :
                         jSWControlsHandler.rightKeyPressed ? trajectoryRight : trajectoryUp;
             }
 
+            //Only move the sprite the defined number of pixels for each movement before stopping
             int endIndex = startIndexInTrajectory + numPixelsPerMovement;
+            //Step along the trajectory array making the increments to the sprite's location.  If something blocks
+            //our path in one direction don't move the sprite in that direction but continue moving in the other
+            //direction e.g. if something's in front of us but not above us then don't move forward but continue
+            //any upwards movements.  A special case is made for when the sprite is moving downwards on the latter
+            //half of the jump and something blocks its downward movement.  If this is the case then the movement is
+            //stopped as if it's been totally blocked.  This is so as the sprite doesn't "slide" along platforms if it
+            //has jumped upwards on to one.
+            // If something blocks us in both directions then stop.
             boolean movementTotallyBlocked = false;
             boolean didntCollideWithAnythingGoingUpOrDown = true;
             for(int i = startIndexInTrajectory; i < endIndex && !movementTotallyBlocked; i++) {
@@ -437,16 +519,19 @@ public class GamePanel extends JPanel {
             boolean finishedMovement = endIndex == trajectoryBeingUsed.length  || movementTotallyBlocked;
 
             if(finishedMovement) {
+                //If we're finished jumping then reset these variables so we're ready to start a new jump
                 startIndexInTrajectory = 0;
                 trajectoryBeingUsed = null;
             }
             else {
+                //If we haven't finished jumping yet then make sure we remember where we left off
                 startIndexInTrajectory = endIndex;
             }
             return finishedMovement;
         }
     }
 
+    //Moves a sprite left
     private class LeftMover extends Mover {
 
 
@@ -472,6 +557,8 @@ public class GamePanel extends JPanel {
             return true;
         }
     };
+
+    //Moves a sprite right
     private class RightMover extends Mover {
 
 
