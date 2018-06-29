@@ -14,18 +14,23 @@ import java.util.List;
 import java.util.Map;
 
 
+/**
+ * Holds the {@link GamePanel} and is responsible for loading the configuration that it uses.
+ */
 public class GameFrame extends JFrame {
 
 
     private final GamePanel gamePanel;
     private final Session cassandraSession;
+    private final Cluster cluster;
     private final Thread gameThread;
 
-
+    //@todo - save the screen size in the editor, don't hardcode it
+    //@todo - refactor the GamePanel class into separate classes as it's too big
     public GameFrame() {
 
         Cluster.Builder b = Cluster.builder().addContactPoint("10.130.84.52");
-        Cluster cluster = b.build();
+        cluster = b.build();
         cassandraSession = cluster.connect();
 
         gamePanel = new GamePanel(load());
@@ -77,6 +82,9 @@ public class GameFrame extends JFrame {
         setVisible(true);
     }
 
+    /**
+     * Loads the game data from the cassandra db
+     */
     private List<Rectangle> load() {
         String selectStatement = "SELECT class,id,attributes,rectangle FROM jsw.COLLISION_AREAS";
         BoundStatement b = cassandraSession.prepare(selectStatement).bind();
@@ -109,10 +117,13 @@ public class GameFrame extends JFrame {
         boolean stopped = false;
         try {
             gameThread.join(3000);
+            cassandraSession.close();
+            cluster.close();
             stopped = true;
         }
         catch(Exception e) {
-            System.out.println("Interrupted while waiting for game thread!!  Shouldn't happen.");
+            System.out.println("Exception while shutting down");
+            e.printStackTrace();
         }
 
         if(!stopped) {
