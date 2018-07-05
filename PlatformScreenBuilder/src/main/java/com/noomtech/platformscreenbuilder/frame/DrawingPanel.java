@@ -1,6 +1,11 @@
 package com.noomtech.platformscreenbuilder.frame;
 
-import com.noomtech.platformscreenbuilder.building_blocks.CollisionArea;
+import com.noomtech.platformscreen.Constants;
+import com.noomtech.platformscreen.gameobjects.GameObject;
+import com.noomtech.platformscreen.gameobjects.JSW;
+import com.noomtech.platformscreen.gameobjects.Nasty;
+import com.noomtech.platformscreen.gameobjects.Platform;
+import com.noomtech.platformscreenbuilder.building_blocks.EditorObject;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,12 +21,12 @@ import java.util.Map;
 public class DrawingPanel extends JPanel {
 
 
-    private final List<CollisionArea> collisionAreas;
+    private final List<EditorObject> collisionAreas;
     private volatile Rectangle beingDrawn;
-    private final List<CollisionArea> toDelete = new ArrayList<>();
+    private final List<EditorObject> toDelete = new ArrayList<>();
 
 
-    DrawingPanel(List<CollisionArea> collisionAreas) {
+    DrawingPanel(List<EditorObject> collisionAreas) {
         this.collisionAreas = collisionAreas;
         MouseMovementHandler mouseMovementHandler = new MouseMovementHandler();
         this.addMouseListener(mouseMovementHandler);
@@ -36,7 +41,7 @@ public class DrawingPanel extends JPanel {
         Dimension size = getSize();
         g.fillRect(0,0,size.width,size.height);
 
-        for(CollisionArea c : collisionAreas) {
+        for(EditorObject c : collisionAreas) {
             Rectangle r = c.getRectangle();
             if(c.isSelected() && !c.isBeingMoved()) {
                 g.setColor(Color.BLUE);
@@ -54,7 +59,7 @@ public class DrawingPanel extends JPanel {
         }
     }
 
-    private Color getColourForOutline(CollisionArea c) {
+    private Color getColourForOutline(EditorObject c) {
         if(c.isBeingMoved()) {
             return Color.RED;
         }
@@ -63,7 +68,7 @@ public class DrawingPanel extends JPanel {
         }
     }
 
-    void addCollisionArea(CollisionArea c) {
+    void addCollisionArea(EditorObject c) {
         collisionAreas.add(c);
     }
 
@@ -72,7 +77,7 @@ public class DrawingPanel extends JPanel {
 
 
         private Point pressedAt;
-        private CollisionArea pressedOn;
+        private EditorObject pressedOn;
         private int buttonPressed;
 
 
@@ -123,7 +128,7 @@ public class DrawingPanel extends JPanel {
         public void mouseReleased(MouseEvent e) {
 
             if(beingDrawn != null) {
-                CollisionArea newCollisionArea = new CollisionArea(new Rectangle(beingDrawn), System.currentTimeMillis());
+                EditorObject newCollisionArea = new EditorObject(new Rectangle(beingDrawn), System.currentTimeMillis());
                 addCollisionArea(newCollisionArea);
                 beingDrawn = null;
 
@@ -150,7 +155,7 @@ public class DrawingPanel extends JPanel {
 
         public void mouseClicked(MouseEvent m) {
             if (m.getClickCount() == 2) {
-                CollisionArea doubleClickedOn = isIn(m.getPoint());
+                EditorObject doubleClickedOn = isIn(m.getPoint());
                 if(doubleClickedOn != null) {
                     AttributesPopup attributesPopup = new AttributesPopup(doubleClickedOn);
                     doubleClickedOn.setSelected(true);
@@ -164,12 +169,10 @@ public class DrawingPanel extends JPanel {
         }
 
         class AttributesPopup extends JDialog {
-            private CollisionArea collisionArea;
-            AttributesPopup(CollisionArea collisionArea) {
+            AttributesPopup(final EditorObject collisionArea) {
                 super((JFrame)null, "Attributes", true);
-                this.collisionArea = collisionArea;
                 setLayout(new BorderLayout());
-                JTextField classField = new JTextField();
+                JComboBox<String> classBox = new JComboBox(Constants.TYPES);
                 JTextArea textArea = new JTextArea();
                 JButton saveButton = new JButton("Save");
                 saveButton.addActionListener(ae -> {
@@ -182,18 +185,49 @@ public class DrawingPanel extends JPanel {
                             attributes.put(keyValArray[0], keyValArray[1]);
                         }
                     }
-                    collisionArea.setParams(attributes);
+                    String theClass = (String)classBox.getSelectedItem();
+                    GameObject g;
+                    if(theClass.equals(Constants.TYPE_PLATFORM)) {
+                        g = new Platform(collisionArea.getRectangle());
+                    }
+                    else if(theClass.equals(Constants.TYPE_NASTY)) {
+                        g = new Nasty(collisionArea.getRectangle());
+                    }
+                    else if(theClass.equals(Constants.TYPE_JSW)) {
+                        g = new JSW(collisionArea.getRectangle());
+                    }
+                    else {
+                        throw new IllegalArgumentException();
+                    }
+                    g.setAttributes(attributes);
+
+                    EditorObject newEditorObject = new EditorObject(collisionArea.getRectangle(), collisionArea.getId());
+                    newEditorObject.setGameObject(g);
+                    collisionAreas.remove(collisionArea);
+                    collisionAreas.add(newEditorObject);
+                    toDelete.add(collisionArea);
+
+                    setVisible(false);
+                    dispose();
                 });
 
-                Map<String,String> attributes = collisionArea.getParams();
-                if(!attributes.isEmpty()) {
-                    StringBuilder sb = new StringBuilder();
-                    for (Map.Entry<String, String> entry : attributes.entrySet()) {
-                        sb.append(entry.getKey() + "=" + entry.getValue() + ",");
+                GameObject gameObject = collisionArea.getGameObject();
+                if(gameObject != null) {
+                    Map<String, String> attributes = gameObject.getAttributes();
+                    if (!attributes.isEmpty()) {
+                        StringBuilder sb = new StringBuilder();
+                        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+                            sb.append(entry.getKey() + "=" + entry.getValue() + ",");
+                        }
+                        textArea.setText(sb.substring(0, sb.length() - 1));
                     }
-                    textArea.setText(sb.substring(0, sb.length() - 1));
+                    classBox.setSelectedItem(gameObject instanceof Platform ? Constants.TYPE_PLATFORM : gameObject instanceof Nasty ? Constants.TYPE_NASTY : Constants.TYPE_JSW);
                 }
-                add(classField, BorderLayout.NORTH);
+                else {
+                    classBox.setSelectedItem(Constants.TYPE_PLATFORM);
+                }
+
+                add(classBox, BorderLayout.NORTH);
                 add(textArea, BorderLayout.CENTER);
                 add(saveButton, BorderLayout.SOUTH);
                 Dimension size = new Dimension(350,350);
@@ -205,8 +239,8 @@ public class DrawingPanel extends JPanel {
             }
         }
 
-        private CollisionArea isIn(Point p) {
-            for(CollisionArea c : collisionAreas) {
+        private EditorObject isIn(Point p) {
+            for(EditorObject c : collisionAreas) {
                 if(c.getRectangle().contains(p)) {
                     return c;
                 }
@@ -215,7 +249,7 @@ public class DrawingPanel extends JPanel {
         }
 
         private boolean isOnAnyCollisionAreas(Rectangle r) {
-            for(CollisionArea c : collisionAreas) {
+            for(EditorObject c : collisionAreas) {
                 if(!c.isBeingMoved() && c.getRectangle().intersects(r)) {
                     return true;
                 }
@@ -252,7 +286,7 @@ public class DrawingPanel extends JPanel {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                CollisionArea invokedOn = isIn(invokedAt);
+                EditorObject invokedOn = isIn(invokedAt);
                 if(invokedOn != null) {
                     collisionAreas.remove(invokedOn);
                     toDelete.add(invokedOn);
@@ -262,11 +296,11 @@ public class DrawingPanel extends JPanel {
         }
     }
 
-    List<CollisionArea> getCollisionAreas() {
+    List<EditorObject> getCollisionAreas() {
         return new ArrayList<>(collisionAreas);
     }
 
-    List<CollisionArea> getToDelete() {
+    List<EditorObject> getToDelete() {
         return toDelete;
     }
 
