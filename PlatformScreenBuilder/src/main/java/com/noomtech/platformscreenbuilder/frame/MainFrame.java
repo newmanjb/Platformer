@@ -1,11 +1,17 @@
 package com.noomtech.platformscreenbuilder.frame;
 
 import com.datastax.driver.core.*;
-import com.noomtech.platformscreenbuilder.building_blocks.CollisionArea;
+import com.noomtech.platformscreen.Constants;
+import com.noomtech.platformscreen.gameobjects.GameObject;
+import com.noomtech.platformscreen.gameobjects.JSW;
+import com.noomtech.platformscreen.gameobjects.Nasty;
+import com.noomtech.platformscreen.gameobjects.Platform;
+import com.noomtech.platformscreenbuilder.building_blocks.EditorObject;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -67,11 +73,11 @@ public class MainFrame extends JFrame {
         setVisible(true);
     }
 
-    private List<CollisionArea> load() {
+    private List<EditorObject> load() {
         String selectStatement = "SELECT class,id,attributes,rectangle FROM jsw.COLLISION_AREAS";
         BoundStatement b = cassandraSession.prepare(selectStatement).bind();
         ResultSet rs = cassandraSession.execute(b);
-        List<CollisionArea> toReturn = new ArrayList<>();
+        List<EditorObject> toReturn = new ArrayList<>();
         List<Row> rows = rs.all();
         for(Row row : rows) {
             String classVal = row.getString(0);
@@ -83,7 +89,36 @@ public class MainFrame extends JFrame {
             TupleValue endTuple = tupleValue.get(1,TupleValue.class);
             Point end = new Point(endTuple.get(0,Integer.class), endTuple.get(1,Integer.class));
             Rectangle rectangle = new Rectangle(start.x, start.y, end.x - start.x, end.y - start.y);
-            toReturn.add(new CollisionArea(rectangle, attributes, classVal, id));
+
+            GameObject gameObject = null;
+            if(!classVal.equals("TBD")) {
+                switch(classVal) {
+                    case Constants.TYPE_PLATFORM : {
+                        gameObject = new Platform(rectangle);
+                        gameObject.setAttributes(attributes);
+                        break;
+                    }
+                    case Constants.TYPE_NASTY : {
+                        gameObject = new Nasty(rectangle);
+                        gameObject.setAttributes(attributes);
+                        break;
+                    }
+                    case Constants.TYPE_JSW : {
+                        gameObject = new JSW(rectangle);
+                        gameObject.setAttributes(attributes);
+                        break;
+                    }
+                    default : {
+                        throw new IllegalArgumentException();
+                    }
+                }
+
+            }
+
+            EditorObject editorObject = new EditorObject(rectangle, id);
+            editorObject.setGameObject(gameObject);
+            toReturn.add(editorObject);
+
         }
         return toReturn;
     }
@@ -98,10 +133,11 @@ public class MainFrame extends JFrame {
         }
         public void actionPerformed(ActionEvent e) {
 
-            List<CollisionArea> toDeleteList = drawingPanel.getToDelete();
-            for(CollisionArea c : toDeleteList) {
+            List<EditorObject> toDeleteList = drawingPanel.getToDelete();
+            for(EditorObject c : toDeleteList) {
                 BoundStatement boundStatement = preparedDeleteStatement.bind();
-                boundStatement.setString(0, c.getTheClass());
+                GameObject gameObject = c.getGameObject();
+                boundStatement.setString(0, c.getGameObject() != null ? gameObject instanceof Platform ? Constants.TYPE_PLATFORM : gameObject instanceof Nasty ? Constants.TYPE_NASTY : Constants.TYPE_JSW : "TBD");
                 boundStatement.setLong(1, c.getId());
                 if(!cassandraSession.execute(boundStatement).wasApplied()) {
                     throw new IllegalArgumentException("Didn't work!");
@@ -109,12 +145,34 @@ public class MainFrame extends JFrame {
             }
             drawingPanel.clearDeleteList();
 
-            List<CollisionArea> collisionAreaList = drawingPanel.getCollisionAreas();
-            for(CollisionArea c : collisionAreaList) {
+            List<EditorObject> collisionAreaList = drawingPanel.getCollisionAreas();
+            for(EditorObject c : collisionAreaList) {
                 BoundStatement boundStatement = preparedInsertStatement.bind();
-                boundStatement.setString(0, c.getTheClass());
+
+                GameObject gameObject = c.getGameObject();
+                String classVal;
+                Map<String,String> attributesToSave = null;
+                if(gameObject != null) {
+                    classVal = gameObject instanceof Platform ? Constants.TYPE_PLATFORM : gameObject instanceof Nasty ? Constants.TYPE_NASTY : Constants.TYPE_JSW;
+                    Map<String,String> attributes = gameObject.getAttributes();
+                    if(attributes != null && !attributes.isEmpty()) {
+                        attributesToSave = attributes;
+                    }
+                }
+                else {
+                    classVal = "TBD";
+                }
+
+                boundStatement.setString(0, classVal);
                 boundStatement.setLong(1, c.getId());
-                boundStatement.setMap(2,c.getParams());
+
+                if(attributesToSave == null) {
+                    boundStatement.setToNull(2);
+                }
+                else {
+                    boundStatement.setMap(2, attributesToSave);
+                }
+
                 Rectangle r = c.getRectangle();
                 TupleType t = TupleType.of(ProtocolVersion.NEWEST_SUPPORTED, CodecRegistry.DEFAULT_INSTANCE,
                         DataType.cint(), DataType.cint());
