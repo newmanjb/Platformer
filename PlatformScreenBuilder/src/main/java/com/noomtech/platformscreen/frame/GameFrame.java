@@ -1,12 +1,16 @@
 package com.noomtech.platformscreen.frame;
 
 import com.datastax.driver.core.*;
+import com.noomtech.platformscreen.Constants;
+import com.noomtech.platformscreen.gameobjects.GameObject;
+import com.noomtech.platformscreen.gameobjects.JSW;
+import com.noomtech.platformscreen.gameobjects.Nasty;
+import com.noomtech.platformscreen.gameobjects.Platform;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -21,14 +25,17 @@ public class GameFrame extends JFrame {
     private final Thread gameThread;
 
     //@todo - save the screen size in the editor, don't hardcode it
-    //@todo - refactor the GamePanel class into separate classes as it's too big
     public GameFrame() {
 
         Cluster.Builder b = Cluster.builder().addContactPoint("10.130.84.52");
         cluster = b.build();
         cassandraSession = cluster.connect();
 
-        gamePanel = new GamePanel(load());
+        Map<String, List<? extends GameObject>> gameObjects = load();
+        gamePanel = new GamePanel(
+                (List<JSW>)gameObjects.get(Constants.TYPE_JSW),
+                (List<Platform>)gameObjects.get(Constants.TYPE_PLATFORM),
+                (List<Nasty>)gameObjects.get(Constants.TYPE_NASTY));
 
         setTitle("Game");
 
@@ -80,16 +87,17 @@ public class GameFrame extends JFrame {
     /**
      * Loads the game data from the cassandra db
      */
-    private List<Rectangle> load() {
+    private Map<String,List<? extends GameObject>> load() {
         String selectStatement = "SELECT class,id,attributes,rectangle FROM jsw.COLLISION_AREAS";
         BoundStatement b = cassandraSession.prepare(selectStatement).bind();
         ResultSet rs = cassandraSession.execute(b);
-        List<Rectangle> toReturn = new ArrayList<>();
+        Map<String,List<? extends GameObject>> toReturn = new HashMap<>();
+        List<Nasty> nasties = new ArrayList<>();
+        List<JSW> player = new ArrayList<>();
+        List<Platform> platforms = new ArrayList<>();
         List<Row> rows = rs.all();
         for(Row row : rows) {
-            String classVal = row.getString(0);
-            long id = row.getLong(1);
-            Map<String,String> attributes = row.getMap(2, String.class, String.class);
+
             TupleValue tupleValue = row.getTupleValue(3);
             TupleValue startTuple = tupleValue.get(0,TupleValue.class);
             Point start = new Point(startTuple.get(0,Integer.class), startTuple.get(1,Integer.class));
@@ -97,13 +105,32 @@ public class GameFrame extends JFrame {
             Point end = new Point(endTuple.get(0,Integer.class), endTuple.get(1,Integer.class));
             Rectangle rectangle = new Rectangle(start.x, start.y, end.x - start.x, end.y - start.y);
 
-            if(attributes.containsKey("type") && attributes.get("type").equalsIgnoreCase("jsw")) {
-                toReturn.add(0, rectangle);
-            }
-            else {
-                toReturn.add(rectangle);
+            String classVal = row.getString(0);
+            Map<String,String> attributes = row.getMap(2, String.class, String.class);
+            switch(classVal) {
+                case(Constants.TYPE_JSW) : {
+                    JSW jsw = new JSW(rectangle);
+                    player.add(jsw);
+                    break;
+                }
+                case(Constants.TYPE_NASTY) : {
+                    Nasty nasty = new Nasty(rectangle);
+                    nasties.add(nasty);
+                    break;
+                }
+                case(Constants.TYPE_PLATFORM): {
+                    Platform platform = new Platform(rectangle);
+                    platforms.add(platform);
+                    break;
+                }
+                default: {
+                    throw new IllegalArgumentException("Unknown class " + classVal);
+                }
             }
         }
+        toReturn.put(Constants.TYPE_JSW, player);
+        toReturn.put(Constants.TYPE_PLATFORM, platforms);
+        toReturn.put(Constants.TYPE_NASTY, nasties);
         return toReturn;
     }
 
