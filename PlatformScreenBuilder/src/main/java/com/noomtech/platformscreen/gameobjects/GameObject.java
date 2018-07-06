@@ -4,10 +4,16 @@ import java.awt.*;
 import java.util.Map;
 
 
+/**
+ * Represents an object on the screen e.g. player, platform
+ * @author Joshua Newman
+ */
 public abstract class GameObject {
 
 
+    //The boundaries of the object
     private Rectangle collisionArea;
+    //The properties of the object
     private Map<String,String> attributes;
 
 
@@ -31,5 +37,21 @@ public abstract class GameObject {
 
     public Map<String,String> getAttributes() {
         return attributes;
+    }
+
+    public int getHeight() {
+        return collisionArea.height;
+    }
+
+    public int getWidth() {
+        return collisionArea.width;
+    }
+
+    public int getX() {
+        return collisionArea.x;
+    }
+
+    public int getY() {
+        return collisionArea.y;
     }
 }
