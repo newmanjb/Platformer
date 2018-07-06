@@ -1,13 +1,16 @@
 package com.noomtech.platformscreen.gameobjects;
 
-import com.noomtech.platformscreen.gameobjects.GameObject;
-
 import java.awt.*;
 
+
+/**
+ * Represents a platform on the screen
+ * @author Joshua Newman
+ */
 public class Platform extends GameObject {
 
 
-    private static final Color COLOR = Color.BLUE;
+    private static final Color COLOR = Color.GREEN;
 
 
     public Platform(Rectangle collisionArea) {
