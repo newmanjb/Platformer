@@ -1,5 +1,10 @@
 package com.noomtech.platformscreen.frame;
 
+import com.noomtech.platformscreen.gameobjects.GameObject;
+import com.noomtech.platformscreen.gameobjects.JSW;
+import com.noomtech.platformscreen.gameobjects.Nasty;
+import com.noomtech.platformscreen.gameobjects.Platform;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -29,11 +34,14 @@ public class GamePanel extends JPanel {
 
     private static final int SCREEN_SIZE = 1920;
 
-    //The game objects, with the first one in the list being the player sprite.
-    private final List<Rectangle> collisionAreas;
+    //The platforms.
+    private final List<Platform> platforms;
+    //The nasties
+    private final List<Nasty> nasties;
+    //True if the game is running.  Used to keep the game loop going and to stop it
     private volatile boolean started = false;
     //The player sprite (jsw = "Jet Set Willy")
-    private final Rectangle jsw;
+    private final JSW jsw;
     //Coordinates the keyboard input and moves the player sprite in the appropriate direction
     private final JSWControlsHandler jSWControlsHandler;
 
@@ -54,11 +62,11 @@ public class GamePanel extends JPanel {
     private final Rectangle[] goingDownCaresAbout = new Rectangle[SCREEN_SIZE];
 
 
-    GamePanel(List<Rectangle> collisionAreas) {
+    GamePanel(List<JSW> player, List<Platform> platforms, List<Nasty> nasties) {
 
-        this.collisionAreas = collisionAreas;
-
-        jsw = collisionAreas.remove(0);
+        jsw = player.get(0);
+        this.platforms = platforms;
+        this.nasties = nasties;
 
         //Some hard-coded data for when we can't access cassandra and want to do some testing
 
@@ -69,9 +77,10 @@ public class GamePanel extends JPanel {
 //        Rectangle c3 = new Rectangle(900, 380, 200,100);
 //        Rectangle c4 = new Rectangle(0, 600, 1200,20);
 //        Rectangle c5 = new Rectangle(0, 0, 20,600);
-//        this.collisionAreas.addAll(Arrays.asList(new Rectangle[]{c1,c2,c3,c4,c5}));
+//        this.platforms.addAll(Arrays.asList(new Rectangle[]{c1,c2,c3,c4,c5}));
 
-        for(Rectangle r : this.collisionAreas) {
+        for(Platform platform : platforms) {
+            Rectangle r = platform.getCollisionArea();
             Point p = r.getLocation();
             goingLeftCaresAbout[p.x + r.width] = r;
             goingRightCaresAbout[p.x] = r;
@@ -116,12 +125,13 @@ public class GamePanel extends JPanel {
         Dimension size = getSize();
         g.fillRect(0,0,size.width,size.height);
 
-        g.setColor(Color.BLUE);
-        g.fillRect(jsw.x, jsw.y, jsw.width, jsw.height);
+        jsw.paintIt(g);
+        for(Platform platform : platforms) {
+            platform.paintIt(g);
+        }
 
-        g.setColor(Color.RED);
-        for(Rectangle r : collisionAreas) {
-            g.drawRect(r.x, r.y, r.width, r.height);
+        for(Nasty nasty : nasties) {
+            nasty.paintIt(g);
         }
     }
 
@@ -380,7 +390,9 @@ public class GamePanel extends JPanel {
             if(movementType == MovementType.FALL) {
                 return false;
             }
-            return checkNotCollidedWhileMovingUpOrDown(jsw.y + jsw.height + 1,
+            Rectangle jswCollisionArea = jsw.getCollisionArea();
+            return checkNotCollidedWhileMovingUpOrDown(jswCollisionArea.y +
+                            jswCollisionArea.height + 1,
                     false);
         }
 
@@ -398,15 +410,15 @@ public class GamePanel extends JPanel {
         }
         @Override
         protected boolean doMove() {
-            int startCheckpoint = jsw.y + jsw.height + 1;
-            int endCheckPoint = jsw.y + jsw.height + numPixelsPerMovement;
+            int startCheckpoint = jsw.getY() + jsw.getHeight() + 1;
+            int endCheckPoint = jsw.getY() + jsw.getHeight() + numPixelsPerMovement;
             boolean notCollided = true;
             int i;
             for(i = startCheckpoint ; i <= endCheckPoint && notCollided ;i++) {
                 notCollided = checkNotCollidedWhileMovingUpOrDown(i, false);
                 if(notCollided) {
                     //We can fall
-                    jsw.setLocation(jsw.x, i-jsw.height);
+                    jsw.setLocation(jsw.getCollisionArea().x, i-jsw.getCollisionArea().height);
                 }
                 else {
                     //@todo - this is stopping itself rather than the loop in the superclass doing it.  Can this be done
@@ -490,14 +502,14 @@ public class GamePanel extends JPanel {
             boolean didntCollideWithAnythingGoingUpOrDown = true;
             for(int i = startIndexInTrajectory; i < endIndex && !movementTotallyBlocked; i++) {
                 int[] movements = trajectoryBeingUsed[i];
-                Point proposedNewLocation = new Point(jsw.x + movements[0], jsw.y + movements[1]);
+                Point proposedNewLocation = new Point(jsw.getX() + movements[0], jsw.getY() + movements[1]);
 
                 if(movements[1] != 0) {
                     didntCollideWithAnythingGoingUpOrDown = checkNotCollidedWhileMovingUpOrDown(movements[1] < 0
                             ?proposedNewLocation.y : proposedNewLocation.y +
-                            jsw.height, movements[1] < 0);
+                            jsw.getHeight(), movements[1] < 0);
                     if(didntCollideWithAnythingGoingUpOrDown) {
-                        jsw.y = proposedNewLocation.y;
+                        jsw.setLocation(jsw.getX(), proposedNewLocation.y);
                     }
                     else {
                         movementTotallyBlocked = movements[0] == 0 || movements[1] > 0;
@@ -506,8 +518,8 @@ public class GamePanel extends JPanel {
 
                 if(movements[0] != 0 && !movementTotallyBlocked) {
                     if(checkNotCollidedWhileMovingAcross(movements[0] < 0 ? proposedNewLocation.x : proposedNewLocation.x +
-                                    jsw.width, movements[0] > 0)) {
-                        jsw.x = proposedNewLocation.x;
+                                    jsw.getWidth(), movements[0] > 0)) {
+                        jsw.setLocation(proposedNewLocation.x, jsw.getY());
                     }
                     else {
                         movementTotallyBlocked = movements[1] == 0 || !didntCollideWithAnythingGoingUpOrDown;
@@ -542,8 +554,8 @@ public class GamePanel extends JPanel {
         @Override
         protected boolean doMove() {
 
-            int startCheckpoint = jsw.x - 1;
-            int endCheckPoint = jsw.x - numPixelsPerMovement;
+            int startCheckpoint = jsw.getX() - 1;
+            int endCheckPoint = jsw.getX() - numPixelsPerMovement;
 
             boolean notCollided = true;
             int i;
@@ -551,7 +563,7 @@ public class GamePanel extends JPanel {
                 notCollided = checkNotCollidedWhileMovingAcross(i, false);
                 if(notCollided) {
                     //We can move
-                    jsw.setLocation(i, jsw.y);
+                    jsw.setLocation(i, jsw.getY());
                 }
             }
             return true;
@@ -568,8 +580,8 @@ public class GamePanel extends JPanel {
 
         @Override
         protected boolean doMove() {
-            int startCheckpoint = jsw.x + jsw.width + 1;
-            int endCheckPoint = jsw.x + jsw.width + numPixelsPerMovement;
+            int startCheckpoint = jsw.getX() + jsw.getWidth() + 1;
+            int endCheckPoint = jsw.getX() + jsw.getWidth() + numPixelsPerMovement;
 
             boolean notCollided = true;
             int i;
@@ -577,7 +589,7 @@ public class GamePanel extends JPanel {
                 notCollided = checkNotCollidedWhileMovingAcross(i, true);
                 if(notCollided) {
                     //We can move
-                    jsw.setLocation(i - jsw.width, jsw.y);
+                    jsw.setLocation(i - jsw.getWidth(), jsw.getY());
                 }
             }
             return true;
@@ -597,8 +609,8 @@ public class GamePanel extends JPanel {
     private boolean checkNotCollidedWhileMovingAcross(int xLocation, boolean goingRight) {
         Rectangle cp = goingRight ? goingRightCaresAbout[xLocation] : goingLeftCaresAbout[xLocation];
         if(cp != null) {
-            int topOfJsw = jsw.y;
-            int bottomOfJsw = topOfJsw + jsw.height;
+            int topOfJsw = jsw.getY();
+            int bottomOfJsw = topOfJsw + jsw.getHeight();
             int topOfCp = cp.y;
             int bottomOfCp = topOfCp + cp.height;
             return (bottomOfJsw < topOfCp || topOfJsw > bottomOfCp);
@@ -609,8 +621,8 @@ public class GamePanel extends JPanel {
     private boolean checkNotCollidedWhileMovingUpOrDown(int yLocation, boolean goingUp) {
         Rectangle cp = goingUp ? goingUpCaresAbout[yLocation] : goingDownCaresAbout[yLocation];
         if(cp != null) {
-            int lhsOfJsw = jsw.x;
-            int rhsOfJsw = lhsOfJsw + jsw.width;
+            int lhsOfJsw = jsw.getX();
+            int rhsOfJsw = lhsOfJsw + jsw.getWidth();
             int lhsOfCp = cp.x;
             int rhsOfCp = lhsOfCp + cp.width;
             return (rhsOfJsw < lhsOfCp || lhsOfJsw > rhsOfCp);
