@@ -6,6 +6,7 @@ import com.noomtech.platformscreen.gameobjects.GameObject;
 import com.noomtech.platformscreen.gameobjects.JSW;
 import com.noomtech.platformscreen.gameobjects.Nasty;
 import com.noomtech.platformscreen.gameobjects.Platform;
+import com.noomtech.platformscreen.gamethread.GamePanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,7 +23,6 @@ public class GameFrame extends JFrame {
     private final GamePanel gamePanel;
     private final Session cassandraSession;
     private final Cluster cluster;
-    private final Thread gameThread;
 
     //@todo - save the screen size in the editor, don't hardcode it
     public GameFrame() {
@@ -70,12 +70,7 @@ public class GameFrame extends JFrame {
 
         setLocation(new Point(0,0));
 
-        gameThread = new Thread(() -> {
-           gamePanel.start();
-        });
-        gameThread.setName("Game thread");
-        gameThread.setDaemon(false);
-        gameThread.start();
+        gamePanel.start();
 
         pack();
 
@@ -138,7 +133,6 @@ public class GameFrame extends JFrame {
         gamePanel.stop();
         boolean stopped = false;
         try {
-            gameThread.join(3000);
             cassandraSession.close();
             cluster.close();
             stopped = true;
