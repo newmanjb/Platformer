@@ -52,20 +52,20 @@ public class NastiesHandler implements Runnable {
      * Move the nasty the given number of pixels
      * @see Nasty
      */
-    private void doMove(Nasty jsw) {
+    private void doMove(Nasty nasty) {
         for (int i = 0; i < numPixelsBeforeSleeping; i++) {
-            int moveDirection = jsw.getMoveYDirection();
-            int yOrdinateToCheck = moveDirection > 0 ? jsw.getY() + jsw.getHeight() : jsw.getY();
+            int moveDirection = nasty.getMoveYDirection();
+            int yOrdinateToCheck = moveDirection > 0 ? nasty.getY() + nasty.getHeight() : nasty.getY();
             GameObject[] possibleCollisionArea = moveDirection > 0 ? checkWhenMovingDown[yOrdinateToCheck] :
                     checkWhenMovingUp[yOrdinateToCheck + moveDirection];
-            boolean notCollided = Utils.checkNotCollidedWhileMovingUpOrDown(jsw, possibleCollisionArea);
-            if(!notCollided) {
-                jsw.onCollision();
+            GameObject collidedwith = Utils.getCollidedWhileMovingUpOrDown(nasty, possibleCollisionArea);
+            if(collidedwith != null) {
+                nasty.onCollision();
             }
-            jsw.setLocation(jsw.getX(), jsw.getY() + jsw.getMoveYDirection());
-            if(parent.getPlayerCollisionArea().intersects(jsw.getCollisionArea())) {
+            nasty.setLocation(nasty.getX(), nasty.getY() + nasty.getMoveYDirection());
+            if(parent.getPlayerCollisionArea().intersects(nasty.getCollisionArea())) {
                 //The player's hit a nasty!!!!
-                parent.playerHitLethalObject(jsw);
+                parent.playerHitLethalObject(nasty);
             }
         }
     }
