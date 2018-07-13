@@ -2,10 +2,7 @@ package com.noomtech.platformscreenbuilder.frame;
 
 import com.datastax.driver.core.*;
 import com.noomtech.platformscreen.Constants;
-import com.noomtech.platformscreen.gameobjects.GameObject;
-import com.noomtech.platformscreen.gameobjects.JSW;
-import com.noomtech.platformscreen.gameobjects.Nasty;
-import com.noomtech.platformscreen.gameobjects.Platform;
+import com.noomtech.platformscreen.gameobjects.*;
 import com.noomtech.platformscreenbuilder.building_blocks.EditorObject;
 
 import javax.swing.*;
@@ -91,32 +88,38 @@ public class MainFrame extends JFrame {
             Rectangle rectangle = new Rectangle(start.x, start.y, end.x - start.x, end.y - start.y);
 
             GameObject gameObject = null;
-            if(!classVal.equals("TBD")) {
-                switch(classVal) {
-                    case Constants.TYPE_PLATFORM : {
-                        gameObject = new Platform(rectangle);
-                        gameObject.setAttributes(attributes);
-                        break;
-                    }
-                    case Constants.TYPE_NASTY : {
-                        gameObject = new Nasty(rectangle);
-                        gameObject.setAttributes(attributes);
-                        break;
-                    }
-                    case Constants.TYPE_JSW : {
-                        gameObject = new JSW(rectangle);
-                        gameObject.setAttributes(attributes);
-                        break;
-                    }
-                    default : {
-                        throw new IllegalArgumentException();
-                    }
+            switch(classVal) {
+                case Constants.TYPE_PLATFORM : {
+                    gameObject = new Platform(rectangle);
+                    gameObject.setAttributes(attributes);
+                    break;
                 }
-
+                case Constants.TYPE_NASTY : {
+                    gameObject = new Nasty(rectangle);
+                    gameObject.setAttributes(attributes);
+                    break;
+                }
+                case Constants.TYPE_JSW : {
+                    gameObject = new JSW(rectangle);
+                    gameObject.setAttributes(attributes);
+                    break;
+                }
+                case Constants.TYPE_LETHAL_OBJECT : {
+                    gameObject = new LethalObject(rectangle);
+                    gameObject.setAttributes(attributes);
+                    break;
+                }
+                case Constants.TYPE_FINISHING_OBJECT : {
+                    gameObject = new FinishingObject(rectangle);
+                    gameObject.setAttributes(attributes);
+                    break;
+                }
+                default : {
+                    throw new IllegalArgumentException();
+                }
             }
 
-            EditorObject editorObject = new EditorObject(rectangle, id);
-            editorObject.setGameObject(gameObject);
+            EditorObject editorObject = new EditorObject(gameObject, id);
             toReturn.add(editorObject);
 
         }
@@ -137,7 +140,10 @@ public class MainFrame extends JFrame {
             for(EditorObject c : toDeleteList) {
                 BoundStatement boundStatement = preparedDeleteStatement.bind();
                 GameObject gameObject = c.getGameObject();
-                boundStatement.setString(0, c.getGameObject() != null ? gameObject instanceof Platform ? Constants.TYPE_PLATFORM : gameObject instanceof Nasty ? Constants.TYPE_NASTY : Constants.TYPE_JSW : "TBD");
+                //@todo - Add reflection before this becomes a nightmare!!
+                boundStatement.setString(0, c.getGameObject() != null ? gameObject instanceof Platform ? Constants.TYPE_PLATFORM :
+                        gameObject instanceof Nasty ? Constants.TYPE_NASTY : gameObject instanceof JSW ? Constants.TYPE_JSW :
+                                gameObject instanceof LethalObject ? Constants.TYPE_LETHAL_OBJECT : Constants.TYPE_FINISHING_OBJECT : "TBD");
                 boundStatement.setLong(1, c.getId());
                 if(!cassandraSession.execute(boundStatement).wasApplied()) {
                     throw new IllegalArgumentException("Didn't work!");
@@ -150,17 +156,18 @@ public class MainFrame extends JFrame {
                 BoundStatement boundStatement = preparedInsertStatement.bind();
 
                 GameObject gameObject = c.getGameObject();
+                if(gameObject == null) {
+                    //Better to catch this here rather than save a corrupt config
+                    throw new IllegalArgumentException("Game object should never be null");
+                }
                 String classVal;
                 Map<String,String> attributesToSave = null;
-                if(gameObject != null) {
-                    classVal = gameObject instanceof Platform ? Constants.TYPE_PLATFORM : gameObject instanceof Nasty ? Constants.TYPE_NASTY : Constants.TYPE_JSW;
-                    Map<String,String> attributes = gameObject.getAttributes();
-                    if(attributes != null && !attributes.isEmpty()) {
-                        attributesToSave = attributes;
-                    }
-                }
-                else {
-                    classVal = "TBD";
+                classVal = gameObject instanceof Platform ? Constants.TYPE_PLATFORM : gameObject instanceof Nasty ? Constants.TYPE_NASTY :
+                        gameObject instanceof JSW ? Constants.TYPE_JSW : gameObject instanceof LethalObject ?
+                                Constants.TYPE_LETHAL_OBJECT : Constants.TYPE_FINISHING_OBJECT;
+                Map<String,String> attributes = gameObject.getAttributes();
+                if(attributes != null && !attributes.isEmpty()) {
+                    attributesToSave = attributes;
                 }
 
                 boundStatement.setString(0, classVal);
