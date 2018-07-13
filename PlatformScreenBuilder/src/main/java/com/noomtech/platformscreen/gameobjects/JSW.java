@@ -23,6 +23,8 @@ public class JSW extends AnimatedGameObject {
     private AnimationFrame[] currentFrameList;
     //This points to the frame currently being displayed in the list
     private int currentFrameIdx;
+    //The x ordinate of the JSW from the last movement
+    private int lastXLocation;
 
 
 
@@ -79,7 +81,7 @@ public class JSW extends AnimatedGameObject {
     }
 
     public void reactToMove(PlayerMovementType movementType) {
-        int xdiff = getX() - previousXLocation;
+        int xdiff = getX() - lastXLocation;
         int numFramesMoved;
         if(xdiff > 0) {
             //We're going right
@@ -107,6 +109,8 @@ public class JSW extends AnimatedGameObject {
             int totalIdx = currentFrameIdx + numFramesMoved;
             currentFrameIdx = totalIdx % currentFrameList.length;
         }
+
+        lastXLocation = getX();
     }
 
     public void setToStartingState() {
@@ -115,5 +119,6 @@ public class JSW extends AnimatedGameObject {
         currentFrameIdx = 0;;
         numPixelsMovedRight = 0;
         numPixelsMovedLeft = 0;
+        lastXLocation = getX();
     }
 }
