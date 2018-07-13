@@ -12,14 +12,8 @@ import java.awt.*;
 public abstract class AnimatedGameObject extends GameObject {
 
 
-    protected int previousXLocation;
-    protected int previousYLocation;
-
-
     public AnimatedGameObject(Rectangle collisionArea) {
         super(collisionArea);
-        this.previousXLocation = startingLocation.x;
-        this.previousYLocation = startingLocation.y;
     }
 
     /**
@@ -27,14 +21,6 @@ public abstract class AnimatedGameObject extends GameObject {
      */
     public void onMove(PlayerMovementType movementType) {
         reactToMove(movementType);
-        previousXLocation = getX();
-        previousYLocation = getY();
-    }
-
-    public void setToStartingState() {
-        super.setToStartingState();
-        previousXLocation = getX();
-        previousYLocation = getY();
     }
 
     /**
