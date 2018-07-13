@@ -1,6 +1,7 @@
 package com.noomtech.platformscreen.gameobjects;
 
 import java.awt.*;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -14,7 +15,7 @@ public abstract class GameObject {
     //The boundaries of the object
     private Rectangle collisionArea;
     //The properties of the object
-    private Map<String,String> attributes;
+    private Map<String,String> attributes = new HashMap<>();
     //This is where the game object is first located when the game starts
     protected Point startingLocation;
 
@@ -62,8 +63,7 @@ public abstract class GameObject {
         return collisionArea.getLocation();
     }
 
-    //Set the game object back to the exact state it was in when the game started
-    public void setBackToStartingState() {
+    public void setToStartingState() {
         collisionArea.setLocation(startingLocation);
     }
 }
