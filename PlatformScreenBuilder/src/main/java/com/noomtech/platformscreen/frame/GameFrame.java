@@ -33,7 +33,7 @@ public class GameFrame extends JFrame {
                 (List<JSW>)gameObjects.get(Constants.TYPE_JSW),
                 (List<Platform>)gameObjects.get(Constants.TYPE_PLATFORM),
                 (List<Nasty>)gameObjects.get(Constants.TYPE_NASTY),
-                (List<LethalObject>)gameObjects.get(Constants.TYPE_LETHAL_OBJECT),
+                (List<StaticLethalObject>)gameObjects.get(Constants.TYPE_LETHAL_OBJECT),
                 (List<FinishingObject>)gameObjects.get(Constants.TYPE_FINISHING_OBJECT));
 
         setTitle("Game");
@@ -89,7 +89,7 @@ public class GameFrame extends JFrame {
         List<Nasty> nasties = new ArrayList<>();
         List<JSW> player = new ArrayList<>();
         List<Platform> platforms = new ArrayList<>();
-        List<LethalObject> lethalObjects = new ArrayList<>();
+        List<StaticLethalObject> staticLethalObjects = new ArrayList<>();
         List<FinishingObject> finishingObjects = new ArrayList<>();
         List<Row> rows = rs.all();
         for(Row row : rows) {
@@ -120,8 +120,8 @@ public class GameFrame extends JFrame {
                     break;
                 }
                 case(Constants.TYPE_LETHAL_OBJECT): {
-                    LethalObject lethalObject = new LethalObject(rectangle);
-                    lethalObjects.add(lethalObject);
+                    StaticLethalObject staticLethalObject = new StaticLethalObject(rectangle);
+                    staticLethalObjects.add(staticLethalObject);
                     break;
                 }
                 case(Constants.TYPE_FINISHING_OBJECT): {
@@ -137,7 +137,7 @@ public class GameFrame extends JFrame {
         toReturn.put(Constants.TYPE_JSW, player);
         toReturn.put(Constants.TYPE_PLATFORM, platforms);
         toReturn.put(Constants.TYPE_NASTY, nasties);
-        toReturn.put(Constants.TYPE_LETHAL_OBJECT, lethalObjects);
+        toReturn.put(Constants.TYPE_LETHAL_OBJECT, staticLethalObjects);
         toReturn.put(Constants.TYPE_FINISHING_OBJECT, finishingObjects);
 
         return toReturn;
