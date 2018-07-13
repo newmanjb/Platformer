@@ -1,10 +1,7 @@
 package com.noomtech.platformscreenbuilder.frame;
 
 import com.noomtech.platformscreen.Constants;
-import com.noomtech.platformscreen.gameobjects.GameObject;
-import com.noomtech.platformscreen.gameobjects.JSW;
-import com.noomtech.platformscreen.gameobjects.Nasty;
-import com.noomtech.platformscreen.gameobjects.Platform;
+import com.noomtech.platformscreen.gameobjects.*;
 import com.noomtech.platformscreenbuilder.building_blocks.EditorObject;
 
 import javax.swing.*;
@@ -44,13 +41,12 @@ public class DrawingPanel extends JPanel {
         for(EditorObject c : collisionAreas) {
             Rectangle r = c.getRectangle();
             if(c.isSelected() && !c.isBeingMoved()) {
-                g.setColor(Color.BLUE);
-                g.fillRect(r.x,r.y,r.width,r.height);
+                g.setColor(Color.RED);
+                g.drawRect(r.x,r.y,r.width,r.height);
             }
-
-            g.setColor(getColourForOutline(c));
-            g.drawRect(r.x, r.y, r.width, r.height);
-
+            else {
+                c.getGameObject().paintIt(g);
+            }
         }
 
         if(beingDrawn != null) {
@@ -128,7 +124,8 @@ public class DrawingPanel extends JPanel {
         public void mouseReleased(MouseEvent e) {
 
             if(beingDrawn != null) {
-                EditorObject newCollisionArea = new EditorObject(new Rectangle(beingDrawn), System.currentTimeMillis());
+                GameObject defaultGameObject = new Platform(new Rectangle(beingDrawn));
+                EditorObject newCollisionArea = new EditorObject(defaultGameObject, System.currentTimeMillis());
                 addCollisionArea(newCollisionArea);
                 beingDrawn = null;
 
@@ -187,22 +184,35 @@ public class DrawingPanel extends JPanel {
                     }
                     String theClass = (String)classBox.getSelectedItem();
                     GameObject g;
-                    if(theClass.equals(Constants.TYPE_PLATFORM)) {
-                        g = new Platform(collisionArea.getRectangle());
+                    switch(theClass) {
+                        case(Constants.TYPE_PLATFORM): {
+                            g = new Platform(collisionArea.getRectangle());
+                            break;
+                        }
+                        case(Constants.TYPE_NASTY) : {
+                            g = new Nasty(collisionArea.getRectangle());
+                            break;
+                        }
+                        case(Constants.TYPE_JSW) : {
+                            g = new JSW(collisionArea.getRectangle());
+                            break;
+                        }
+                        case(Constants.TYPE_LETHAL_OBJECT) : {
+                            g = new LethalObject(collisionArea.getRectangle());
+                            break;
+                        }
+                        case(Constants.TYPE_FINISHING_OBJECT) : {
+                            g = new FinishingObject(collisionArea.getRectangle());
+                            break;
+                        }
+                        default: {
+                            throw new IllegalArgumentException();
+                        }
                     }
-                    else if(theClass.equals(Constants.TYPE_NASTY)) {
-                        g = new Nasty(collisionArea.getRectangle());
-                    }
-                    else if(theClass.equals(Constants.TYPE_JSW)) {
-                        g = new JSW(collisionArea.getRectangle());
-                    }
-                    else {
-                        throw new IllegalArgumentException();
-                    }
+
                     g.setAttributes(attributes);
 
-                    EditorObject newEditorObject = new EditorObject(collisionArea.getRectangle(), collisionArea.getId());
-                    newEditorObject.setGameObject(g);
+                    EditorObject newEditorObject = new EditorObject(g, collisionArea.getId());
                     collisionAreas.remove(collisionArea);
                     collisionAreas.add(newEditorObject);
                     toDelete.add(collisionArea);
@@ -221,7 +231,10 @@ public class DrawingPanel extends JPanel {
                         }
                         textArea.setText(sb.substring(0, sb.length() - 1));
                     }
-                    classBox.setSelectedItem(gameObject instanceof Platform ? Constants.TYPE_PLATFORM : gameObject instanceof Nasty ? Constants.TYPE_NASTY : Constants.TYPE_JSW);
+                    //@todo - Add reflection before this becomes a nightmare!!
+                    classBox.setSelectedItem(gameObject instanceof Platform ? Constants.TYPE_PLATFORM : gameObject instanceof Nasty ?
+                            Constants.TYPE_NASTY : gameObject instanceof JSW ? Constants.TYPE_JSW : gameObject instanceof LethalObject ?
+                            Constants.TYPE_LETHAL_OBJECT : Constants.TYPE_FINISHING_OBJECT);
                 }
                 else {
                     classBox.setSelectedItem(Constants.TYPE_PLATFORM);
