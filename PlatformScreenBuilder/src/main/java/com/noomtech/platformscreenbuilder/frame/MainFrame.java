@@ -8,7 +8,6 @@ import com.noomtech.platformscreenbuilder.building_blocks.EditorObject;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -105,7 +104,7 @@ public class MainFrame extends JFrame {
                     break;
                 }
                 case Constants.TYPE_LETHAL_OBJECT : {
-                    gameObject = new LethalObject(rectangle);
+                    gameObject = new StaticLethalObject(rectangle);
                     gameObject.setAttributes(attributes);
                     break;
                 }
@@ -143,7 +142,7 @@ public class MainFrame extends JFrame {
                 //@todo - Add reflection before this becomes a nightmare!!
                 boundStatement.setString(0, c.getGameObject() != null ? gameObject instanceof Platform ? Constants.TYPE_PLATFORM :
                         gameObject instanceof Nasty ? Constants.TYPE_NASTY : gameObject instanceof JSW ? Constants.TYPE_JSW :
-                                gameObject instanceof LethalObject ? Constants.TYPE_LETHAL_OBJECT : Constants.TYPE_FINISHING_OBJECT : "TBD");
+                                gameObject instanceof StaticLethalObject ? Constants.TYPE_LETHAL_OBJECT : Constants.TYPE_FINISHING_OBJECT : "TBD");
                 boundStatement.setLong(1, c.getId());
                 if(!cassandraSession.execute(boundStatement).wasApplied()) {
                     throw new IllegalArgumentException("Didn't work!");
@@ -163,7 +162,7 @@ public class MainFrame extends JFrame {
                 String classVal;
                 Map<String,String> attributesToSave = null;
                 classVal = gameObject instanceof Platform ? Constants.TYPE_PLATFORM : gameObject instanceof Nasty ? Constants.TYPE_NASTY :
-                        gameObject instanceof JSW ? Constants.TYPE_JSW : gameObject instanceof LethalObject ?
+                        gameObject instanceof JSW ? Constants.TYPE_JSW : gameObject instanceof StaticLethalObject ?
                                 Constants.TYPE_LETHAL_OBJECT : Constants.TYPE_FINISHING_OBJECT;
                 Map<String,String> attributes = gameObject.getAttributes();
                 if(attributes != null && !attributes.isEmpty()) {
