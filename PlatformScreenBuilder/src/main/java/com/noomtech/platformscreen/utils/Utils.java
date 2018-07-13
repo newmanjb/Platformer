@@ -11,13 +11,12 @@ public class Utils {
 
 
     /**
-     * Returns true if there has NOT been a collision between the first param and any of the game objects in the second param
-     * @param gameObject The game object to examine for a collision
-     * @param possiblyCollidedWithThese The objects to check for collision with the first param e.g. a {@link com.noomtech.platformscreen.gameobjects.Platform}
-     *                             or {@link com.noomtech.platformscreen.gameobjects.Nasty}
-     * @return True if there has NOT been a collision
+     * Checks if the object in the first param has collided with any of the objects in the second param while moving up or down.
+     * @param gameObject The game object that may have collided with any of the game objects in the given array
+     * @param possiblyCollidedWithThese The objects to check for collision with the first param e.g. these could include platforms or lethal objects
+     * @return The object that has been oollided with or null if there has been no collision
      */
-    public static boolean checkNotCollidedWhileMovingUpOrDown(GameObject gameObject, GameObject[] possiblyCollidedWithThese) {
+    public static GameObject getCollidedWhileMovingUpOrDown(GameObject gameObject, GameObject[] possiblyCollidedWithThese) {
         if(possiblyCollidedWithThese != null) {
             for (GameObject possiblyCollidedWith : possiblyCollidedWithThese) {
                 if (gameObject != possiblyCollidedWith) {
@@ -26,22 +25,21 @@ public class Utils {
                     int lhsOfCp = possiblyCollidedWith.getX();
                     int rhsOfCp = lhsOfCp + possiblyCollidedWith.getWidth();
                     if(!(rhsOfJsw < lhsOfCp || lhsOfJsw > rhsOfCp)) {
-                        return false;
+                        return possiblyCollidedWith;
                     }
                 }
             }
         }
-        return true;
+        return null;
     }
 
     /**
-     * Returns true if there has NOT been a collision between the first param and any of the game objects in the second param
-     * @param gameObject The game object to examine for a collision
-     * @param possiblyCollidedWithThese The objects to check for collision with the first param e.g. a {@link com.noomtech.platformscreen.gameobjects.Platform}
-     *                             or {@link com.noomtech.platformscreen.gameobjects.Nasty}
-     * @return True if there has NOT been a collision
+     * Checks if the object in the first param has collided with any of the objects in the second param while moving left or right.
+     * @param gameObject The game object that may have collided with any of the game objects in the given array
+     * @param possiblyCollidedWithThese The objects to check for collision with the first param e.g. these could include platforms or lethal objects
+     * @return The object that has been oollided with or null if there has been no collision
      */
-    public static boolean checkNotCollidedWhileMovingAcross(GameObject gameObject, GameObject possiblyCollidedWithThese[]) {
+    public static GameObject getCollidedWhileMovingAcross(GameObject gameObject, GameObject possiblyCollidedWithThese[]) {
         if(possiblyCollidedWithThese != null) {
             for (GameObject possiblyCollidedWith : possiblyCollidedWithThese) {
                 if (gameObject != possiblyCollidedWith) {
@@ -50,12 +48,12 @@ public class Utils {
                     int topOfCp = possiblyCollidedWith.getY();
                     int bottomOfCp = topOfCp + possiblyCollidedWith.getHeight();
                     if(!(bottomOfGameObject < topOfCp || topOfGameObject > bottomOfCp)) {
-                        return false;
+                        return possiblyCollidedWith;
                     }
                 }
             }
         }
-        return true;
+        return null;
     }
 
     public static void sleepAndCatchInterrupt(long millis) {
