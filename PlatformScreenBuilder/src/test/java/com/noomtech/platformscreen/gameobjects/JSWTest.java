@@ -9,8 +9,12 @@ import java.lang.reflect.Field;
 public class JSWTest {
 
 
+    /**
+     * Move the JSW forward in small increments that are less than the num pixels per frame change,
+     * checking whether a new frame has been correctly set at each stage
+     */
     @Test
-    public void testMovement() throws Exception {
+    public void test1() throws Exception {
 
         int numPixelsPerMovement = 10;
         JSW jsw = new JSW(new Rectangle(20,20,5,5));
@@ -19,6 +23,8 @@ public class JSWTest {
         f1.setInt(jsw, numPixelsPerMovement);
 
         checkVals(jsw, 0, false);
+
+        //Walk right
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.1), jsw.getY());
         jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
@@ -66,6 +72,7 @@ public class JSWTest {
         checkVals(jsw, 0, false);
 
         //Walk left
+
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.1), jsw.getY());
         jsw.reactToMove(PlayerMovementType.WALK_LEFT);
 
@@ -112,9 +119,11 @@ public class JSWTest {
         checkVals(jsw, 0, true);
     }
 
-
+    /**
+     * Move the JSW around within the area defined by "num pixels per frame" and make sure the frame is never changed.
+     */
     @Test
-    public void testDither() throws Exception {
+    public void test2() throws Exception {
 
         int numPixelsPerMovement = 10;
         JSW jsw = new JSW(new Rectangle(20,20,5,5));
@@ -145,9 +154,12 @@ public class JSWTest {
         checkVals(jsw, 0, true);
     }
 
-
+    /**
+     * Move the jsw using movements that are greater than the num pixels per frame and ensure that the correct frame is
+     * always displayed.
+     */
     @Test
-    public void testLargerMovementsThanPixelsPerMovement() throws Exception {
+    public void test3() throws Exception {
 
         int numPixelsPerMovement = 10;
         JSW jsw = new JSW(new Rectangle(20,20,5,5));
