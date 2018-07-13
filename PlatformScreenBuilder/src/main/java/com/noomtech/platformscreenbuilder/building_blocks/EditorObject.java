@@ -12,12 +12,11 @@ public class EditorObject {
     private boolean isBeingMoved;
     private boolean isSelected;
     private long id;
-    private GameObject gameObject;
-    private Rectangle rectangle;
+    private final GameObject gameObject;
 
-    public EditorObject(Rectangle rectangle, long id) {
-        this.rectangle = rectangle;
+    public EditorObject(GameObject gameObject, long id) {
         this.id = id;
+        this.gameObject = gameObject;
     }
 
 
@@ -42,21 +41,14 @@ public class EditorObject {
     }
 
     public Rectangle getRectangle() {
-        return rectangle;
+        return gameObject.getCollisionArea();
     }
 
     public void setRectangle(Rectangle rectangle) {
-        this.rectangle = rectangle;
-        if(gameObject != null) {
-            gameObject.setCollisionArea(rectangle);
-        }
+        gameObject.setCollisionArea(rectangle);
     }
 
     public GameObject getGameObject() {
         return gameObject;
-    }
-
-    public void setGameObject(GameObject gameObject) {
-        this.gameObject = gameObject;
     }
 }
