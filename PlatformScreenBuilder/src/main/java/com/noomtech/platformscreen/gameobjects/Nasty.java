@@ -7,7 +7,7 @@ import java.awt.*;
  * Represents a moving, lethal object on the screen
  * @author Joshua Newman
  */
-public class Nasty extends GameObject {
+public class Nasty extends GameObject implements Lethal {
 
 
     //The direction along the y-axis that this nasty is moving.  Start the nasty off moving down
@@ -47,8 +47,8 @@ public class Nasty extends GameObject {
         moveYDirection = -moveYDirection;
     }
 
-    public void setBackToStartingState() {
-        super.setBackToStartingState();
+    public void setToStartingState() {
+        super.setToStartingState();
         moveYDirection = 1;
     }
 }
