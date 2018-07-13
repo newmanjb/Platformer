@@ -198,7 +198,7 @@ public class DrawingPanel extends JPanel {
                             break;
                         }
                         case(Constants.TYPE_LETHAL_OBJECT) : {
-                            g = new LethalObject(collisionArea.getRectangle());
+                            g = new StaticLethalObject(collisionArea.getRectangle());
                             break;
                         }
                         case(Constants.TYPE_FINISHING_OBJECT) : {
@@ -233,7 +233,7 @@ public class DrawingPanel extends JPanel {
                     }
                     //@todo - Add reflection before this becomes a nightmare!!
                     classBox.setSelectedItem(gameObject instanceof Platform ? Constants.TYPE_PLATFORM : gameObject instanceof Nasty ?
-                            Constants.TYPE_NASTY : gameObject instanceof JSW ? Constants.TYPE_JSW : gameObject instanceof LethalObject ?
+                            Constants.TYPE_NASTY : gameObject instanceof JSW ? Constants.TYPE_JSW : gameObject instanceof StaticLethalObject ?
                             Constants.TYPE_LETHAL_OBJECT : Constants.TYPE_FINISHING_OBJECT);
                 }
                 else {
