@@ -570,18 +570,18 @@ public class GamePanel extends JPanel {
             executorService.shutdown();
         }
 
-        //Returns true if the collision is a movement stopping event e.g. they've collided with a lethal object
-        protected boolean checkPlayerCollision(GameObject collidedWith) {
+        //Returns false if the collision is a movement stopping event e.g. they've collided with a lethal object
+        protected boolean checkPlayerCollisionOK(GameObject collidedWith) {
             if(collidedWith instanceof Lethal) {
                 playerHitLethalObject((Lethal)collidedWith);
-                return false;
+                return true;
             }
             else if(collidedWith instanceof FinishingObject) {
                 playerHitFinishingObject((FinishingObject)collidedWith);
-                return false;
+                return true;
             }
 
-            return true;
+            return false;
         }
     }
 
@@ -604,7 +604,7 @@ public class GamePanel extends JPanel {
                     jsw.setLocation(jsw.getCollisionArea().x, i-jsw.getCollisionArea().height);
                 }
                 else {
-                    checkPlayerCollision(collidedWith);
+                    checkPlayerCollisionOK(collidedWith);
                     //@todo - this is stopping itself rather than the loop in the superclass doing it.  Can this be done
                     //better?
                     requestStop(false);
@@ -698,7 +698,7 @@ public class GamePanel extends JPanel {
                         jsw.setLocation(jsw.getX(), proposedNewLocation.y);
                     }
                     else {
-                        movementTotallyBlocked = movements[0] == 0 || movements[1] > 0 || checkPlayerCollision(collidedWith);
+                        movementTotallyBlocked = movements[0] == 0 || movements[1] > 0 || checkPlayerCollisionOK(collidedWith);
                     }
                 }
 
@@ -709,7 +709,7 @@ public class GamePanel extends JPanel {
                         jsw.setLocation(proposedNewLocation.x, jsw.getY());
                     }
                     else {
-                        movementTotallyBlocked = movements[1] == 0 || checkPlayerCollision(collidedWith);
+                        movementTotallyBlocked = movements[1] == 0 || checkPlayerCollisionOK(collidedWith);
                     }
                 }
 
@@ -753,7 +753,7 @@ public class GamePanel extends JPanel {
                     jsw.setLocation(i, jsw.getY());
                 }
                 else {
-                    checkPlayerCollision(collidedWith);
+                    checkPlayerCollisionOK(collidedWith);
                 }
             }
             return true;
@@ -782,7 +782,7 @@ public class GamePanel extends JPanel {
                     jsw.setLocation(i - jsw.getWidth(), jsw.getY());
                 }
                 else {
-                    checkPlayerCollision(collidedWith);
+                    checkPlayerCollisionOK(collidedWith);
                 }
             }
             return true;
