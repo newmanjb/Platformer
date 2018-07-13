@@ -63,10 +63,12 @@ public class NastiesHandler implements Runnable {
                 nasty.onCollision();
             }
             nasty.setLocation(nasty.getX(), nasty.getY() + nasty.getMoveYDirection());
+            nasty.onMove(PlayerMovementType.FALL);
             if(parent.getPlayerCollisionArea().intersects(nasty.getCollisionArea())) {
                 //The player's hit a nasty!!!!
                 parent.playerHitLethalObject(nasty);
             }
+
         }
     }
 }
