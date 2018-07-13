@@ -40,7 +40,7 @@ public class GamePanel extends JPanel {
     //The nasties
     private final List<Nasty> nasties;
     //The lethal objects (static objects that kill the player when touched)
-    private final List<LethalObject> lethalObjects;
+    private final List<StaticLethalObject> staticLethalObjects;
     //Objects that the player needs to complete the game
     private final List<FinishingObject> finishingObjects;
     //True if the game is running.  Used to keep the game loop going and to stop it
@@ -85,13 +85,13 @@ public class GamePanel extends JPanel {
             List<JSW> player,
             List<Platform> platforms,
             List<Nasty> nasties,
-            List<LethalObject> lethalObjects,
+            List<StaticLethalObject> staticLethalObjects,
             List<FinishingObject> finishingObjects) {
 
         jsw = player.get(0);
         this.platforms = platforms;
         this.nasties = nasties;
-        this.lethalObjects = lethalObjects;
+        this.staticLethalObjects = staticLethalObjects;
         this.finishingObjects = finishingObjects;
 
         //Some hard-coded data for when we can't access cassandra and want to do some testing
@@ -107,7 +107,7 @@ public class GamePanel extends JPanel {
 
         List<GameObject> staticObjects = new ArrayList<>();
         staticObjects.addAll(platforms);
-        staticObjects.addAll(lethalObjects);
+        staticObjects.addAll(staticLethalObjects);
         staticObjects.addAll(finishingObjects);
         for(GameObject g : staticObjects) {
             Rectangle r = g.getCollisionArea();
@@ -167,8 +167,8 @@ public class GamePanel extends JPanel {
                 platform.paintIt(g);
             }
 
-            for (LethalObject lethalObject : lethalObjects) {
-                lethalObject.paintIt(g);
+            for (StaticLethalObject staticLethalObject : staticLethalObjects) {
+                staticLethalObject.paintIt(g);
             }
 
             for (FinishingObject finishingObject : finishingObjects) {
