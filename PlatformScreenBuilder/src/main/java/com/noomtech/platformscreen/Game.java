@@ -10,7 +10,7 @@ import com.noomtech.platformscreen.frame.GameFrame;
 public class Game {
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         new GameFrame();
     }
 }
