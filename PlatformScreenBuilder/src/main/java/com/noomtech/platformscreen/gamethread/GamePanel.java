@@ -16,6 +16,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 
+//todo - draw static objects like platforms ONCE only
+//todo - get rid of bug that keeps facing jsw the wrong way when it walks right and collides with an object
+//todo - all pixel vals must be represented as a fraction of the screen size and NOT hardcoded
 /**
  * This panel class is responsible for the painting and also acts as the controller.
  *
@@ -33,7 +36,15 @@ import java.util.concurrent.Future;
 public class GamePanel extends JPanel {
 
 
-    private static final int SCREEN_SIZE = 1920;
+    private static final int SCREEN_SIZE = 4000;
+
+    //Constants for movements
+    private final int LEFT_RIGHT_NUM_PIXELS_PER_MOVEMENT = 1;
+    private final int JUMP_NUM_PIXELS_PER_MOVEMENT = 1;
+    private final int LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS = 10;
+    private final int JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS = 10;
+    private final int FALL_NUM_PIXELS_PER_MOVEMENT = 5;
+    private final int FALL_NUM_MILLIS_BETWEEN_MOVEMENTS = 50;
 
     //The platforms.
     private final List<Platform> platforms;
@@ -156,7 +167,6 @@ public class GamePanel extends JPanel {
     @Override
     public void paint(Graphics g) {
         super.paint(g);
-
         g.setColor(backgroundColor);
         Dimension screenSize = getSize();
         g.fillRect(0, 0, screenSize.width, screenSize.height);
@@ -474,7 +484,6 @@ public class GamePanel extends JPanel {
         //the process that is running the routine
         private Future future;
 
-
         private JSWMover(PlayerMovementType movementType, ExecutorService executorService,
                          int numPixelsPerMovement, int numMillisBetweenMovements) {
             this.movementType = movementType;
@@ -589,7 +598,9 @@ public class GamePanel extends JPanel {
     private class FallMover extends JSWMover {
 
         private FallMover() {
-            super(PlayerMovementType.FALL, Executors.newSingleThreadExecutor(), 5, 50);
+            super(PlayerMovementType.FALL, Executors.newSingleThreadExecutor(),
+                    FALL_NUM_PIXELS_PER_MOVEMENT,
+                    FALL_NUM_MILLIS_BETWEEN_MOVEMENTS);
         }
         @Override
         protected boolean doMove() {
@@ -632,33 +643,34 @@ public class GamePanel extends JPanel {
 
         private JumpMover() {
 
-            super(PlayerMovementType.JUMP,Executors.newSingleThreadExecutor(), 1, 10);
+            super(PlayerMovementType.JUMP,Executors.newSingleThreadExecutor(), JUMP_NUM_PIXELS_PER_MOVEMENT,
+                    JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS);
 
-            trajectoryRight = new int[150][2];
-            for(int i = 0 ; i < 50 ; i++) {
+            trajectoryRight = new int[300][2];
+            for(int i = 0 ; i < 100 ; i++) {
                 trajectoryRight[i] = new int[]{1,-1};
             }
-            for(int i = 50 ; i < 100 ; i++) {
+            for(int i = 100 ; i < 200 ; i++) {
                 trajectoryRight[i] = new int[]{1,0};
             }
-            for(int i = 100 ; i < 150 ; i++) {
+            for(int i = 200 ; i < 300 ; i++) {
                 trajectoryRight[i] = new int[]{1,1};
             }
-            trajectoryLeft = new int[150][2];
-            for(int i = 0 ; i < 50 ; i++) {
+            trajectoryLeft = new int[300][2];
+            for(int i = 0 ; i < 100 ; i++) {
                 trajectoryLeft[i] = new int[]{-1,-1};
             }
-            for(int i = 50 ; i < 100 ; i++) {
+            for(int i = 100 ; i < 200 ; i++) {
                 trajectoryLeft[i] = new int[]{-1,0};
             }
-            for(int i = 100 ; i < 150 ; i++) {
+            for(int i = 200 ; i < 300 ; i++) {
                 trajectoryLeft[i] = new int[]{-1,1};
             }
-            trajectoryUp = new int[100][2];
-            for(int i = 0 ; i < 50 ; i++) {
+            trajectoryUp = new int[200][2];
+            for(int i = 0 ; i < 100 ; i++) {
                 trajectoryUp[i] = new int[]{0,-1};
             }
-            for(int i = 50 ; i < 100 ; i++) {
+            for(int i = 100 ; i < 200 ; i++) {
                 trajectoryUp[i] = new int[]{0,1};
             }
         }
@@ -735,7 +747,9 @@ public class GamePanel extends JPanel {
 
 
         private LeftMover() {
-            super(PlayerMovementType.WALK_LEFT, Executors.newSingleThreadExecutor(), 1, 10);
+            super(PlayerMovementType.WALK_LEFT,
+                    Executors.newSingleThreadExecutor(), LEFT_RIGHT_NUM_PIXELS_PER_MOVEMENT,
+                    LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS);
         }
 
         @Override
@@ -765,7 +779,9 @@ public class GamePanel extends JPanel {
 
 
         private RightMover() {
-            super(PlayerMovementType.WALK_RIGHT, Executors.newSingleThreadExecutor(), 1, 10);
+            super(PlayerMovementType.WALK_RIGHT, Executors.newSingleThreadExecutor(),
+                    LEFT_RIGHT_NUM_PIXELS_PER_MOVEMENT,
+                    LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS);
         }
 
         @Override
