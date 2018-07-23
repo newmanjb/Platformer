@@ -2,7 +2,11 @@ package com.noomtech.platformscreen.gameobjects;
 
 import com.noomtech.platformscreen.movement.PlayerMovementType;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 
 /**
@@ -24,59 +28,43 @@ public class Nasty extends AnimatedGameObject implements Lethal {
     private int currentFrameIdx;
 
 
-    public Nasty(Rectangle collisionArea) {
+    public Nasty(Rectangle collisionArea) throws IOException {
         super(collisionArea);
 
-        animationFrames = new AnimationFrame[10];
+        animationFrames = new AnimationFrame[8];
+
+        BufferedImage b1 = ImageIO.read(new File("C:/temp/images/flamecollection1.jpg"));
+        BufferedImage b2 = ImageIO.read(new File("C:/temp/images/flamecollection2.jpg"));
+        BufferedImage b3 = ImageIO.read(new File("C:/temp/images/flamecollection3.jpg"));
+        BufferedImage b4 = ImageIO.read(new File("C:/temp/images/flamecollection4.jpg"));
+        BufferedImage b5 = ImageIO.read(new File("C:/temp/images/flamecollection5.jpg"));
+        BufferedImage b6 = ImageIO.read(new File("C:/temp/images/flamecollection6.jpg"));
+        BufferedImage b7 = ImageIO.read(new File("C:/temp/images/flamecollection7.jpg"));
+        BufferedImage b8 = ImageIO.read(new File("C:/temp/images/flamecollection8.jpg"));
+
         animationFrames[0] = (g,r) -> {
-            int inset = 0;
-            g.setColor(Color.RED);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b1, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
         animationFrames[1] = (g,r) -> {
-            int inset = 1;
-            g.setColor(Color.RED);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b2, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
         animationFrames[2] = (g,r) -> {
-            int inset = 2;
-            g.setColor(Color.RED);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b3, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
         animationFrames[3] = (g,r) -> {
-            int inset = 3;
-            g.setColor(Color.RED);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b4, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
         animationFrames[4] = (g,r) -> {
-            int inset = 4;
-            g.setColor(Color.RED);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b5, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
         animationFrames[5] = (g,r) -> {
-            int inset = 5;
-            g.setColor(Color.RED);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b6, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
         animationFrames[6] = (g,r) -> {
-            int inset = 4;
-            g.setColor(Color.RED);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b7, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
         animationFrames[7] = (g,r) -> {
-            int inset = 3;
-            g.setColor(Color.RED);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
-        };
-        animationFrames[8] = (g,r) -> {
-            int inset = 2;
-            g.setColor(Color.RED);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
-        };
-        animationFrames[9] = (g,r) -> {
-            int inset = 1;
-            g.setColor(Color.RED);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b8, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
     }
 

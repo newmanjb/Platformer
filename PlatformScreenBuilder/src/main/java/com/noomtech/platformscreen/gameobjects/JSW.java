@@ -2,7 +2,11 @@ package com.noomtech.platformscreen.gameobjects;
 
 import com.noomtech.platformscreen.movement.PlayerMovementType;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * The player
@@ -28,42 +32,79 @@ public class JSW extends AnimatedGameObject {
 
 
 
-    public JSW(Rectangle collisionArea) {
+    //@todo scale the image up-front so save having to scale it every time it's drawn, which is a lot
+    public JSW(Rectangle collisionArea) throws IOException {
         super(collisionArea);
 
+        BufferedImage b1 = ImageIO.read(new File("C:/temp/images/WalkingStickMan1.jpg"));
+        BufferedImage b2 = ImageIO.read(new File("C:/temp/images/WalkingStickMan2.jpg"));
+        BufferedImage b3 = ImageIO.read(new File("C:/temp/images/WalkingStickMan3.jpg"));
+        BufferedImage b4 = ImageIO.read(new File("C:/temp/images/WalkingStickMan4.jpg"));
+        BufferedImage b5 = ImageIO.read(new File("C:/temp/images/WalkingStickMan5.jpg"));
+        BufferedImage b6 = ImageIO.read(new File("C:/temp/images/WalkingStickMan6.jpg"));
+        BufferedImage b7 = ImageIO.read(new File("C:/temp/images/WalkingStickMan7.jpg"));
+        BufferedImage b8 = ImageIO.read(new File("C:/temp/images/WalkingStickMan8.jpg"));
+
+        BufferedImage b1l = ImageIO.read(new File("C:/temp/images/WalkingStickMan1L.jpg"));
+        BufferedImage b2l = ImageIO.read(new File("C:/temp/images/WalkingStickMan2L.jpg"));
+        BufferedImage b3l = ImageIO.read(new File("C:/temp/images/WalkingStickMan3L.jpg"));
+        BufferedImage b4l = ImageIO.read(new File("C:/temp/images/WalkingStickMan4L.jpg"));
+        BufferedImage b5l = ImageIO.read(new File("C:/temp/images/WalkingStickMan5L.jpg"));
+        BufferedImage b6l = ImageIO.read(new File("C:/temp/images/WalkingStickMan6L.jpg"));
+        BufferedImage b7l = ImageIO.read(new File("C:/temp/images/WalkingStickMan7L.jpg"));
+        BufferedImage b8l = ImageIO.read(new File("C:/temp/images/WalkingStickMan8L.jpg"));
+
         //Build the animation frames.  One list for going left, another for going right.
-        rightFrames = new AnimationFrame[3];
+        rightFrames = new AnimationFrame[8];
         rightFrames[0] = (g,r) -> {
-            int inset = 0;
-            g.setColor(Color.RED);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b1, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
         rightFrames[1] = (g,r) -> {
-            int inset = 4;
-            g.setColor(Color.ORANGE);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b2, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
         rightFrames[2] = (g,r) -> {
-            int inset = 8;
-            g.setColor(Color.YELLOW);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b3, r.x, r.y, r.width, r.height, Color.WHITE, null);
+        };
+        rightFrames[3] = (g,r) -> {
+            g.drawImage(b4, r.x, r.y, r.width, r.height, Color.WHITE, null);
+        };
+        rightFrames[4] = (g,r) -> {
+            g.drawImage(b5, r.x, r.y, r.width, r.height, Color.WHITE, null);
+        };
+        rightFrames[5] = (g,r) -> {
+            g.drawImage(b6, r.x, r.y, r.width, r.height, Color.WHITE, null);
+        };
+        rightFrames[6] = (g,r) -> {
+            g.drawImage(b7, r.x, r.y, r.width, r.height, Color.WHITE, null);
+        };
+        rightFrames[7] = (g,r) -> {
+            g.drawImage(b8, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
 
-        leftFrames = new AnimationFrame[3];
+        leftFrames = new AnimationFrame[8];
         leftFrames[0] = (g,r) -> {
-            int inset = 0;
-            g.setColor(Color.MAGENTA);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b1l, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
         leftFrames[1] = (g,r) -> {
-            int inset = 4;
-            g.setColor(Color.BLUE);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b2l, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
         leftFrames[2] = (g,r) -> {
-            int inset = 8;
-            g.setColor(Color.CYAN);
-            g.fillRect(r.x + inset,r.y + inset,r.width - (2*inset),r.height-(2*inset));
+            g.drawImage(b3l, r.x, r.y, r.width, r.height, Color.WHITE, null);
+        };
+        leftFrames[3] = (g,r) -> {
+            g.drawImage(b4l, r.x, r.y, r.width, r.height, Color.WHITE, null);
+        };
+        leftFrames[4] = (g,r) -> {
+            g.drawImage(b5l, r.x, r.y, r.width, r.height, Color.WHITE, null);
+        };
+        leftFrames[5] = (g,r) -> {
+            g.drawImage(b6l, r.x, r.y, r.width, r.height, Color.WHITE, null);
+        };
+        leftFrames[6] = (g,r) -> {
+            g.drawImage(b7l, r.x, r.y, r.width, r.height, Color.WHITE, null);
+        };
+        leftFrames[7] = (g,r) -> {
+            g.drawImage(b8l, r.x, r.y, r.width, r.height, Color.WHITE, null);
         };
 
         setToStartingState();

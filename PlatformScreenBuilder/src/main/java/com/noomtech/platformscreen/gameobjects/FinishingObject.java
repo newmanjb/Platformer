@@ -1,6 +1,10 @@
 package com.noomtech.platformscreen.gameobjects;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 
 /**
@@ -9,15 +13,18 @@ import java.awt.*;
  */
 public class FinishingObject extends GameObject {
 
+//todo - put all image files in resources folder and get it from classpath
+    private BufferedImage image;
 
-    public FinishingObject(Rectangle collisionArea) {
+
+    public FinishingObject(Rectangle collisionArea) throws IOException {
         super(collisionArea);
+        image = ImageIO.read(new File("C:/temp/images/sky.png"));
     }
 
 
     public void paintIt(Graphics g) {
-        g.setColor(Color.YELLOW);
         Rectangle r = getCollisionArea();
-        g.fillRect(r.x, r.y, r.width, r.height);
+        g.drawImage(image, r.x, r.y, r.width, r.height, Color.WHITE, null);
     }
 }

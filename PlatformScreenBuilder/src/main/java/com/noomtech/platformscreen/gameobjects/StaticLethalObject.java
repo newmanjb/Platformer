@@ -1,6 +1,10 @@
 package com.noomtech.platformscreen.gameobjects;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 
 /**
@@ -9,14 +13,16 @@ import java.awt.*;
  */
 public class StaticLethalObject extends GameObject implements Lethal {
 
-    public StaticLethalObject(Rectangle collisionArea) {
+    private BufferedImage bufferedImage;
+
+    public StaticLethalObject(Rectangle collisionArea) throws IOException {
         super(collisionArea);
+        bufferedImage = ImageIO.read(new File("C:/temp/images/water.png"));
     }
 
     @Override
     public void paintIt(Graphics g) {
-        g.setColor(Color.BLUE);
         Rectangle r = getCollisionArea();
-        g.fillRect(r.x, r.y, r.width, r.height);
+        g.drawImage(bufferedImage, r.x, r.y, r.width, r.height, Color.WHITE, null);
     }
 }
