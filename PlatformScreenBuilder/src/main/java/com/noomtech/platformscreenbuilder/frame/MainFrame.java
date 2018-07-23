@@ -7,6 +7,7 @@ import com.noomtech.platformscreenbuilder.building_blocks.EditorObject;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.event.ActionEvent;
@@ -22,7 +23,7 @@ public class MainFrame extends JFrame {
     private Session cassandraSession;
 
 
-    public MainFrame() {
+    public MainFrame() throws Exception {
 
         Cluster.Builder b = Cluster.builder().addContactPoint("10.130.84.52");
         Cluster cluster = b.build();
@@ -69,7 +70,7 @@ public class MainFrame extends JFrame {
         setVisible(true);
     }
 
-    private List<EditorObject> load() {
+    private List<EditorObject> load() throws IOException {
         String selectStatement = "SELECT class,id,attributes,rectangle FROM jsw.COLLISION_AREAS";
         BoundStatement b = cassandraSession.prepare(selectStatement).bind();
         ResultSet rs = cassandraSession.execute(b);

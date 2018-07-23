@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -124,8 +125,16 @@ public class DrawingPanel extends JPanel {
         public void mouseReleased(MouseEvent e) {
 
             if(beingDrawn != null) {
-                GameObject defaultGameObject = new Platform(new Rectangle(beingDrawn));
-                EditorObject newCollisionArea = new EditorObject(defaultGameObject, System.currentTimeMillis());
+                GameObject defaultGameObject;
+                EditorObject newCollisionArea;
+                try {
+                    defaultGameObject = new Platform(new Rectangle(beingDrawn));
+                }
+                catch(IOException ex) {
+                    throw new IllegalArgumentException("Couldn't load game object's resources" + ex);
+                }
+
+                newCollisionArea = new EditorObject(defaultGameObject, System.currentTimeMillis());
                 addCollisionArea(newCollisionArea);
                 beingDrawn = null;
 
@@ -184,30 +193,35 @@ public class DrawingPanel extends JPanel {
                     }
                     String theClass = (String)classBox.getSelectedItem();
                     GameObject g;
-                    switch(theClass) {
-                        case(Constants.TYPE_PLATFORM): {
-                            g = new Platform(collisionArea.getRectangle());
-                            break;
+                    try {
+                        switch (theClass) {
+                            case (Constants.TYPE_PLATFORM): {
+                                g = new Platform(collisionArea.getRectangle());
+                                break;
+                            }
+                            case (Constants.TYPE_NASTY): {
+                                g = new Nasty(collisionArea.getRectangle());
+                                break;
+                            }
+                            case (Constants.TYPE_JSW): {
+                                g = new JSW(collisionArea.getRectangle());
+                                break;
+                            }
+                            case (Constants.TYPE_LETHAL_OBJECT): {
+                                g = new StaticLethalObject(collisionArea.getRectangle());
+                                break;
+                            }
+                            case (Constants.TYPE_FINISHING_OBJECT): {
+                                g = new FinishingObject(collisionArea.getRectangle());
+                                break;
+                            }
+                            default: {
+                                throw new IllegalArgumentException();
+                            }
                         }
-                        case(Constants.TYPE_NASTY) : {
-                            g = new Nasty(collisionArea.getRectangle());
-                            break;
-                        }
-                        case(Constants.TYPE_JSW) : {
-                            g = new JSW(collisionArea.getRectangle());
-                            break;
-                        }
-                        case(Constants.TYPE_LETHAL_OBJECT) : {
-                            g = new StaticLethalObject(collisionArea.getRectangle());
-                            break;
-                        }
-                        case(Constants.TYPE_FINISHING_OBJECT) : {
-                            g = new FinishingObject(collisionArea.getRectangle());
-                            break;
-                        }
-                        default: {
-                            throw new IllegalArgumentException();
-                        }
+                    }
+                    catch(IOException e) {
+                        throw new IllegalArgumentException("Couldn't load game object's resources", e);
                     }
 
                     g.setAttributes(attributes);
