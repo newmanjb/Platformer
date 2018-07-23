@@ -7,6 +7,7 @@ import com.noomtech.platformscreen.gamethread.GamePanel;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class GameFrame extends JFrame {
     private final Cluster cluster;
 
     //@todo - save the screen size in the editor, don't hardcode it
-    public GameFrame() {
+    public GameFrame() throws IOException {
 
         Cluster.Builder b = Cluster.builder().addContactPoint("10.130.84.52");
         cluster = b.build();
@@ -81,7 +82,7 @@ public class GameFrame extends JFrame {
     /**
      * Loads the game data from the cassandra db
      */
-    private Map<String,List<? extends GameObject>> load() {
+    private Map<String,List<? extends GameObject>> load() throws IOException {
         String selectStatement = "SELECT class,id,attributes,rectangle FROM jsw.COLLISION_AREAS";
         BoundStatement b = cassandraSession.prepare(selectStatement).bind();
         ResultSet rs = cassandraSession.execute(b);
