@@ -1,8 +1,9 @@
 package com.noomtech.platformscreenbuilder.frame;
 
-import com.noomtech.platformscreen.Constants;
 import com.noomtech.platformscreen.gameobjects.*;
+import com.noomtech.platformscreen.gameobjects.objects.*;
 import com.noomtech.platformscreenbuilder.building_blocks.EditorObject;
+import com.noomtech.platformscreenbuilder.utils.EditorUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -178,7 +179,7 @@ public class DrawingPanel extends JPanel {
             AttributesPopup(final EditorObject collisionArea) {
                 super((JFrame)null, "Attributes", true);
                 setLayout(new BorderLayout());
-                JComboBox<String> classBox = new JComboBox(Constants.TYPES);
+                JComboBox<String> classBox = new JComboBox(EditorUtils.SELECTABLE_GAME_OBJECTS);
                 JTextArea textArea = new JTextArea();
                 JButton saveButton = new JButton("Save");
                 saveButton.addActionListener(ae -> {
@@ -191,37 +192,15 @@ public class DrawingPanel extends JPanel {
                             attributes.put(keyValArray[0], keyValArray[1]);
                         }
                     }
-                    String theClass = (String)classBox.getSelectedItem();
+                    //The type of game object is represented as the full name of the underlying class so as it can be instantiated
+                    //using reflection when it's loaded
+                    String theClass = EditorUtils.SELECTABLE_GAME_OBJECT_PACKAGE + "." + classBox.getSelectedItem();
                     GameObject g;
                     try {
-                        switch (theClass) {
-                            case (Constants.TYPE_PLATFORM): {
-                                g = new Platform(collisionArea.getRectangle());
-                                break;
-                            }
-                            case (Constants.TYPE_NASTY): {
-                                g = new Nasty(collisionArea.getRectangle());
-                                break;
-                            }
-                            case (Constants.TYPE_JSW): {
-                                g = new JSW(collisionArea.getRectangle());
-                                break;
-                            }
-                            case (Constants.TYPE_LETHAL_OBJECT): {
-                                g = new StaticLethalObject(collisionArea.getRectangle());
-                                break;
-                            }
-                            case (Constants.TYPE_FINISHING_OBJECT): {
-                                g = new FinishingObject(collisionArea.getRectangle());
-                                break;
-                            }
-                            default: {
-                                throw new IllegalArgumentException();
-                            }
-                        }
+                        g = (GameObject)Class.forName(theClass).getConstructor(Rectangle.class).newInstance(collisionArea.getRectangle());
                     }
-                    catch(IOException e) {
-                        throw new IllegalArgumentException("Couldn't load game object's resources", e);
+                    catch(Exception c) {
+                        throw new IllegalArgumentException("Couldn't create game object", c);
                     }
 
                     g.setAttributes(attributes);
@@ -245,13 +224,11 @@ public class DrawingPanel extends JPanel {
                         }
                         textArea.setText(sb.substring(0, sb.length() - 1));
                     }
-                    //@todo - Add reflection before this becomes a nightmare!!
-                    classBox.setSelectedItem(gameObject instanceof Platform ? Constants.TYPE_PLATFORM : gameObject instanceof Nasty ?
-                            Constants.TYPE_NASTY : gameObject instanceof JSW ? Constants.TYPE_JSW : gameObject instanceof StaticLethalObject ?
-                            Constants.TYPE_LETHAL_OBJECT : Constants.TYPE_FINISHING_OBJECT);
+
+                    classBox.setSelectedItem(gameObject.getClass().getSimpleName());
                 }
                 else {
-                    classBox.setSelectedItem(Constants.TYPE_PLATFORM);
+                    classBox.setSelectedItem(classBox.getItemAt(0));
                 }
 
                 add(classBox, BorderLayout.NORTH);
