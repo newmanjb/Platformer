@@ -1,6 +1,7 @@
 package com.noomtech.platformscreen.gamethread;
 
 import com.noomtech.platformscreen.gameobjects.*;
+import com.noomtech.platformscreen.gameobjects.objects.*;
 import com.noomtech.platformscreen.movement.PlayerMovementType;
 import com.noomtech.platformscreen.movement.NastiesHandler;
 import com.noomtech.platformscreen.utils.Utils;
@@ -93,17 +94,38 @@ public class GamePanel extends JPanel {
 
 
     public GamePanel(
-            List<JSW> player,
-            List<Platform> platforms,
-            List<Nasty> nasties,
-            List<StaticLethalObject> staticLethalObjects,
-            List<FinishingObject> finishingObjects) {
+            List<GameObject> gameObjects) {
 
-        jsw = player.get(0);
-        this.platforms = platforms;
-        this.nasties = nasties;
-        this.staticLethalObjects = staticLethalObjects;
-        this.finishingObjects = finishingObjects;
+        this.platforms = new ArrayList<>();
+        this.nasties = new ArrayList<>();
+        this.staticLethalObjects = new ArrayList<>();
+        this.finishingObjects = new ArrayList<>();
+        JSW tempJSW = null;
+        for(GameObject gameObject : gameObjects) {
+            Class<?> gameObjectClass = gameObject.getClass();
+            if(gameObjectClass == Nasty.class) {
+                nasties.add((Nasty)gameObject);
+            }
+            else if(gameObjectClass == JSW.class) {
+                if(tempJSW != null) {
+                    throw new IllegalArgumentException("Only allowed one player!");
+                }
+                tempJSW = (JSW)gameObject;
+            }
+            else if(gameObjectClass == StaticLethalObject.class) {
+                staticLethalObjects.add((StaticLethalObject)gameObject);
+            }
+            else if(gameObjectClass == Platform.class) {
+                platforms.add((Platform)gameObject);
+            }
+            else if(gameObjectClass == FinishingObject.class) {
+                finishingObjects.add((FinishingObject)finishingObjects);
+            }
+            else {
+                throw new IllegalArgumentException("Unknown game object class " + gameObjectClass);
+            }
+        }
+        jsw = tempJSW;
 
         //Some hard-coded data for when we can't access cassandra and want to do some testing
 
