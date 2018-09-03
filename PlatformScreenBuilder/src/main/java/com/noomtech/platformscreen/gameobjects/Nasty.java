@@ -1,5 +1,8 @@
-package com.noomtech.platformscreen.gameobjects;
+package com.noomtech.platformscreen.gameobjects.objects;
 
+import com.noomtech.platformscreen.gameobjects.AnimatedGameObject;
+import com.noomtech.platformscreen.gameobjects.AnimationFrame;
+import com.noomtech.platformscreen.gameobjects.Lethal;
 import com.noomtech.platformscreen.movement.PlayerMovementType;
 
 import javax.imageio.ImageIO;
