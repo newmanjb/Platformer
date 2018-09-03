@@ -1,17 +1,15 @@
 package com.noomtech.platformscreenbuilder.frame;
 
 import com.datastax.driver.core.*;
-import com.noomtech.platformscreen.Constants;
-import com.noomtech.platformscreen.gameobjects.*;
+import com.noomtech.platformscreen.gameobjects.GameObject;
 import com.noomtech.platformscreenbuilder.building_blocks.EditorObject;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 
@@ -70,7 +68,7 @@ public class MainFrame extends JFrame {
         setVisible(true);
     }
 
-    private List<EditorObject> load() throws IOException {
+    private List<EditorObject> load() throws Exception {
         String selectStatement = "SELECT class,id,attributes,rectangle FROM jsw.COLLISION_AREAS";
         BoundStatement b = cassandraSession.prepare(selectStatement).bind();
         ResultSet rs = cassandraSession.execute(b);
@@ -87,41 +85,13 @@ public class MainFrame extends JFrame {
             Point end = new Point(endTuple.get(0,Integer.class), endTuple.get(1,Integer.class));
             Rectangle rectangle = new Rectangle(start.x, start.y, end.x - start.x, end.y - start.y);
 
-            GameObject gameObject = null;
-            switch(classVal) {
-                case Constants.TYPE_PLATFORM : {
-                    gameObject = new Platform(rectangle);
-                    gameObject.setAttributes(attributes);
-                    break;
-                }
-                case Constants.TYPE_NASTY : {
-                    gameObject = new Nasty(rectangle);
-                    gameObject.setAttributes(attributes);
-                    break;
-                }
-                case Constants.TYPE_JSW : {
-                    gameObject = new JSW(rectangle);
-                    gameObject.setAttributes(attributes);
-                    break;
-                }
-                case Constants.TYPE_LETHAL_OBJECT : {
-                    gameObject = new StaticLethalObject(rectangle);
-                    gameObject.setAttributes(attributes);
-                    break;
-                }
-                case Constants.TYPE_FINISHING_OBJECT : {
-                    gameObject = new FinishingObject(rectangle);
-                    gameObject.setAttributes(attributes);
-                    break;
-                }
-                default : {
-                    throw new IllegalArgumentException();
-                }
-            }
+            //The type of game object is represented as the full name of the underlying class so as it can be instantiated
+            //using reflection
+            GameObject gameObject = (GameObject)Class.forName(classVal).getConstructor(Rectangle.class).newInstance(rectangle);
+            gameObject.setAttributes(attributes);
 
             EditorObject editorObject = new EditorObject(gameObject, id);
             toReturn.add(editorObject);
-
         }
         return toReturn;
     }
@@ -140,10 +110,7 @@ public class MainFrame extends JFrame {
             for(EditorObject c : toDeleteList) {
                 BoundStatement boundStatement = preparedDeleteStatement.bind();
                 GameObject gameObject = c.getGameObject();
-                //@todo - Add reflection before this becomes a nightmare!!
-                boundStatement.setString(0, c.getGameObject() != null ? gameObject instanceof Platform ? Constants.TYPE_PLATFORM :
-                        gameObject instanceof Nasty ? Constants.TYPE_NASTY : gameObject instanceof JSW ? Constants.TYPE_JSW :
-                                gameObject instanceof StaticLethalObject ? Constants.TYPE_LETHAL_OBJECT : Constants.TYPE_FINISHING_OBJECT : "TBD");
+                boundStatement.setString(0, gameObject.getClass().getName());
                 boundStatement.setLong(1, c.getId());
                 if(!cassandraSession.execute(boundStatement).wasApplied()) {
                     throw new IllegalArgumentException("Didn't work!");
@@ -162,9 +129,9 @@ public class MainFrame extends JFrame {
                 }
                 String classVal;
                 Map<String,String> attributesToSave = null;
-                classVal = gameObject instanceof Platform ? Constants.TYPE_PLATFORM : gameObject instanceof Nasty ? Constants.TYPE_NASTY :
-                        gameObject instanceof JSW ? Constants.TYPE_JSW : gameObject instanceof StaticLethalObject ?
-                                Constants.TYPE_LETHAL_OBJECT : Constants.TYPE_FINISHING_OBJECT;
+                //The type of game object is represented as the full name of the underlying class so as it can be instantiated
+                //using reflection
+                classVal = gameObject.getClass().getName();
                 Map<String,String> attributes = gameObject.getAttributes();
                 if(attributes != null && !attributes.isEmpty()) {
                     attributesToSave = attributes;
