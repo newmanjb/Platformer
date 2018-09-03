@@ -1,5 +1,6 @@
 package com.noomtech.platformscreen.gameobjects;
 
+import com.noomtech.platformscreen.gameobjects.objects.JSW;
 import com.noomtech.platformscreen.movement.PlayerMovementType;
 import org.junit.Test;
 
