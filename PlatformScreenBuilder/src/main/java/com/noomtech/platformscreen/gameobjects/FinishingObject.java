@@ -1,4 +1,6 @@
-package com.noomtech.platformscreen.gameobjects;
+package com.noomtech.platformscreen.gameobjects.objects;
+
+import com.noomtech.platformscreen.gameobjects.GameObject;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
