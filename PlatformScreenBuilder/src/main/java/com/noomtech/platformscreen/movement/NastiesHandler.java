@@ -1,7 +1,7 @@
 package com.noomtech.platformscreen.movement;
 
 import com.noomtech.platformscreen.gameobjects.GameObject;
-import com.noomtech.platformscreen.gameobjects.Nasty;
+import com.noomtech.platformscreen.gameobjects.objects.Nasty;
 import com.noomtech.platformscreen.gamethread.GamePanel;
 import com.noomtech.platformscreen.utils.Utils;
 
