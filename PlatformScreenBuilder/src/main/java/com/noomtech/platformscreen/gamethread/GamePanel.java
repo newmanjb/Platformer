@@ -125,6 +125,10 @@ public class GamePanel extends JPanel {
                 throw new IllegalArgumentException("Unknown game object class " + gameObjectClass);
             }
         }
+
+        if(tempJSW == null) {
+            throw new IllegalStateException("Must have a JSW!");
+        }
         jsw = tempJSW;
 
         //Some hard-coded data for when we can't access cassandra and want to do some testing
