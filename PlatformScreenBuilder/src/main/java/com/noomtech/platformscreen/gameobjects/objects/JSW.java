@@ -125,7 +125,7 @@ public class JSW extends AnimatedGameObject {
 
     public void reactToMove(PlayerMovementType movementType) {
         int xdiff = getX() - lastXLocation;
-        int numFramesMoved;
+        int numFramesMoved = 0;
         if(xdiff > 0) {
             //We're going right
             currentFrameList = rightFrames;
@@ -138,7 +138,7 @@ public class JSW extends AnimatedGameObject {
             //Add the left-over pixels on to the running total
             numPixelsMovedRight = moved % pixelsPerFrameChange;
         }
-        else {
+        else if(xdiff < 0) {
             //As above except for going left
             currentFrameList = leftFrames;
             numPixelsMovedRight = 0;
