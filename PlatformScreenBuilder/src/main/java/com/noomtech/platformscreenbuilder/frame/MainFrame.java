@@ -3,17 +3,18 @@ package com.noomtech.platformscreenbuilder.frame;
 import com.datastax.driver.core.*;
 import com.noomtech.platformscreen.gameobjects.GameObject;
 import com.noomtech.platformscreenbuilder.building_blocks.EditorObject;
+import com.noomtech.platformscreenbuilder.utils.EditorUtils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 
-//@todo - 1: Save the size of the drawing panel
 public class MainFrame extends JFrame {
 
 
@@ -80,10 +81,13 @@ public class MainFrame extends JFrame {
             Map<String,String> attributes = row.getMap(2, String.class, String.class);
             TupleValue tupleValue = row.getTupleValue(3);
             TupleValue startTuple = tupleValue.get(0,TupleValue.class);
-            Point start = new Point(startTuple.get(0,Integer.class), startTuple.get(1,Integer.class));
             TupleValue endTuple = tupleValue.get(1,TupleValue.class);
-            Point end = new Point(endTuple.get(0,Integer.class), endTuple.get(1,Integer.class));
-            Rectangle rectangle = new Rectangle(start.x, start.y, end.x - start.x, end.y - start.y);
+
+            //Pixel values such as x, y, width and height have to be converted first, as they are stored as proportions
+            //of the screen size (see the save functionality)
+            Rectangle rectangle = EditorUtils.convertFromProportionOfScreenSize(
+                    startTuple.get(0, BigDecimal.class), startTuple.get(1, BigDecimal.class),
+                    endTuple.get(0, BigDecimal.class), endTuple.get(1, BigDecimal.class));
 
             //The type of game object is represented as the full name of the underlying class so as it can be instantiated
             //using reflection
@@ -147,11 +151,14 @@ public class MainFrame extends JFrame {
                     boundStatement.setMap(2, attributesToSave);
                 }
 
-                Rectangle r = c.getRectangle();
+                //Pixel values such as x, y, width and height are converted to be proprtions of the scrren size first
+                //before being saved e.g. if the scrren size width is 1500 and the value is 300 then the value will be
+                //saved as 0.2. This way the editor will work on any screen size.
+                BigDecimal[] convertedVals = EditorUtils.convertToProportionOfScreenSize(c.getRectangle());
                 TupleType t = TupleType.of(ProtocolVersion.NEWEST_SUPPORTED, CodecRegistry.DEFAULT_INSTANCE,
-                        DataType.cint(), DataType.cint());
-                TupleValue start = t.newValue(r.x, r.y);
-                TupleValue end = t.newValue(r.x + r.width, r.y + r.height);
+                        DataType.decimal(), DataType.decimal());
+                TupleValue start = t.newValue(convertedVals[0], convertedVals[1]);
+                TupleValue end = t.newValue(convertedVals[0].add(convertedVals[2]), convertedVals[1].add(convertedVals[3]));
                 TupleType t1 = TupleType.of(ProtocolVersion.NEWEST_SUPPORTED, CodecRegistry.DEFAULT_INSTANCE,
                         t, t);
                 TupleValue rectangleVal = t1.newValue(start,end);
