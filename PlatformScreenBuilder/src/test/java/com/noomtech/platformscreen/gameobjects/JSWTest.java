@@ -9,7 +9,7 @@ import java.lang.reflect.Field;
 
 public class JSWTest {
 
-
+    //@todo tests broken - fix them
     /**
      * Move the JSW forward in small increments that are less than the num pixels per frame change,
      * checking whether a new frame has been correctly set at each stage
