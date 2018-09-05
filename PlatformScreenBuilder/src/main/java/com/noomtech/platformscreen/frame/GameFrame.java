@@ -3,9 +3,11 @@ package com.noomtech.platformscreen.frame;
 import com.datastax.driver.core.*;
 import com.noomtech.platformscreen.gameobjects.*;
 import com.noomtech.platformscreen.gamethread.GamePanel;
+import com.noomtech.platformscreenbuilder.utils.EditorUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.List;
 
@@ -87,10 +89,13 @@ public class GameFrame extends JFrame {
 
             TupleValue tupleValue = row.getTupleValue(3);
             TupleValue startTuple = tupleValue.get(0,TupleValue.class);
-            Point start = new Point(startTuple.get(0,Integer.class), startTuple.get(1,Integer.class));
             TupleValue endTuple = tupleValue.get(1,TupleValue.class);
-            Point end = new Point(endTuple.get(0,Integer.class), endTuple.get(1,Integer.class));
-            Rectangle rectangle = new Rectangle(start.x, start.y, end.x - start.x, end.y - start.y);
+            //Pixel values such as x, y, width and height are converted to be proprtions of the scrren size first
+            //before being saved e.g. if the scrren size width is 1500 and the value is 300 then the value will be
+            //saved as 0.2. So they must be converted back before being used to draw objects.  This way the game is portable
+            //across different resolutions and monitors.
+            Rectangle rectangle = EditorUtils.convertFromProportionOfScreenSize(startTuple.get(0,BigDecimal.class), startTuple.get(1,BigDecimal.class),
+                    endTuple.get(0,BigDecimal.class), endTuple.get(1,BigDecimal.class));
             String classVal = row.getString(0);
             Map<String,String> attributes = row.getMap(2, String.class, String.class);
             //The type of game object is represented as the full name of the underlying class so as it can be instantiated
