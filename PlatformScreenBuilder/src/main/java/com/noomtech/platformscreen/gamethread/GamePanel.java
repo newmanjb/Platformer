@@ -1,8 +1,8 @@
 package com.noomtech.platformscreen.gamethread;
 
-import com.noomtech.platformscreen.gameobjects.*;
+import com.noomtech.platformscreen.gameobjects.GameObject;
+import com.noomtech.platformscreen.gameobjects.Lethal;
 import com.noomtech.platformscreen.gameobjects.objects.*;
-import com.noomtech.platformscreen.movement.PlayerMovementType;
 import com.noomtech.platformscreen.movement.NastiesHandler;
 import com.noomtech.platformscreen.utils.Utils;
 
@@ -17,9 +17,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 
-//todo - draw static objects like platforms ONCE only
-//todo - get rid of bug that keeps facing jsw the wrong way when it walks right and collides with an object
-//todo - all pixel vals must be represented as a fraction of the screen size and NOT hardcoded
+//@todo - draw static objects like platforms ONCE only (just put a boolean into the paintIt method)
+//@todo -  movement increments (jump, move left, nasty moving etc..) need to be represented as fractions of the screen size
 /**
  * This panel class is responsible for the painting and also acts as the controller.
  *
@@ -569,7 +568,7 @@ public class GamePanel extends JPanel {
             try {
                 while (!stopMoving) {
                     boolean moveFinished = doMove();
-                    jsw.onMove(movementType);
+                    jsw.onMove();
                     //@todo - should this be determined in here?  Can't we determine it when the movement is finished?
                     shouldFall = shouldStartFalling();
                     stopMoving = moveFinished && (stopRequestReceived || shouldFall);
@@ -830,4 +829,13 @@ public class GamePanel extends JPanel {
             return true;
         }
     };
+
+    private enum PlayerMovementType {
+        WALK_LEFT,
+        WALK_RIGHT,
+        JUMP,
+        FALL,
+        //e.g. For when the player dies
+        MOVED_BACK_TO_START;
+    }
 }

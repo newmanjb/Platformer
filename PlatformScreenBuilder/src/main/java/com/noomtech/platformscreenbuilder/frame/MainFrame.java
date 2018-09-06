@@ -91,8 +91,8 @@ public class MainFrame extends JFrame {
 
             //The type of game object is represented as the full name of the underlying class so as it can be instantiated
             //using reflection
-            GameObject gameObject = (GameObject)Class.forName(classVal).getConstructor(Rectangle.class).newInstance(rectangle);
-            gameObject.setAttributes(attributes);
+            GameObject gameObject = (GameObject)Class.forName(classVal).getConstructor(Rectangle.class, Map.class).newInstance(
+                    rectangle, attributes);
 
             EditorObject editorObject = new EditorObject(gameObject, id);
             toReturn.add(editorObject);

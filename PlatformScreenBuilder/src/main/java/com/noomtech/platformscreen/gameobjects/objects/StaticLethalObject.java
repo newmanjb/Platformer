@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 
 /**
@@ -18,8 +19,8 @@ public class StaticLethalObject extends GameObject implements Lethal {
 
     private BufferedImage bufferedImage;
 
-    public StaticLethalObject(Rectangle collisionArea) throws IOException {
-        super(collisionArea);
+    public StaticLethalObject(Rectangle collisionArea, Map<String,String> attributes) throws IOException {
+        super(collisionArea, attributes);
         bufferedImage = ImageIO.read(new File("C:/temp/images/water.png"));
     }
 

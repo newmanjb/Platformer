@@ -1,22 +1,19 @@
 package com.noomtech.platformscreen.gameobjects.objects;
 
-import com.noomtech.platformscreen.gameobjects.AnimatedGameObject;
+import com.noomtech.platformscreen.gameobjects.MovingGameObject;
 import com.noomtech.platformscreen.gameobjects.AnimationFrame;
 import com.noomtech.platformscreen.gameobjects.Lethal;
-import com.noomtech.platformscreen.movement.PlayerMovementType;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 
 /**
  * Represents a moving, lethal object on the screen
  * @author Joshua Newman
  */
-public class Nasty extends AnimatedGameObject implements Lethal {
+public class Nasty extends MovingGameObject implements Lethal {
 
 
     //The direction along the y-axis that this nasty is moving.  Start the nasty off moving down
@@ -30,45 +27,16 @@ public class Nasty extends AnimatedGameObject implements Lethal {
     private AnimationFrame[] animationFrames;
     private int currentFrameIdx;
 
+    //There is only one type of movement for this
+    private static final String ANIM_CATEGORY_MOVE = "move";
+    private static final String[] ALL_ANIMATION_FRAME_CATEGORIES = new String[]{ANIM_CATEGORY_MOVE};
+    private static final String ANIMATION_FRAMES_DIRECTORY_NAME = Nasty.class.getSimpleName();
 
-    public Nasty(Rectangle collisionArea) throws IOException {
-        super(collisionArea);
 
-        animationFrames = new AnimationFrame[8];
-
-        BufferedImage b1 = ImageIO.read(new File("C:/temp/images/flamecollection1.jpg"));
-        BufferedImage b2 = ImageIO.read(new File("C:/temp/images/flamecollection2.jpg"));
-        BufferedImage b3 = ImageIO.read(new File("C:/temp/images/flamecollection3.jpg"));
-        BufferedImage b4 = ImageIO.read(new File("C:/temp/images/flamecollection4.jpg"));
-        BufferedImage b5 = ImageIO.read(new File("C:/temp/images/flamecollection5.jpg"));
-        BufferedImage b6 = ImageIO.read(new File("C:/temp/images/flamecollection6.jpg"));
-        BufferedImage b7 = ImageIO.read(new File("C:/temp/images/flamecollection7.jpg"));
-        BufferedImage b8 = ImageIO.read(new File("C:/temp/images/flamecollection8.jpg"));
-
-        animationFrames[0] = (g,r) -> {
-            g.drawImage(b1, r.x, r.y, r.width, r.height, Color.WHITE, null);
-        };
-        animationFrames[1] = (g,r) -> {
-            g.drawImage(b2, r.x, r.y, r.width, r.height, Color.WHITE, null);
-        };
-        animationFrames[2] = (g,r) -> {
-            g.drawImage(b3, r.x, r.y, r.width, r.height, Color.WHITE, null);
-        };
-        animationFrames[3] = (g,r) -> {
-            g.drawImage(b4, r.x, r.y, r.width, r.height, Color.WHITE, null);
-        };
-        animationFrames[4] = (g,r) -> {
-            g.drawImage(b5, r.x, r.y, r.width, r.height, Color.WHITE, null);
-        };
-        animationFrames[5] = (g,r) -> {
-            g.drawImage(b6, r.x, r.y, r.width, r.height, Color.WHITE, null);
-        };
-        animationFrames[6] = (g,r) -> {
-            g.drawImage(b7, r.x, r.y, r.width, r.height, Color.WHITE, null);
-        };
-        animationFrames[7] = (g,r) -> {
-            g.drawImage(b8, r.x, r.y, r.width, r.height, Color.WHITE, null);
-        };
+    public Nasty(Rectangle collisionArea, Map<String,String> attributes) throws IOException {
+        super(collisionArea, attributes);
+        animationFrames = animationFramesMap.get(ANIM_CATEGORY_MOVE);
+        setToStartingState();
     }
 
     @Override
@@ -102,20 +70,27 @@ public class Nasty extends AnimatedGameObject implements Lethal {
     }
 
     public void setToStartingState() {
-        super.setToStartingState();
         moveYDirection = 1;
         lastOrdinate = getY();
         amountMovedSinceLastFrameChange = 0;
         currentFrameIdx = 0;
     }
 
-    //@todo sort out the movement class hierarchy (have player movement types and nasty movement types and then make
-    //this method accept a generic type ?)
+    @Override
+    public String[] getAnimationFrameCategories() {
+        return ALL_ANIMATION_FRAME_CATEGORIES;
+    }
+
+    @Override
+    public String getAnimationFramesDirectoryName() {
+        return ANIMATION_FRAMES_DIRECTORY_NAME;
+    }
+
     /**
-     * Works in the same way as {@link JSW#reactToMove(PlayerMovementType)} except that this only
+     * Works in the same way as {@link JSW#reactToMove()} except that this only
      * has one list of animation frames to cycle through
      */
-    protected void reactToMove(PlayerMovementType movementType) {
+    protected void reactToMove() {
 
         int amountMovedNow = getY() - lastOrdinate;
         amountMovedNow = amountMovedNow > 0 ? amountMovedNow : -(amountMovedNow);

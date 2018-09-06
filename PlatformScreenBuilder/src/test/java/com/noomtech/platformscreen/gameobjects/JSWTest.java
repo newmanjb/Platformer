@@ -1,11 +1,11 @@
 package com.noomtech.platformscreen.gameobjects;
 
 import com.noomtech.platformscreen.gameobjects.objects.JSW;
-import com.noomtech.platformscreen.movement.PlayerMovementType;
 import org.junit.Test;
 
 import java.awt.*;
 import java.lang.reflect.Field;
+import java.util.Collections;
 
 public class JSWTest {
 
@@ -18,7 +18,7 @@ public class JSWTest {
     public void test1() throws Exception {
 
         int numPixelsPerMovement = 10;
-        JSW jsw = new JSW(new Rectangle(20,20,5,5));
+        JSW jsw = new JSW(new Rectangle(20,20,5,5), Collections.EMPTY_MAP);
         Field f1 = JSW.class.getDeclaredField("pixelsPerFrameChange");
         f1.setAccessible(true);
         f1.setInt(jsw, numPixelsPerMovement);
@@ -28,94 +28,94 @@ public class JSWTest {
         //Walk right
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 0, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.8), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 0, false);
 
         jsw.setLocation(jsw.getX() + (int)(numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 1, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 1, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.8), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 1, false);
 
         jsw.setLocation(jsw.getX() + (int)(numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 2, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 2, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.8), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 2, false);
 
         jsw.setLocation(jsw.getX() + (int)(numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 0, false);
 
         //Walk left
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 0, true);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.8), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 0, true);
 
         jsw.setLocation(jsw.getX() - (int)(numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 1, true);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 1, true);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.8), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 1, true);
 
         jsw.setLocation(jsw.getX() - (int)(numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 2, true);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 2, true);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.8), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 2, true);
 
         jsw.setLocation(jsw.getX() - (int)(numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 0, true);
     }
@@ -127,7 +127,7 @@ public class JSWTest {
     public void test2() throws Exception {
 
         int numPixelsPerMovement = 10;
-        JSW jsw = new JSW(new Rectangle(20,20,5,5));
+        JSW jsw = new JSW(new Rectangle(20,20,5,5), Collections.EMPTY_MAP);
         Field f1 = JSW.class.getDeclaredField("pixelsPerFrameChange");
         f1.setAccessible(true);
         f1.setInt(jsw, numPixelsPerMovement);
@@ -135,22 +135,22 @@ public class JSWTest {
         checkVals(jsw, 0, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 0, false);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 0, true);
 
         jsw.setLocation(jsw.getX() + (int)(numPixelsPerMovement * 0.9), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 0, false);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.9), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 0, true);
     }
@@ -163,7 +163,7 @@ public class JSWTest {
     public void test3() throws Exception {
 
         int numPixelsPerMovement = 10;
-        JSW jsw = new JSW(new Rectangle(20,20,5,5));
+        JSW jsw = new JSW(new Rectangle(20,20,5,5), Collections.EMPTY_MAP);
         Field f1 = JSW.class.getDeclaredField("pixelsPerFrameChange");
         f1.setAccessible(true);
         f1.setInt(jsw, numPixelsPerMovement);
@@ -171,23 +171,23 @@ public class JSWTest {
         checkVals(jsw, 0, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 1.5), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 1, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.5), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_RIGHT);
+        jsw.reactToMove();
 
         checkVals(jsw, 2, false);
 
         //Walk left
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 1.5), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 0, true);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.5), jsw.getY());
-        jsw.reactToMove(PlayerMovementType.WALK_LEFT);
+        jsw.reactToMove();
 
         checkVals(jsw, 1, true);
     }

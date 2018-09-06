@@ -7,20 +7,21 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 
 /**
  * Represents a platform on the screen
  * @author Joshua Newman
  */
+//@todo - load images from classpath for static objects like for moving objects
 public class Platform extends GameObject {
-//@todo - put all images in resources folder and have a default one for when object is first created in editor
 
-    private static final Color COLOR = Color.GREEN;
+
     private BufferedImage image;
 
-    public Platform(Rectangle collisionArea) throws IOException {
-        super(collisionArea);
+    public Platform(Rectangle collisionArea, Map<String,String> attributes) throws IOException {
+        super(collisionArea, attributes);
         image = ImageIO.read(new File("C:/temp/images/platform1.jpg"));
     }
 

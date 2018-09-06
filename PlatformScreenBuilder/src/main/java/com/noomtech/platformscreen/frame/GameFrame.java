@@ -100,8 +100,8 @@ public class GameFrame extends JFrame {
             Map<String,String> attributes = row.getMap(2, String.class, String.class);
             //The type of game object is represented as the full name of the underlying class so as it can be instantiated
             //using reflection
-            GameObject gameObject = (GameObject)Class.forName(classVal).getConstructor(Rectangle.class).newInstance(rectangle);
-            gameObject.setAttributes(attributes);
+            GameObject gameObject = (GameObject)Class.forName(classVal).getConstructor(
+                    Rectangle.class, Map.class).newInstance(rectangle, attributes);
             toReturn.add(gameObject);
         }
 

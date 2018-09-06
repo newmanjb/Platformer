@@ -2,11 +2,15 @@ package com.noomtech.platformscreenbuilder.utils;
 
 import com.noomtech.platformscreen.gameobjects.objects.JSW;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.Rectangle;
+import java.awt.Point;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.util.*;
 
 public class EditorUtils {
 
@@ -22,6 +26,9 @@ public class EditorUtils {
 
     private static final MathContext MC_CONVERT_TO_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
     private static final MathContext MC_CONVERT_FROM_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
+
+    private static final String ANIMATION_FRAMES_FOLDER = EditorUtils.class.getClassLoader().getResource("animationFrames").getFile() +
+            File.separator;
 
 
     private static String[] getGameObjectOptions() {
@@ -64,5 +71,51 @@ public class EditorUtils {
         converted.width = endX.subtract(startX).multiply(SCREEN_SIZE_WIDTH, MC_CONVERT_FROM_FRACTION_ROUNDING).toBigInteger().intValue();
         converted.height = endY.subtract(startY).multiply(SCREEN_SIZE_HEIGHT, MC_CONVERT_FROM_FRACTION_ROUNDING).toBigInteger().intValue();
         return converted;
+    }
+
+    /**
+     * Searches the {@link #ANIMATION_FRAMES_FOLDER} directory, which should be on the classpath, for the images files
+     * corresponding to the given animation categories for the given animation directory.
+     * @param animationDirectoryName The root directory for the game object's images.  This should be directly under
+     *                               the {@link EditorUtils#ANIMATION_FRAMES_FOLDER}
+     * @param animationCategories The names of the animation categories that the files are being collected for.  Each animation
+     *                            category name must correspond to a directory under the animation directory name that is provided
+     *                            for the first parameter.
+     * @return A map containing lists of Files keyed under the name of the animation category directory they were found in e.g.
+     *         {"Left"->[FileL1,FileL2],"Right"->[filer1,filer2},"Jump"->[FileJ1,FileJ2,FileJ3]}.  These files must be named such
+     *         that, when the names are ordered in DESC order, they correspond to the animation cycle e.g. if the frames for
+     *         the moving left cycle are image_ghs.jpg, image_23te.jpg and imagee_d2h.jpg in that order then they should be renamed to
+     *         image_1.jpg, image_2.jpg and image_3.jpg respectively, so image_1.jpg is the first frame displayed in the cycle
+     *         and image_3.jpg is the last.
+     */
+    public static Map<String,File[]> getAnimationImages(String animationDirectoryName, String[] animationCategories) {
+        File f = new File(ANIMATION_FRAMES_FOLDER + animationDirectoryName);
+        if(!f.exists() || !f.isDirectory()) {
+            throw new IllegalArgumentException("Invalid file for " + f.getPath());
+        }
+
+        File[] categoryDirectories = f.listFiles();
+        if(categoryDirectories.length == 0) {
+            throw new IllegalArgumentException("No files in " + f.getPath());
+        }
+
+        Map<String, File[]> animCategoryToFileList = new HashMap<>(categoryDirectories.length);
+        String animCategoriesDirPath = f.getPath();
+        for(String animCategory : animationCategories) {
+            File animCategoryDir = new File(animCategoriesDirPath + File.separator + animCategory);
+            if(!animCategoryDir.exists() || !animCategoryDir.isDirectory()) {
+                throw new IllegalArgumentException("Invalid file: " + animCategoryDir.getPath());
+            }
+
+            File[] animFrameFiles = animCategoryDir.listFiles();
+            if(animFrameFiles.length == 0) {
+                throw new IllegalArgumentException("No anim frames in " + animCategoryDir.getPath());
+            }
+
+            Arrays.sort(animFrameFiles, (a, b) -> {return a.getName().compareTo(b.getName());});
+            animCategoryToFileList.put(animCategory, animFrameFiles);
+        }
+
+        return animCategoryToFileList;
     }
 }

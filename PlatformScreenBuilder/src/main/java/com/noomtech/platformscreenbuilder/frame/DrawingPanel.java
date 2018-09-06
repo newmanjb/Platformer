@@ -12,10 +12,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
 
 public class DrawingPanel extends JPanel {
 
@@ -129,7 +127,7 @@ public class DrawingPanel extends JPanel {
                 GameObject defaultGameObject;
                 EditorObject newCollisionArea;
                 try {
-                    defaultGameObject = new Platform(new Rectangle(beingDrawn));
+                    defaultGameObject = new Platform(new Rectangle(beingDrawn), Collections.EMPTY_MAP);
                 }
                 catch(IOException ex) {
                     throw new IllegalArgumentException("Couldn't load game object's resources" + ex);
@@ -197,13 +195,12 @@ public class DrawingPanel extends JPanel {
                     String theClass = EditorUtils.SELECTABLE_GAME_OBJECT_PACKAGE + "." + classBox.getSelectedItem();
                     GameObject g;
                     try {
-                        g = (GameObject)Class.forName(theClass).getConstructor(Rectangle.class).newInstance(collisionArea.getRectangle());
+                        g = (GameObject)Class.forName(theClass).getConstructor(Rectangle.class, Map.class).newInstance(
+                                collisionArea.getRectangle(), attributes);
                     }
                     catch(Exception c) {
                         throw new IllegalArgumentException("Couldn't create game object", c);
                     }
-
-                    g.setAttributes(attributes);
 
                     EditorObject newEditorObject = new EditorObject(g, collisionArea.getId());
                     collisionAreas.remove(collisionArea);
