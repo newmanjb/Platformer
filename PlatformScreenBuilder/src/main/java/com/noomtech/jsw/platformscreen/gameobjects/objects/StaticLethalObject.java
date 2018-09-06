@@ -26,9 +26,9 @@ public class StaticLethalObject extends GameObject implements Lethal {
 
     @Override
     public void paintObject(Graphics g) {
-        if(!staticObjectsDontNeedToBeDrawnAgain) {
+     //   if(!staticObjectsDontNeedToBeDrawnAgain) {
             Rectangle r = getCollisionArea();
             g.drawImage(bufferedImage, r.x, r.y, r.width, r.height, Color.WHITE, null);
-        }
+      //  }
     }
 }

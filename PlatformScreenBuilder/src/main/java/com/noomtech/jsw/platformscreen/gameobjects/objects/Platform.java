@@ -29,9 +29,9 @@ public class Platform extends GameObject {
     @Override
     public void paintObject(Graphics g) {
 
-        if(!staticObjectsDontNeedToBeDrawnAgain) {
+        //if(!staticObjectsDontNeedToBeDrawnAgain) {
             Rectangle r = getCollisionArea();
             g.drawImage(image, r.x, r.y, r.width, r.height, Color.WHITE, null);
-        }
+        //}
     }
 }
