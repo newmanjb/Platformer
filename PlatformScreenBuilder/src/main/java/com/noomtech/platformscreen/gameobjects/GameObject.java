@@ -1,7 +1,8 @@
-package com.noomtech.platformscreen.gameobjects;
+package com.noomtech.jsw.platformscreen.gameobjects;
+
+import com.noomtech.jsw.common.utils.Utils;
 
 import java.awt.*;
-import java.util.HashMap;
 import java.util.Map;
 
 
@@ -9,6 +10,9 @@ import java.util.Map;
  * Represents an object on the screen e.g. player, platform
  * @author Joshua Newman
  */
+//@todo - fix bug where player collects finishing object but doesn't reset to old position and also nasties speed up.
+//I think this is associated with the setToStartingState not doing everything it should since the superclass
+//implementation was removed from this class, as this thing did a few things too.  See the history of this class.
 public abstract class GameObject {
 
 
@@ -18,6 +22,8 @@ public abstract class GameObject {
     private Map<String,String> attributes;
     //This is where the game object is first located when the game starts
     protected Point startingLocation;
+    //Set to true once this object has been drawn.  Used by objects that never change in appearance during the game
+    protected boolean staticObjectsDontNeedToBeDrawnAgain;
 
 
     public GameObject(Rectangle collisionArea, Map<String,String> attributes) {
@@ -26,7 +32,15 @@ public abstract class GameObject {
         startingLocation = collisionArea.getLocation();
     }
 
-    public abstract void paintIt(Graphics g);
+    protected abstract void paintObject(Graphics g);
+
+    public final void doPainting(Graphics g) {
+        paintObject(g);
+
+        //Set to true if the painting is part of the actual game where these types of object won't change.  Otherwise don't
+        //e.g. if the painting is part of the editor where these objects can be moved
+        //staticObjectsDontNeedToBeDrawnAgain = Utils.gameIsRunning;
+    }
 
     public Rectangle getCollisionArea() {
         return collisionArea;
