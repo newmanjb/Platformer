@@ -1,6 +1,6 @@
 package com.noomtech.jsw.platformscreen.gameobjects;
 
-import com.noomtech.jsw.common.utils.Utils;
+import com.noomtech.jsw.common.utils.CommonUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -26,7 +26,7 @@ public abstract class MovingGameObject extends GameObject {
      * referred to as a "category" and the frames are stored in lists in a map keyed under the
      * category e.g. the map of a player object's animation frames might consist of
      * ("Left"->{imgL1,imgL2,imgL3} "Right"->{imgR1,imgR2,imgR3}, "Jump"->{imgJ1,imgJ2,imgJ3,imgJ4})
-     * @see Utils#getAnimationImages(String, String[])
+     * @see CommonUtils#getAnimationImages(String, String[])
      * @see #getAnimationFrameCategories()
      * @see #getAnimationFramesDirectoryName()
      */
@@ -38,7 +38,7 @@ public abstract class MovingGameObject extends GameObject {
             String animationDirectory = getAnimationFramesDirectoryName();
             String[] animationCategories = getAnimationFrameCategories();
             //This method obtains the files for each image and they are then converted to images when the map is built below
-            Map<String, File[]> keysToFiles = Utils.getAnimationImages(animationDirectory, animationCategories);
+            Map<String, File[]> keysToFiles = CommonUtils.getAnimationImages(animationDirectory, animationCategories);
 
             animationFramesMap = new HashMap(keysToFiles.size());
             for (Map.Entry<String, File[]> entries : keysToFiles.entrySet()) {
@@ -74,7 +74,7 @@ public abstract class MovingGameObject extends GameObject {
 
     /**
      * @return The name of the root directory that the subdirectories for the animation categories are stored under
-     * @see Utils#getAnimationImages(String, String[])
+     * @see CommonUtils#getAnimationImages(String, String[])
      * @see #getAnimationFrameCategories()
      * @see #MovingGameObject(Rectangle, Map)
      */

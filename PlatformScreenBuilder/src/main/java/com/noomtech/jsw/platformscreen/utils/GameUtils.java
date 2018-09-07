@@ -1,6 +1,7 @@
 package com.noomtech.jsw.platformscreen.utils;
 
 
+import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.platformscreen.gameobjects.GameObject;
 
 /**
@@ -65,5 +66,54 @@ public class GameUtils {
             e.printStackTrace();
             System.exit(1);
         }
+    }
+
+    /**
+     * Scale the given time value (in ms) in relation to how large the existing screen width is compared to {@link #BASE_ON_THIS_SCREEN_WIDTH}.
+     * The formula used, where val = value provided, base = {@link #BASE_ON_THIS_SCREEN_WIDTH}, actual = existing screen width
+     *
+     * tempval = base/val
+     * result = (base * (base/actual)) / tempval;
+     */
+    public static int getScaledMsToScreenWidthValue(BigDecimal valueToScale) {
+        return scaleForScreenSize(valueToScale, BASE_ON_THIS_SCREEN_WIDTH, CommonUtils.SCREEN_SIZE_WIDTH);
+    }
+
+    /**
+     * As for {@link #getScaledMsToScreenWidthValue(BigDecimal)} except for height using {@link #BASE_ON_THIS_SCREEN_HEIGHT}
+     */
+    public static int getScaledMsToScreenHeightValue(BigDecimal valueToScale) {
+        return scaleForScreenSize(valueToScale, BASE_ON_THIS_SCREEN_HEIGHT, CommonUtils.SCREEN_SIZE_HEIGHT);
+    }
+
+
+    private static int scaleForScreenSize(BigDecimal valueToScale, BigDecimal baseOnScreenSize, BigDecimal actualScreenSize) {
+        BigDecimal valueAsPortionOfBaseVal = baseOnScreenSize.divide(valueToScale, SCALING_TO_SCREEN_MATH_CONTEXT);
+        return baseOnScreenSize.multiply(baseOnScreenSize.divide(actualScreenSize, SCALING_TO_SCREEN_MATH_CONTEXT).divide(
+                valueAsPortionOfBaseVal, SCALING_TO_SCREEN_MATH_CONTEXT)).setScale(0, RoundingMode.HALF_UP).intValue();
+    }
+
+    /**
+     * Scale the given pixel value in relation to how large the existing screen width is compared to {@link #BASE_ON_THIS_SCREEN_WIDTH}.
+     * The formula used, where val = value provided, base = {@link #BASE_ON_THIS_SCREEN_WIDTH}, actual = existing screen width
+     *
+     * tempval = base/val
+     * result = actual / tempval;
+     */
+    public static int getScaledPixelsToScreenWidthValue(BigDecimal valueToScale) {
+        return scaleForPixelScreenSize(valueToScale, BASE_ON_THIS_SCREEN_WIDTH, CommonUtils.SCREEN_SIZE_WIDTH);
+    }
+
+    /**
+     * As for {@link #getScaledPixelsToScreenWidthValue(BigDecimal)} except for height using {@link #BASE_ON_THIS_SCREEN_HEIGHT}
+     */
+    public static int getScaledPixelsToScreenHeightValue(BigDecimal valueToScale) {
+        return scaleForPixelScreenSize(valueToScale, BASE_ON_THIS_SCREEN_HEIGHT, CommonUtils.SCREEN_SIZE_HEIGHT);
+    }
+
+
+    private static int scaleForPixelScreenSize(BigDecimal valueToScale, BigDecimal baseOnScreenSize, BigDecimal actualScreenSize) {
+        BigDecimal valueAsPortionOfBaseVal = baseOnScreenSize.divide(valueToScale, SCALING_TO_SCREEN_MATH_CONTEXT);
+        return actualScreenSize.divide(valueAsPortionOfBaseVal, SCALING_TO_SCREEN_MATH_CONTEXT).setScale(0, RoundingMode.HALF_UP).intValue();
     }
 }

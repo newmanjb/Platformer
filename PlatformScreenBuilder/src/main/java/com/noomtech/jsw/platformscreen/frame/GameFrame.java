@@ -1,9 +1,9 @@
 package com.noomtech.jsw.platformscreen.frame;
 
 import com.datastax.driver.core.*;
+import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.platformscreen.gameobjects.*;
 import com.noomtech.jsw.platformscreen.gamethread.GamePanel;
-import com.noomtech.jsw.common.utils.Utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -94,7 +94,7 @@ public class GameFrame extends JFrame {
             //before being saved e.g. if the scrren size width is 1500 and the value is 300 then the value will be
             //saved as 0.2. So they must be converted back before being used to draw objects.  This way the game is portable
             //across different resolutions and monitors.
-            Rectangle rectangle = Utils.convertFromProportionOfScreenSize(startTuple.get(0,BigDecimal.class), startTuple.get(1,BigDecimal.class),
+            Rectangle rectangle = CommonUtils.convertFromProportionOfScreenSize(startTuple.get(0,BigDecimal.class), startTuple.get(1,BigDecimal.class),
                     endTuple.get(0,BigDecimal.class), endTuple.get(1,BigDecimal.class));
             String classVal = row.getString(0);
             Map<String,String> attributes = row.getMap(2, String.class, String.class);

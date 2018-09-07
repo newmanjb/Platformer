@@ -1,9 +1,9 @@
 package com.noomtech.jsw.platformscreenbuilder.frame;
 
+import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.platformscreen.gameobjects.*;
 import com.noomtech.jsw.platformscreen.gameobjects.objects.*;
 import com.noomtech.jsw.platformscreenbuilder.building_blocks.EditorObject;
-import com.noomtech.jsw.common.utils.Utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -177,7 +177,7 @@ public class DrawingPanel extends JPanel {
             AttributesPopup(final EditorObject collisionArea) {
                 super((JFrame)null, "Attributes", true);
                 setLayout(new BorderLayout());
-                JComboBox<String> classBox = new JComboBox(Utils.SELECTABLE_GAME_OBJECTS);
+                JComboBox<String> classBox = new JComboBox(CommonUtils.SELECTABLE_GAME_OBJECTS);
                 JTextArea textArea = new JTextArea();
                 JButton saveButton = new JButton("Save");
                 saveButton.addActionListener(ae -> {
@@ -192,7 +192,7 @@ public class DrawingPanel extends JPanel {
                     }
                     //The type of game object is represented as the full name of the underlying class so as it can be instantiated
                     //using reflection when it's loaded
-                    String theClass = Utils.SELECTABLE_GAME_OBJECT_PACKAGE + "." + classBox.getSelectedItem();
+                    String theClass = CommonUtils.SELECTABLE_GAME_OBJECT_PACKAGE + "." + classBox.getSelectedItem();
                     GameObject g;
                     try {
                         g = (GameObject)Class.forName(theClass).getConstructor(Rectangle.class, Map.class).newInstance(

@@ -1,7 +1,7 @@
 package com.noomtech.jsw.platformscreen;
 
 import com.noomtech.jsw.platformscreen.frame.GameFrame;
-import com.noomtech.jsw.common.utils.Utils;
+import com.noomtech.jsw.common.utils.CommonUtils;
 
 
 /**
@@ -12,7 +12,7 @@ public class Game {
 
 
     public static void main(String[] args) throws Exception {
-        Utils.gameIsRunning = true;
+        CommonUtils.gameIsRunning = true;
         new GameFrame();
     }
 }

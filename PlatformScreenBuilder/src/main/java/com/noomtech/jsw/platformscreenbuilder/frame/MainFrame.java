@@ -1,9 +1,9 @@
 package com.noomtech.jsw.platformscreenbuilder.frame;
 
 import com.datastax.driver.core.*;
+import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.platformscreen.gameobjects.GameObject;
 import com.noomtech.jsw.platformscreenbuilder.building_blocks.EditorObject;
-import com.noomtech.jsw.common.utils.Utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -85,7 +85,7 @@ public class MainFrame extends JFrame {
 
             //Pixel values such as x, y, width and height have to be converted first, as they are stored as proportions
             //of the screen size (see the save functionality)
-            Rectangle rectangle = Utils.convertFromProportionOfScreenSize(
+            Rectangle rectangle = CommonUtils.convertFromProportionOfScreenSize(
                     startTuple.get(0, BigDecimal.class), startTuple.get(1, BigDecimal.class),
                     endTuple.get(0, BigDecimal.class), endTuple.get(1, BigDecimal.class));
 
@@ -154,7 +154,7 @@ public class MainFrame extends JFrame {
                 //Pixel values such as x, y, width and height are converted to be proprtions of the scrren size first
                 //before being saved e.g. if the scrren size width is 1500 and the value is 300 then the value will be
                 //saved as 0.2. This way the editor will work on any screen size.
-                BigDecimal[] convertedVals = Utils.convertToProportionOfScreenSize(c.getRectangle());
+                BigDecimal[] convertedVals = CommonUtils.convertToProportionOfScreenSize(c.getRectangle());
                 TupleType t = TupleType.of(ProtocolVersion.NEWEST_SUPPORTED, CodecRegistry.DEFAULT_INSTANCE,
                         DataType.decimal(), DataType.decimal());
                 TupleValue start = t.newValue(convertedVals[0], convertedVals[1]);
