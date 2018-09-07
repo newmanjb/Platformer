@@ -37,7 +37,7 @@ public abstract class GameObject {
     public final void doPainting(Graphics g) {
         paintObject(g);
 
-        //Reinstate if needed
+        //----Reinstate if needed----
         //Set to true if the painting is part of the actual game where these types of object won't change.  Otherwise don't
         //e.g. if the painting is part of the editor where these objects can be moved
         //staticObjectsDontNeedToBeDrawnAgain = Utils.gameIsRunning;
