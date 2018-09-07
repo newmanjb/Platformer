@@ -1,11 +1,8 @@
 package com.noomtech.jsw.platformscreen.gameobjects.objects;
 
-import com.noomtech.jsw.platformscreen.gameobjects.GameObject;
+import com.noomtech.jsw.platformscreen.gameobjects.NonMovingObject;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -14,17 +11,17 @@ import java.util.Map;
  * An object that the player has to collect in order to finish the game
  * @author Joshua Newman
  */
-public class FinishingObject extends GameObject {
-
-
-    private BufferedImage image;
+public class FinishingObject extends NonMovingObject {
 
 
     public FinishingObject(Rectangle collisionArea, Map<String,String> attributes) throws IOException {
         super(collisionArea, attributes);
-        image = ImageIO.read(new File("C:/temp/images/sky.png"));
     }
 
+    @Override
+    public String getImageDirectory() {
+        return this.getClass().getSimpleName();
+    }
 
     public void paintObject(Graphics g) {
       //  if(!staticObjectsDontNeedToBeDrawnAgain) {
