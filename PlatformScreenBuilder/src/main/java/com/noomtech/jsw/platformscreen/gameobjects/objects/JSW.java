@@ -98,6 +98,7 @@ public class JSW extends MovingGameObject {
     }
 
     public void setToStartingState() {
+        getCollisionArea().setLocation(startingLocation);
         currentFrameList = rightFrames;
         currentFrameIdx = 0;;
         numPixelsMovedRight = 0;

@@ -70,6 +70,7 @@ public class Nasty extends MovingGameObject implements Lethal {
     }
 
     public void setToStartingState() {
+        getCollisionArea().setLocation(startingLocation);
         moveYDirection = 1;
         lastOrdinate = getY();
         amountMovedSinceLastFrameChange = 0;
