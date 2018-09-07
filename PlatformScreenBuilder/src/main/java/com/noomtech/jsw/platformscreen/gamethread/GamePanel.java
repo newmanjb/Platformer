@@ -63,14 +63,15 @@ public class GamePanel extends JPanel {
     private final JSWControlsHandler jSWControlsHandler;
     //Handles the movements of the nasties
     private final NastiesHandler nastiesHandler;
-    //True if we are currently in the routine that handles the death of the player
-    private volatile boolean dying;
+    //True if the thread that moves the nasties should stop e.g. if the player has hit a lethal object and the "dying"
+    //routine is run
+    private volatile boolean stopNastiesThread;
     //Runs the nasties handler
     private Thread nastiesThread;
     //The colour of the background in the game
     private Color backgroundColor;
     //Not null if the screen should simply display a message e.g. if the player has finished the game
-    private volatile char[] message;
+    private volatile String message;
 
 
     //Each of thes arrays below is as long as the screen size (which is currently square).  The relevant boundary of each static object that
@@ -169,7 +170,7 @@ public class GamePanel extends JPanel {
 
     //Returns false if the nasties should stop moving
     public boolean shouldRunNastiesThread() {
-        return started && !dying;
+        return started && !stopNastiesThread;
     }
 
     public void start() {
@@ -201,34 +202,28 @@ public class GamePanel extends JPanel {
         //this rectangle should never be drawn.  Instead the moving objects only could be rubbed out and repainted.
         g.fillRect(0, 0, screenSize.width, screenSize.height);
 
-        if(message == null) {
-
-            for (Platform platform : platforms) {
-                platform.doPainting(g);
-            }
-
-            for (StaticLethalObject staticLethalObject : staticLethalObjects) {
-                staticLethalObject.doPainting(g);
-            }
-
-            for (FinishingObject finishingObject : finishingObjects) {
-                finishingObject.doPainting(g);
-            }
-
-            //Don't paint anything that's moving if the player's dying
-            if (!dying) {
-
-                jsw.doPainting(g);
-
-                for (Nasty nasty : nasties) {
-                    nasty.doPainting(g);
-                }
-            }
+        for (Platform platform : platforms) {
+            platform.doPainting(g);
         }
-        else {
-            g.setColor(Color.ORANGE);
+
+        for (StaticLethalObject staticLethalObject : staticLethalObjects) {
+            staticLethalObject.doPainting(g);
+        }
+
+        for (FinishingObject finishingObject : finishingObjects) {
+            finishingObject.doPainting(g);
+        }
+
+        jsw.doPainting(g);
+
+        for (Nasty nasty : nasties) {
+            nasty.doPainting(g);
+        }
+
+        if(message != null) {
+            g.setColor(Color.BLACK);
             g.setFont(g.getFont().deriveFont(g.getFont().getSize() * 10f));
-            g.drawString("WELL DONE!", (int)(screenSize.width * 0.3), (int)(screenSize.height * 0.5));
+            g.drawString(message, (int)(screenSize.width * 0.3), (int)(screenSize.height * 0.5));
         }
     }
 
@@ -240,7 +235,7 @@ public class GamePanel extends JPanel {
     public void playerHitLethalObject(Lethal nastyThatWasHit) {
         new Thread(() ->
             {
-                dying = true;
+                stopNastiesThread = true;
                 jSWControlsHandler.freezeJSW();
 
                 backgroundColor = Color.RED;
@@ -256,7 +251,7 @@ public class GamePanel extends JPanel {
                 }
                 jsw.setToStartingState();
 
-                dying = false;
+                stopNastiesThread = false;
                 jSWControlsHandler.unfreezeJSW();
                 nastiesThread.start();
             }).start();
@@ -266,27 +261,16 @@ public class GamePanel extends JPanel {
     public void playerHitFinishingObject(FinishingObject finishingObject) {
         new Thread(() ->
         {
+            stopNastiesThread = true;
             jSWControlsHandler.freezeJSW();
 
-            message = "WELL DONE!!".toCharArray();
+            message = "WELL DONE!!";
             backgroundColor = Color.BLUE;
-            GameUtils.sleepAndCatchInterrupt(350);
+            GameUtils.sleepAndCatchInterrupt(500);
             backgroundColor = Color.GREEN;
-            GameUtils.sleepAndCatchInterrupt(350);
+            GameUtils.sleepAndCatchInterrupt(500);
             backgroundColor = Color.WHITE;
-            GameUtils.sleepAndCatchInterrupt(350);
-            backgroundColor = Color.BLUE;
-            GameUtils.sleepAndCatchInterrupt(350);
-            backgroundColor = Color.GREEN;
-            GameUtils.sleepAndCatchInterrupt(350);
-            backgroundColor = Color.WHITE;
-            GameUtils.sleepAndCatchInterrupt(350);
-            backgroundColor = Color.BLUE;
-            GameUtils.sleepAndCatchInterrupt(350);
-            backgroundColor = Color.GREEN;
-            GameUtils.sleepAndCatchInterrupt(350);
-            backgroundColor = Color.WHITE;
-            GameUtils.sleepAndCatchInterrupt(350);
+            message = null;
 
             nastiesThread = new Thread(nastiesHandler);
             nastiesThread.setName("Nasties Handler");
@@ -295,7 +279,7 @@ public class GamePanel extends JPanel {
             }
             jsw.setToStartingState();
 
-            message = null;
+            stopNastiesThread = false;
             jSWControlsHandler.unfreezeJSW();
             nastiesThread.start();
         }).start();
