@@ -32,6 +32,7 @@ import java.util.concurrent.Future;
  *
  * @author Joshua Newman
  */
+//@todo - fix bug where player can jump on to static lethal object and not get killed (may be the same for finishing object too)
 public class GamePanel extends JPanel {
 
 
@@ -651,9 +652,9 @@ public class GamePanel extends JPanel {
         //Defines the increments that need to be made to the sprite's location in order to get them to jump left, right
         //or up.
 
-        private final int[][] trajectoryRight;
-        private final int[][] trajectoryLeft;
-        private final int[][] trajectoryUp;
+        private int[][] trajectoryRight;
+        private int[][] trajectoryLeft;
+        private int[][] trajectoryUp;
 
         private int startIndexInTrajectory;
 
@@ -665,33 +666,44 @@ public class GamePanel extends JPanel {
             super(PlayerMovementType.JUMP,Executors.newSingleThreadExecutor(), JUMP_NUM_PIXELS_PER_MOVEMENT,
                     JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS);
 
-            trajectoryRight = new int[300][2];
-            for(int i = 0 ; i < 100 ; i++) {
-                trajectoryRight[i] = new int[]{1,-1};
+            //Jumping consists of 3 types of movement 1: up and across, 2: across 3: down and across.
+            //Each movement is only 1 pixel up/down and/or across but the number of these movements needs to be scaled
+            // in relation to the screen size.
+            int numOfMovementsUpAndAcross = GameUtils.getScaledPixelsToScreenWidthValue(new BigDecimal(100));
+            int numOfMovementsAcross = GameUtils.getScaledPixelsToScreenWidthValue(new BigDecimal(100));
+            int numOfMovementsDownAndAcross = GameUtils.getScaledPixelsToScreenWidthValue(new BigDecimal(100));
+            List<int[]> trajectoryRightList = new ArrayList(numOfMovementsUpAndAcross + numOfMovementsAcross + numOfMovementsDownAndAcross);
+            for(int i = 0 ; i < numOfMovementsUpAndAcross ; i++) {
+                trajectoryRightList.add(new int[]{1,-1});
             }
-            for(int i = 100 ; i < 200 ; i++) {
-                trajectoryRight[i] = new int[]{1,0};
+            for(int i = numOfMovementsUpAndAcross ; i <numOfMovementsUpAndAcross + numOfMovementsAcross ; i++) {
+                trajectoryRightList.add(new int[]{1,0});
             }
-            for(int i = 200 ; i < 300 ; i++) {
-                trajectoryRight[i] = new int[]{1,1};
+            for(int i = numOfMovementsUpAndAcross + numOfMovementsAcross ; i < numOfMovementsUpAndAcross + numOfMovementsAcross + numOfMovementsDownAndAcross ; i++) {
+                trajectoryRightList.add(new int[]{1,1});
             }
-            trajectoryLeft = new int[300][2];
-            for(int i = 0 ; i < 100 ; i++) {
-                trajectoryLeft[i] = new int[]{-1,-1};
+            List<int[]> trajectoryLeftList = new ArrayList<>(numOfMovementsUpAndAcross + numOfMovementsAcross + numOfMovementsDownAndAcross);
+            for(int i = 0 ; i < numOfMovementsUpAndAcross ; i++) {
+                trajectoryLeftList.add(new int[]{-1,-1});
             }
-            for(int i = 100 ; i < 200 ; i++) {
-                trajectoryLeft[i] = new int[]{-1,0};
+            for(int i = numOfMovementsUpAndAcross ; i <numOfMovementsUpAndAcross + numOfMovementsAcross ; i++) {
+                trajectoryLeftList.add(new int[]{-1,0});
             }
-            for(int i = 200 ; i < 300 ; i++) {
-                trajectoryLeft[i] = new int[]{-1,1};
+            for(int i = numOfMovementsUpAndAcross + numOfMovementsAcross ; i < numOfMovementsUpAndAcross + numOfMovementsAcross + numOfMovementsDownAndAcross ; i++) {
+                trajectoryLeftList.add(new int[]{-1,1});
             }
-            trajectoryUp = new int[200][2];
-            for(int i = 0 ; i < 100 ; i++) {
-                trajectoryUp[i] = new int[]{0,-1};
+            int numTrajectoryUpMovements = GameUtils.getScaledPixelsToScreenHeightValue(new BigDecimal(100));
+            List<int[]> trajectoryUpList = new ArrayList<>(numTrajectoryUpMovements);
+            for(int i = 0 ; i < numTrajectoryUpMovements ; i++) {
+                trajectoryUpList.add(new int[]{0,-1});
             }
-            for(int i = 100 ; i < 200 ; i++) {
-                trajectoryUp[i] = new int[]{0,1};
+            for(int i = numTrajectoryUpMovements ; i < (numTrajectoryUpMovements * 2) ; i++) {
+                trajectoryUpList.add(new int[]{0,1});
             }
+
+            trajectoryLeft = trajectoryLeftList.toArray(new int[trajectoryLeftList.size()][2]);
+            trajectoryRight = trajectoryRightList.toArray(new int[trajectoryRightList.size()][2]);
+            trajectoryUp = trajectoryUpList.toArray(new int[trajectoryUpList.size()][2]);
         }
 
         @Override
