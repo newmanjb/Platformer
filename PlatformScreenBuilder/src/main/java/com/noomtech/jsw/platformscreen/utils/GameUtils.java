@@ -4,11 +4,22 @@ package com.noomtech.jsw.platformscreen.utils;
 import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.platformscreen.gameobjects.GameObject;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+
 /**
  * Contains useful methods
  * @author Joshua Newman
  */
 public class GameUtils {
+
+
+    /**See {@link #getScaledMsToScreenWidthValue(BigDecimal)}**/
+    private final static BigDecimal BASE_ON_THIS_SCREEN_WIDTH = new BigDecimal("1920");
+    /**See {@link #getScaledMsToScreenHeightValue(BigDecimal)}**/
+    private final static BigDecimal BASE_ON_THIS_SCREEN_HEIGHT = new BigDecimal("1080");
+    private final static MathContext SCALING_TO_SCREEN_MATH_CONTEXT = new MathContext(15, RoundingMode.HALF_UP);
 
 
     /**

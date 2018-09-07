@@ -19,20 +19,18 @@ public class NastiesHandler implements Runnable {
     private List<Nasty> nasties;
     private GameObject[][] checkWhenMovingDown;
     private GameObject[][] checkWhenMovingUp;
-    private int numPixelsBeforeSleeping;
     private long sleepDurationBetweenMovements;
     private GamePanel parent;
 
 
     public NastiesHandler(
             GamePanel parent, List<Nasty> nasties, GameObject[][] checkWhenMovingDown,
-            GameObject[][] checkWhenMovingUp, int numPixelsBeforeSleeping, long sleepDurationBetweenMovements) {
+            GameObject[][] checkWhenMovingUp, long sleepDurationBetweenMovements) {
 
         this.parent = parent;
         this.nasties = nasties;
         this.checkWhenMovingDown = checkWhenMovingDown;
         this.checkWhenMovingUp = checkWhenMovingUp;
-        this.numPixelsBeforeSleeping = numPixelsBeforeSleeping;
         this.sleepDurationBetweenMovements = sleepDurationBetweenMovements;
     }
 
@@ -53,22 +51,19 @@ public class NastiesHandler implements Runnable {
      * @see Nasty
      */
     private void doMove(Nasty nasty) {
-        for (int i = 0; i < numPixelsBeforeSleeping; i++) {
-            int moveDirection = nasty.getMoveYDirection();
-            int yOrdinateToCheck = moveDirection > 0 ? nasty.getY() + nasty.getHeight() : nasty.getY();
-            GameObject[] possibleCollisionArea = moveDirection > 0 ? checkWhenMovingDown[yOrdinateToCheck] :
-                    checkWhenMovingUp[yOrdinateToCheck + moveDirection];
-            GameObject collidedwith = GameUtils.getCollidedWhileMovingUpOrDown(nasty, possibleCollisionArea);
-            if(collidedwith != null) {
-                nasty.onCollision();
-            }
-            nasty.setLocation(nasty.getX(), nasty.getY() + nasty.getMoveYDirection());
-            nasty.onMove();
-            if(parent.getPlayerCollisionArea().intersects(nasty.getCollisionArea())) {
-                //The player's hit a nasty!!!!
-                parent.playerHitLethalObject(nasty);
-            }
-
+        int moveDirection = nasty.getMoveYDirection();
+        int yOrdinateToCheck = moveDirection > 0 ? nasty.getY() + nasty.getHeight() : nasty.getY();
+        GameObject[] possibleCollisionArea = moveDirection > 0 ? checkWhenMovingDown[yOrdinateToCheck] :
+                checkWhenMovingUp[yOrdinateToCheck + moveDirection];
+        GameObject collidedwith = GameUtils.getCollidedWhileMovingUpOrDown(nasty, possibleCollisionArea);
+        if(collidedwith != null) {
+            nasty.onCollision();
+        }
+        nasty.setLocation(nasty.getX(), nasty.getY() + nasty.getMoveYDirection());
+        nasty.onMove();
+        if(parent.getPlayerCollisionArea().intersects(nasty.getCollisionArea())) {
+            //The player's hit a nasty!!!!
+            parent.playerHitLethalObject(nasty);
         }
     }
 }

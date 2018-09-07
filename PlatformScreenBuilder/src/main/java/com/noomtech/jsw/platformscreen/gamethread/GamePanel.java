@@ -10,6 +10,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -17,7 +18,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 
-//@todo -  movement increments (jump, move left, nasty moving etc..) need to be represented as fractions of the screen size
 /**
  * This panel class is responsible for the painting and also acts as the controller.
  *
@@ -40,10 +40,15 @@ public class GamePanel extends JPanel {
     //Constants for movements
     private final int LEFT_RIGHT_NUM_PIXELS_PER_MOVEMENT = 1;
     private final int JUMP_NUM_PIXELS_PER_MOVEMENT = 1;
-    private final int LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS = 10;
-    private final int JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS = 10;
     private final int FALL_NUM_PIXELS_PER_MOVEMENT = 5;
-    private final int FALL_NUM_MILLIS_BETWEEN_MOVEMENTS = 50;
+    //The speed of the movements is scaled based on the existing screen size in relation to a 1920 x 1080 size e.g.
+    //if this was being run on a much smaller screen of half the resolution (960 x 540) then these delays would have to
+    //be twice as long as the distance for the player to walk across the screen for example would be half as much.
+    private final int LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(BigDecimal.TEN);
+    private final int JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(BigDecimal.TEN);
+    private final int FALL_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenHeightValue(new BigDecimal("50"));
+    private final int NASTY_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenHeightValue(BigDecimal.TEN);
+
 
     //The platforms.
     private final List<Platform> platforms;
@@ -155,7 +160,7 @@ public class GamePanel extends JPanel {
         }
 
         jSWControlsHandler = new JSWControlsHandler(new LeftMover(), new RightMover(), new JumpMover());
-        nastiesHandler = new NastiesHandler(this, nasties, goingDownCaresAbout, goingUpCaresAbout, 1, 10);
+        nastiesHandler = new NastiesHandler(this, nasties, goingDownCaresAbout, goingUpCaresAbout, NASTY_NUM_MILLIS_BETWEEN_MOVEMENTS);
         gameHandler = new GameHandler(this, 25);
 
         this.addKeyListener(jSWControlsHandler);
