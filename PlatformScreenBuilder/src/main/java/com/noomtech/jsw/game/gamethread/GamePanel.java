@@ -32,7 +32,6 @@ import java.util.concurrent.Future;
  *
  * @author Joshua Newman
  */
-//@todo - fix bug where player can jump on to static lethal object and not get killed (may be the same for finishing object too)
 public class GamePanel extends JPanel {
 
 
@@ -741,18 +740,24 @@ public class GamePanel extends JPanel {
                         jsw.setLocation(jsw.getX(), proposedNewLocation.y);
                     }
                     else {
-                        movementTotallyBlocked = movements[0] == 0 || movements[1] > 0 || checkPlayerCollisionOK(collidedWith);
+                        //JSW has hit something whilepocant like a lethal object
+                        //2: is only going up or down
+                        //3: is moving across and down (we don't want them sliding along the ground)
+                        movementTotallyBlocked = checkPlayerCollisionOK(collidedWith) || movements[0] == 0 || movements[1] > 0;
                     }
                 }
 
                 if(movements[0] != 0 && !movementTotallyBlocked) {
-                    collidedWith = GameUtils.getCollidedWhileMovingAcross(jsw, movements[0] < 0 ? goingLeftCaresAbout[proposedNewLocation.x] : goingRightCaresAbout[proposedNewLocation.x +
-                            jsw.getWidth()]);
+                    collidedWith = GameUtils.getCollidedWhileMovingAcross(jsw, movements[0] < 0 ? goingLeftCaresAbout[proposedNewLocation.x] :
+                            goingRightCaresAbout[proposedNewLocation.x + jsw.getWidth()]);
                     if(collidedWith == null) {
                         jsw.setLocation(proposedNewLocation.x, jsw.getY());
                     }
                     else {
-                        movementTotallyBlocked = movements[1] == 0 || checkPlayerCollisionOK(collidedWith);
+                        //JSW has hit something while moving left or right.  Block the movement if the JSW :
+                        //1: Has hit something significant like a lethal object
+                        //2: is only moving left or right
+                        movementTotallyBlocked = checkPlayerCollisionOK(collidedWith) || movements[1] == 0;
                     }
                 }
 
