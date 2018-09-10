@@ -33,20 +33,20 @@ public class Nasty extends MovingGameObject implements Lethal {
     private static final String ANIMATION_FRAMES_DIRECTORY_NAME = Nasty.class.getSimpleName();
 
 
-    public Nasty(Rectangle collisionArea, Map<String,String> attributes) throws IOException {
-        super(collisionArea, attributes);
+    public Nasty(Rectangle area, Map<String,String> attributes) throws IOException {
+        super(area, attributes);
         animationFrames = animationFramesMap.get(ANIM_CATEGORY_MOVE);
         setToStartingState();
     }
 
     @Override
     public void paintObject(Graphics graphics) {
-        animationFrames[currentFrameIdx].draw(graphics, getCollisionArea());
+        animationFrames[currentFrameIdx].draw(graphics, getArea());
     }
 
 
     public void setLocation(int x, int y) {
-        Rectangle r = getCollisionArea();
+        Rectangle r = getArea();
         r.x = x;
         r.y = y;
     }
@@ -70,7 +70,7 @@ public class Nasty extends MovingGameObject implements Lethal {
     }
 
     public void setToStartingState() {
-        getCollisionArea().setLocation(startingLocation);
+        getArea().setLocation(startingLocation);
         moveYDirection = 1;
         lastOrdinate = getY();
         amountMovedSinceLastFrameChange = 0;

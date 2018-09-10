@@ -122,7 +122,7 @@ public class MainFrame extends JFrame {
             }
             drawingPanel.clearDeleteList();
 
-            List<EditorObject> collisionAreaList = drawingPanel.getCollisionAreas();
+            List<EditorObject> collisionAreaList = drawingPanel.getEditorObjects();
             for(EditorObject c : collisionAreaList) {
                 BoundStatement boundStatement = preparedInsertStatement.bind();
 
@@ -154,7 +154,7 @@ public class MainFrame extends JFrame {
                 //Pixel values such as x, y, width and height are converted to be proprtions of the scrren size first
                 //before being saved e.g. if the scrren size width is 1500 and the value is 300 then the value will be
                 //saved as 0.2. This way the editor will work on any screen size.
-                BigDecimal[] convertedVals = CommonUtils.convertToProportionOfScreenSize(c.getRectangle());
+                BigDecimal[] convertedVals = CommonUtils.convertToProportionOfScreenSize(c.getArea());
                 TupleType t = TupleType.of(ProtocolVersion.NEWEST_SUPPORTED, CodecRegistry.DEFAULT_INSTANCE,
                         DataType.decimal(), DataType.decimal());
                 TupleValue start = t.newValue(convertedVals[0], convertedVals[1]);

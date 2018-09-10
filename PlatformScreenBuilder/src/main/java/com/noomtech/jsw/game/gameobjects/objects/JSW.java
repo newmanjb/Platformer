@@ -35,8 +35,8 @@ public class JSW extends MovingGameObject {
     private static String[] ALL_ANIMATION_FRAME_CATEGORIES = new String[]{ANIM_CATEGORY_LEFT, ANIM_CATEGORY_RIGHT};
 
 
-    public JSW(Rectangle collisionArea, Map<String,String> attributes) {
-        super(collisionArea, attributes);
+    public JSW(Rectangle area, Map<String,String> attributes) {
+        super(area, attributes);
         leftFrames = animationFramesMap.get(ANIM_CATEGORY_LEFT);
         rightFrames = animationFramesMap.get(ANIM_CATEGORY_RIGHT);
         currentFrameList = rightFrames;
@@ -45,11 +45,11 @@ public class JSW extends MovingGameObject {
 
     @Override
     public void paintObject(Graphics graphics) {
-        currentFrameList[currentFrameIdx].draw(graphics, getCollisionArea());
+        currentFrameList[currentFrameIdx].draw(graphics, getArea());
     }
 
     public void setLocation(int x, int y) {
-        Rectangle r = getCollisionArea();
+        Rectangle r = getArea();
         r.x = x;
         r.y = y;
     }
@@ -98,7 +98,7 @@ public class JSW extends MovingGameObject {
     }
 
     public void setToStartingState() {
-        getCollisionArea().setLocation(startingLocation);
+        getArea().setLocation(startingLocation);
         currentFrameList = rightFrames;
         currentFrameIdx = 0;;
         numPixelsMovedRight = 0;

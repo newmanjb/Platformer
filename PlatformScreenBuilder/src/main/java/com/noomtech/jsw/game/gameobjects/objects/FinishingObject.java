@@ -14,8 +14,8 @@ import java.util.Map;
 public class FinishingObject extends NonMovingObject {
 
 
-    public FinishingObject(Rectangle collisionArea, Map<String,String> attributes) throws IOException {
-        super(collisionArea, attributes);
+    public FinishingObject(Rectangle area, Map<String,String> attributes) throws IOException {
+        super(area, attributes);
     }
 
     @Override
@@ -25,7 +25,7 @@ public class FinishingObject extends NonMovingObject {
 
     public void paintObject(Graphics g) {
       //  if(!staticObjectsDontNeedToBeDrawnAgain) {
-            Rectangle r = getCollisionArea();
+            Rectangle r = getArea();
             g.drawImage(image, r.x, r.y, r.width, r.height, Color.WHITE, null);
        // }
     }

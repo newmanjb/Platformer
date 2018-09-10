@@ -12,5 +12,5 @@ import java.awt.Graphics;
 //@todo draw images up-front to save processing time
 public interface AnimationFrame {
 
-    void draw(Graphics g, Rectangle collisionArea);
+    void draw(Graphics g, Rectangle area);
 }

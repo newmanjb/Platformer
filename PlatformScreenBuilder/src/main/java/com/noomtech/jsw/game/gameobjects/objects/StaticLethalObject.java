@@ -15,8 +15,8 @@ import java.util.Map;
 public class StaticLethalObject extends NonMovingObject implements Lethal {
 
 
-    public StaticLethalObject(Rectangle collisionArea, Map<String,String> attributes) throws IOException {
-        super(collisionArea, attributes);
+    public StaticLethalObject(Rectangle area, Map<String,String> attributes) throws IOException {
+        super(area, attributes);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class StaticLethalObject extends NonMovingObject implements Lethal {
     @Override
     public void paintObject(Graphics g) {
      //   if(!staticObjectsDontNeedToBeDrawnAgain) {
-            Rectangle r = getCollisionArea();
+            Rectangle r = getArea();
             g.drawImage(image, r.x, r.y, r.width, r.height, Color.WHITE, null);
       //  }
     }

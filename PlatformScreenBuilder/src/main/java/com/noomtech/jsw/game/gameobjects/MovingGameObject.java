@@ -30,8 +30,8 @@ public abstract class MovingGameObject extends GameObject {
      * @see #getAnimationFrameCategories()
      * @see #getAnimationFramesDirectoryName()
      */
-    public MovingGameObject(Rectangle collisionArea, Map<String, String> attributes) {
-        super(collisionArea, attributes);
+    public MovingGameObject(Rectangle area, Map<String, String> attributes) {
+        super(area, attributes);
         try {
 
 

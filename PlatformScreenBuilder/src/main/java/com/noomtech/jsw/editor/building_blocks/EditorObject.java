@@ -38,12 +38,12 @@ public class EditorObject {
         isSelected = selected;
     }
 
-    public Rectangle getRectangle() {
-        return gameObject.getCollisionArea();
+    public Rectangle getArea() {
+        return gameObject.getArea();
     }
 
-    public void setRectangle(Rectangle rectangle) {
-        gameObject.setCollisionArea(rectangle);
+    public void setArea(Rectangle rectangle) {
+        gameObject.setArea(rectangle);
     }
 
     public GameObject getGameObject() {

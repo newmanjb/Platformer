@@ -26,10 +26,7 @@ import java.util.concurrent.Future;
  *
  * There is quite a lot of code around obtaining a high level of precision on the controls, as this is important in a platform game.
  *
- * Each object has a "collision area" which is represented as a {@link Rectangle}s instance that encloses the actual graphic for the
- * object.  These collision areas represent the boundaries and are used to determine when a collision between two objects e.g. the player and a
- * platform, has occurred.
- *
+ * @see GameObject#collisionAreas
  * @author Joshua Newman
  */
 public class GamePanel extends JPanel {
@@ -151,7 +148,7 @@ public class GamePanel extends JPanel {
         staticObjects.addAll(staticLethalObjects);
         staticObjects.addAll(finishingObjects);
         for(GameObject g : staticObjects) {
-            Rectangle r = g.getCollisionArea();
+            Rectangle r = g.getArea();
             Point p = g.getLocation();
             goingLeftCaresAbout[p.x + r.width] = buildNewGameObjects(goingLeftCaresAbout[p.x + r.width], g);
             goingRightCaresAbout[p.x] = buildNewGameObjects(goingRightCaresAbout[p.x], g);;
@@ -233,7 +230,7 @@ public class GamePanel extends JPanel {
     }
 
     public Rectangle getPlayerCollisionArea() {
-        return jsw.getCollisionArea();
+        return jsw.getArea();
     }
 
     //Callback for when the the player has hit a lethal object
@@ -586,7 +583,7 @@ public class GamePanel extends JPanel {
             if(movementType == PlayerMovementType.FALL) {
                 return false;
             }
-            Rectangle jswCollisionArea = jsw.getCollisionArea();
+            Rectangle jswCollisionArea = jsw.getArea();
             //@todo check that the player hasn't walked on to a lethal object otherwise if you walk the player on to a lethal object that is at
             //exactly the same level as the platform then it won't detect it.
             return GameUtils.getCollidedWhileMovingUpOrDown(jsw, goingDownCaresAbout[jswCollisionArea.y +
@@ -631,7 +628,7 @@ public class GamePanel extends JPanel {
                 collidedWith = GameUtils.getCollidedWhileMovingUpOrDown(jsw, goingDownCaresAbout[i]);
                 if(collidedWith == null) {
                     //We can fall
-                    jsw.setLocation(jsw.getCollisionArea().x, i-jsw.getCollisionArea().height);
+                    jsw.setLocation(jsw.getArea().x, i-jsw.getArea().height);
                 }
                 else {
                     checkPlayerCollisionOK(collidedWith);
