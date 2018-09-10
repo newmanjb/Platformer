@@ -1,6 +1,6 @@
 package com.noomtech.jsw.common.utils;
 
-import com.noomtech.jsw.platformscreen.gameobjects.objects.JSW;
+import com.noomtech.jsw.game.gameobjects.objects.JSW;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;

@@ -1,0 +1,34 @@
+package com.noomtech.jsw.game.gameobjects.objects;
+
+import com.noomtech.jsw.game.gameobjects.Lethal;
+import com.noomtech.jsw.game.gameobjects.NonMovingObject;
+
+import java.awt.*;
+import java.io.IOException;
+import java.util.Map;
+
+
+/**
+ * Represents a non-moving lethal object
+ * @author Joshua Newman
+ */
+public class StaticLethalObject extends NonMovingObject implements Lethal {
+
+
+    public StaticLethalObject(Rectangle collisionArea, Map<String,String> attributes) throws IOException {
+        super(collisionArea, attributes);
+    }
+
+    @Override
+    public String getImageDirectory() {
+        return this.getClass().getSimpleName();
+    }
+
+    @Override
+    public void paintObject(Graphics g) {
+     //   if(!staticObjectsDontNeedToBeDrawnAgain) {
+            Rectangle r = getCollisionArea();
+            g.drawImage(image, r.x, r.y, r.width, r.height, Color.WHITE, null);
+      //  }
+    }
+}
