@@ -740,7 +740,8 @@ public class GamePanel extends JPanel {
                         jsw.setLocation(jsw.getX(), proposedNewLocation.y);
                     }
                     else {
-                        //JSW has hit something whilepocant like a lethal object
+                        //JSW has hit something while moving up or down.  Block the movement if the JSW:
+                        //1: has hit something significant like a lethal object
                         //2: is only going up or down
                         //3: is moving across and down (we don't want them sliding along the ground)
                         movementTotallyBlocked = checkPlayerCollisionOK(collidedWith) || movements[0] == 0 || movements[1] > 0;
