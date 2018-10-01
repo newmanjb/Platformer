@@ -39,11 +39,11 @@ public class EditorObject {
     }
 
     public Rectangle getArea() {
-        return gameObject.getArea();
+        return gameObject.getImageArea();
     }
 
     public void setArea(Rectangle rectangle) {
-        gameObject.setArea(rectangle);
+        gameObject.setImageArea(rectangle);
     }
 
     public GameObject getGameObject() {

@@ -26,7 +26,6 @@ import java.util.concurrent.Future;
  *
  * There is quite a lot of code around obtaining a high level of precision on the controls, as this is important in a platform game.
  *
- * @see GameObject#collisionAreas
  * @author Joshua Newman
  */
 public class GamePanel extends JPanel {
@@ -148,7 +147,7 @@ public class GamePanel extends JPanel {
         staticObjects.addAll(staticLethalObjects);
         staticObjects.addAll(finishingObjects);
         for(GameObject g : staticObjects) {
-            Rectangle r = g.getArea();
+            Rectangle r = g.getImageArea();
             Point p = g.getLocation();
             goingLeftCaresAbout[p.x + r.width] = buildNewGameObjects(goingLeftCaresAbout[p.x + r.width], g);
             goingRightCaresAbout[p.x] = buildNewGameObjects(goingRightCaresAbout[p.x], g);;
@@ -230,7 +229,7 @@ public class GamePanel extends JPanel {
     }
 
     public Rectangle getPlayerCollisionArea() {
-        return jsw.getArea();
+        return jsw.getImageArea();
     }
 
     //Callback for when the the player has hit a lethal object
@@ -583,7 +582,7 @@ public class GamePanel extends JPanel {
             if(movementType == PlayerMovementType.FALL) {
                 return false;
             }
-            Rectangle jswCollisionArea = jsw.getArea();
+            Rectangle jswCollisionArea = jsw.getImageArea();
             //@todo check that the player hasn't walked on to a lethal object otherwise if you walk the player on to a lethal object that is at
             //exactly the same level as the platform then it won't detect it.
             return GameUtils.getCollidedWhileMovingUpOrDown(jsw, goingDownCaresAbout[jswCollisionArea.y +
@@ -628,7 +627,7 @@ public class GamePanel extends JPanel {
                 collidedWith = GameUtils.getCollidedWhileMovingUpOrDown(jsw, goingDownCaresAbout[i]);
                 if(collidedWith == null) {
                     //We can fall
-                    jsw.setLocation(jsw.getArea().x, i-jsw.getArea().height);
+                    jsw.setLocation(jsw.getImageArea().x, i-jsw.getImageArea().height);
                 }
                 else {
                     checkPlayerCollisionOK(collidedWith);
