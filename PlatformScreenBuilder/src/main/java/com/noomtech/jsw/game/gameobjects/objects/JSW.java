@@ -45,13 +45,7 @@ public class JSW extends MovingGameObject {
 
     @Override
     public void paintObject(Graphics graphics) {
-        currentFrameList[currentFrameIdx].draw(graphics, getArea());
-    }
-
-    public void setLocation(int x, int y) {
-        Rectangle r = getArea();
-        r.x = x;
-        r.y = y;
+        currentFrameList[currentFrameIdx].draw(graphics, getImageArea());
     }
 
     @Override
@@ -98,7 +92,7 @@ public class JSW extends MovingGameObject {
     }
 
     public void setToStartingState() {
-        getArea().setLocation(startingLocation);
+        getImageArea().setLocation(startingLocation);
         currentFrameList = rightFrames;
         currentFrameIdx = 0;;
         numPixelsMovedRight = 0;

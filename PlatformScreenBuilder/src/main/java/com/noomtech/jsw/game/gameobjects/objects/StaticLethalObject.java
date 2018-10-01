@@ -27,7 +27,7 @@ public class StaticLethalObject extends NonMovingObject implements Lethal {
     @Override
     public void paintObject(Graphics g) {
      //   if(!staticObjectsDontNeedToBeDrawnAgain) {
-            Rectangle r = getArea();
+            Rectangle r = getImageArea();
             g.drawImage(image, r.x, r.y, r.width, r.height, Color.WHITE, null);
       //  }
     }

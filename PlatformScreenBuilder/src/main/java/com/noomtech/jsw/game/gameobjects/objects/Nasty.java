@@ -41,15 +41,9 @@ public class Nasty extends MovingGameObject implements Lethal {
 
     @Override
     public void paintObject(Graphics graphics) {
-        animationFrames[currentFrameIdx].draw(graphics, getArea());
+        animationFrames[currentFrameIdx].draw(graphics, getImageArea());
     }
 
-
-    public void setLocation(int x, int y) {
-        Rectangle r = getArea();
-        r.x = x;
-        r.y = y;
-    }
 
     /**
      * @return Which direction this nasty is moving in - 1 for down, -1 for up.
@@ -70,7 +64,7 @@ public class Nasty extends MovingGameObject implements Lethal {
     }
 
     public void setToStartingState() {
-        getArea().setLocation(startingLocation);
+        getImageArea().setLocation(startingLocation);
         moveYDirection = 1;
         lastOrdinate = getY();
         amountMovedSinceLastFrameChange = 0;
