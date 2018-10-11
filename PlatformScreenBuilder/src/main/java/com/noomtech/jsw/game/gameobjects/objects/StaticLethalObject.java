@@ -4,7 +4,6 @@ import com.noomtech.jsw.game.gameobjects.Lethal;
 import com.noomtech.jsw.game.gameobjects.NonMovingObject;
 
 import java.awt.*;
-import java.io.IOException;
 import java.util.Map;
 
 
@@ -15,7 +14,7 @@ import java.util.Map;
 public class StaticLethalObject extends NonMovingObject implements Lethal {
 
 
-    public StaticLethalObject(Rectangle area, Map<String,String> attributes) throws IOException {
+    public StaticLethalObject(Rectangle area, Map<String,String> attributes) {
         super(area, attributes);
     }
 
@@ -27,8 +26,8 @@ public class StaticLethalObject extends NonMovingObject implements Lethal {
     @Override
     public void paintObject(Graphics g) {
      //   if(!staticObjectsDontNeedToBeDrawnAgain) {
-            Rectangle r = getImageArea();
-            g.drawImage(image, r.x, r.y, r.width, r.height, Color.WHITE, null);
+        Rectangle r = getImageArea();
+        g.drawImage(image, r.x, r.y, r.width, r.height, Color.WHITE, null);
       //  }
     }
 }

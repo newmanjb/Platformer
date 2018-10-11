@@ -16,12 +16,13 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 
 /**
  * This panel class is responsible for the painting and also acts as the controller.
  *
- * The game itself is a simple Manic Miner/Jet Set Willy type thing i.e. with controls of "left", "right" and "jump" in a screen full of
+ * The game itself is a simple Manic Miner/Jet Set Willy style game i.e. with controls of "left", "right" and "jump" in a screen full of
  * platforms.
  *
  * There is quite a lot of code around obtaining a high level of precision on the controls, as this is important in a platform game.
@@ -32,6 +33,11 @@ public class GamePanel extends JPanel {
 
 
     private static final int SCREEN_SIZE = 4000;
+
+    //Does the painting.  This can be swapped around according to what we need
+    private volatile Consumer<Graphics> painter;
+    private final MessagePainter messagePainter = new MessagePainter();
+    private final StandardPainter standardPainter = new StandardPainter(Color.WHITE);
 
     //Constants for movements
     private final int LEFT_RIGHT_NUM_PIXELS_PER_MOVEMENT = 1;
@@ -45,6 +51,8 @@ public class GamePanel extends JPanel {
     private final int FALL_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenHeightValue(new BigDecimal("50"));
     private final int NASTY_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenHeightValue(BigDecimal.TEN);
 
+    //Used for symchronization around the starting and stopping of the game
+    private final Object START_STOP_MUTEX = new Object();
 
     //The platforms.
     private final List<Platform> platforms;
@@ -61,18 +69,14 @@ public class GamePanel extends JPanel {
     //Handles the core operations of the game
     private GameHandler gameHandler;
     //Coordinates the keyboard input and moves the player sprite in the appropriate direction
-    private final JSWControlsHandler jSWControlsHandler;
+    private JSWControlsHandler jSWControlsHandler;
     //Handles the movements of the nasties
-    private final NastiesHandler nastiesHandler;
+    private NastiesHandler nastiesHandler;
     //True if the thread that moves the nasties should stop e.g. if the player has hit a lethal object and the "dying"
     //routine is run
     private volatile boolean stopNastiesThread;
     //Runs the nasties handler
     private Thread nastiesThread;
-    //The colour of the background in the game
-    private Color backgroundColor;
-    //Not null if the screen should simply display a message e.g. if the player has finished the game
-    private volatile String message;
 
 
     //Each of thes arrays below is as long as the screen size (which is currently square).  The relevant boundary of each static object that
@@ -131,17 +135,6 @@ public class GamePanel extends JPanel {
         }
         jsw = tempJSW;
 
-        //Some hard-coded data for when we can't access cassandra and want to do some testing
-
-//        jsw = new Rectangle(600,499,50,100);
-//
-//        Rectangle c1 = new Rectangle(150, 570, 100,30);
-//        Rectangle c2 = new Rectangle(1200, 100, 200,500);
-//        Rectangle c3 = new Rectangle(900, 380, 200,100);
-//        Rectangle c4 = new Rectangle(0, 600, 1200,20);
-//        Rectangle c5 = new Rectangle(0, 0, 20,600);
-//        this.platforms.addAll(Arrays.asList(new Rectangle[]{c1,c2,c3,c4,c5}));
-
         List<GameObject> staticObjects = new ArrayList<>();
         staticObjects.addAll(platforms);
         staticObjects.addAll(staticLethalObjects);
@@ -149,141 +142,13 @@ public class GamePanel extends JPanel {
         for(GameObject g : staticObjects) {
             Rectangle r = g.getImageArea();
             Point p = g.getLocation();
-            goingLeftCaresAbout[p.x + r.width] = buildNewGameObjects(goingLeftCaresAbout[p.x + r.width], g);
+            goingLeftCaresAbout[p.x + r.width - 1] = buildNewGameObjects(goingLeftCaresAbout[p.x + r.width], g);
             goingRightCaresAbout[p.x] = buildNewGameObjects(goingRightCaresAbout[p.x], g);;
-            goingUpCaresAbout[p.y + r.height] = buildNewGameObjects(goingUpCaresAbout[p.y + r.height], g);;
+            goingUpCaresAbout[p.y + r.height - 1] = buildNewGameObjects(goingUpCaresAbout[p.y + r.height], g);;
             goingDownCaresAbout[p.y] = buildNewGameObjects(goingDownCaresAbout[p.y], g);;
         }
 
-        jSWControlsHandler = new JSWControlsHandler(new LeftMover(), new RightMover(), new JumpMover());
-        nastiesHandler = new NastiesHandler(this, nasties, goingDownCaresAbout, goingUpCaresAbout, NASTY_NUM_MILLIS_BETWEEN_MOVEMENTS);
-        gameHandler = new GameHandler(this, 25);
-
-        this.addKeyListener(jSWControlsHandler);
-
         setFocusable(true);
-    }
-
-    //Returns false if the game is no longer running
-    public boolean isRunning() {
-        return started;
-    }
-
-    //Returns false if the nasties should stop moving
-    public boolean shouldRunNastiesThread() {
-        return started && !stopNastiesThread;
-    }
-
-    public void start() {
-        started = true;
-        backgroundColor = Color.WHITE;
-        nastiesThread = new Thread(nastiesHandler);
-        nastiesThread.setName("Nasties Handler");
-        nastiesThread.start();
-        Thread t1 = new Thread(gameHandler);
-        t1.setName("Game Handler");
-        t1.start();
-    }
-
-    public void stop() {
-        started = false;
-        jSWControlsHandler.shutdown();
-    }
-
-    @Override
-    public void paint(Graphics g) {
-        super.paint(g);
-        g.setColor(backgroundColor);
-        Dimension screenSize = getSize();
-        //@todo - if there is an issue with slowness then it could be that the static objects like the platforms are being
-        //repainted every time when they don't need to be.  See the GameObject.doPainting and the static game object's paintObject methods.  There is
-        //commented out code in these methods that only paints the object once.  This didn't work when it was implemented because the
-        //object would get painted once and then, when the next iteration of the game loop was called and this code here was called,
-        //they would get wiped out by the rectangle drawn below and then never painted again.  So if there is slowness then this code could be reinstated and
-        //this rectangle should never be drawn.  Instead the moving objects only could be rubbed out and repainted.
-        g.fillRect(0, 0, screenSize.width, screenSize.height);
-
-        for (Platform platform : platforms) {
-            platform.doPainting(g);
-        }
-
-        for (StaticLethalObject staticLethalObject : staticLethalObjects) {
-            staticLethalObject.doPainting(g);
-        }
-
-        for (FinishingObject finishingObject : finishingObjects) {
-            finishingObject.doPainting(g);
-        }
-
-        jsw.doPainting(g);
-
-        for (Nasty nasty : nasties) {
-            nasty.doPainting(g);
-        }
-
-        if(message != null) {
-            g.setColor(Color.BLACK);
-            g.setFont(g.getFont().deriveFont(g.getFont().getSize() * 10f));
-            g.drawString(message, (int)(screenSize.width * 0.3), (int)(screenSize.height * 0.5));
-        }
-    }
-
-    public Rectangle getPlayerCollisionArea() {
-        return jsw.getImageArea();
-    }
-
-    //Callback for when the the player has hit a lethal object
-    public void playerHitLethalObject(Lethal nastyThatWasHit) {
-        new Thread(() ->
-            {
-                stopNastiesThread = true;
-                jSWControlsHandler.freezeJSW();
-
-                backgroundColor = Color.RED;
-                GameUtils.sleepAndCatchInterrupt(300);
-                backgroundColor = Color.ORANGE;
-                GameUtils.sleepAndCatchInterrupt(300);
-                backgroundColor = Color.WHITE;
-
-                nastiesThread = new Thread(nastiesHandler);
-                nastiesThread.setName("Nasties Handler");
-                for (Nasty nasty : nasties) {
-                    nasty.setToStartingState();
-                }
-                jsw.setToStartingState();
-
-                stopNastiesThread = false;
-                jSWControlsHandler.unfreezeJSW();
-                nastiesThread.start();
-            }).start();
-    }
-
-    //Callback for when the the player has hit a finishing object
-    public void playerHitFinishingObject(FinishingObject finishingObject) {
-        new Thread(() ->
-        {
-            stopNastiesThread = true;
-            jSWControlsHandler.freezeJSW();
-
-            message = "WELL DONE!!";
-            backgroundColor = Color.BLUE;
-            GameUtils.sleepAndCatchInterrupt(500);
-            backgroundColor = Color.GREEN;
-            GameUtils.sleepAndCatchInterrupt(500);
-            backgroundColor = Color.WHITE;
-            message = null;
-
-            nastiesThread = new Thread(nastiesHandler);
-            nastiesThread.setName("Nasties Handler");
-            for (Nasty nasty : nasties) {
-                nasty.setToStartingState();
-            }
-            jsw.setToStartingState();
-
-            stopNastiesThread = false;
-            jSWControlsHandler.unfreezeJSW();
-            nastiesThread.start();
-        }).start();
     }
 
     private static GameObject[] buildNewGameObjects(GameObject[] existingGameObjects, GameObject gameObjectToAdd) {
@@ -300,6 +165,129 @@ public class GamePanel extends JPanel {
         return newGameObjects;
     }
 
+    //Starts the game
+    public void start() {
+
+        synchronized (START_STOP_MUTEX) {
+            if(started) {
+                throw new IllegalStateException("Application already started");
+            }
+
+            started = true;
+            startMovementComponents();
+            painter = standardPainter;
+            gameHandler = new GameHandler(this, 25);
+            Thread t1 = new Thread(gameHandler);
+            t1.setName("Game Handler");
+            t1.start();
+        }
+    }
+
+    //Quits the game
+    public void stop() throws InterruptedException {
+        synchronized (START_STOP_MUTEX) {
+            if(!started) {
+                throw new IllegalArgumentException("Application has not been started");
+            }
+            started = false;
+            stopMovementComponents();
+        }
+    }
+
+    //Returns false if the game is no longer running
+    public boolean isRunning() {
+        return started;
+    }
+
+    //Returns false if the nasties should stop moving
+    public boolean shouldRunNastiesThread() {
+        return started && !stopNastiesThread;
+    }
+
+
+    private void startMovementComponents() {
+        jSWControlsHandler = new JSWControlsHandler(new LeftMover(), new RightMover(), new JumpMover());
+        nastiesHandler = new NastiesHandler(this, nasties, goingDownCaresAbout, goingUpCaresAbout, NASTY_NUM_MILLIS_BETWEEN_MOVEMENTS);
+        addKeyListener(jSWControlsHandler);
+
+        stopNastiesThread = false;
+        nastiesThread = new Thread(nastiesHandler);
+        nastiesThread.setName("Nasties Handler");
+        nastiesThread.start();
+    }
+
+    private void stopMovementComponents() throws InterruptedException {
+        removeKeyListener(jSWControlsHandler);
+        stopNastiesThread = true;
+        jSWControlsHandler.shutdown();
+        nastiesThread.join();
+    }
+
+    private void setGameObjectsToStartingState() {
+        for (Nasty nasty : nasties) {
+            nasty.setToStartingState();
+        }
+        jsw.setToStartingState();
+    }
+
+    //Paints the game
+    @Override
+    public void paint(Graphics g) {
+        super.paint(g);
+        painter.accept(g);
+    }
+
+    public Rectangle getPlayerCollisionArea() {
+        return jsw.getImageArea();
+    }
+
+    //Callback for when the the player has hit a lethal object
+    public void playerHitLethalObject(GameObject lethalThatWasHit) {
+
+        messagePainter.backgroundColor = Color.RED;
+        messagePainter.message = null;
+        painter = messagePainter;
+
+        try {stopMovementComponents();} catch(InterruptedException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        GameUtils.sleepAndCatchInterrupt(300);
+        messagePainter.backgroundColor = Color.ORANGE;
+        GameUtils.sleepAndCatchInterrupt(300);
+        messagePainter.backgroundColor = Color.WHITE;
+
+        setGameObjectsToStartingState();
+        painter = standardPainter;
+        startMovementComponents();
+    }
+
+    //Callback for when the the player has hit a finishing object
+    public void playerHitFinishingObject(GameObject finishingObject) {
+
+        messagePainter.backgroundColor = Color.BLUE;
+        messagePainter.message = "WELL DONE!!";
+        painter = messagePainter;
+
+        try {stopMovementComponents();} catch(InterruptedException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        GameUtils.sleepAndCatchInterrupt(500);
+        messagePainter.backgroundColor = Color.GREEN;
+        GameUtils.sleepAndCatchInterrupt(500);
+        messagePainter.backgroundColor = Color.WHITE;
+
+        setGameObjectsToStartingState();
+        painter = standardPainter;
+        startMovementComponents();
+    }
+
+
+    //Handles the keyboard input for the player sprite and is also responsible for reacting to collisions involving the
+    //player sprite e.g. when the player sprite hits a platform or a lethal object
     private class JSWControlsHandler implements KeyListener {
 
         private final char KEY_LEFT = 'o';
@@ -307,7 +295,7 @@ public class GamePanel extends JPanel {
         private final char KEY_JUMP = 'm';
 
         //Each of these instances handle the movement of the sprite in a particular direction.  They are Runnable instances
-        //that are run on separate threads that update the location of the player sprite in order to move it in particular directions.
+        //that are run on separate threads that update the location of the player sprite in order to move it.
         //The sprite is then repainted by the repainting loop meaning that the player sprite is seen to move around the screen.
         private final JSWMover leftMover;
         private final JSWMover rightMover;
@@ -318,9 +306,6 @@ public class GamePanel extends JPanel {
         private volatile boolean leftKeyPressed;
         private volatile boolean rightKeyPressed;
         private volatile boolean jumpKeyPressed;
-
-        //True if we should not initiate any new movement
-        private volatile boolean freeze;
 
         private JSWControlsHandler(JSWMover leftMover, JSWMover rightMover, JumpMover jumpMover) {
             this.leftMover = leftMover;
@@ -333,59 +318,38 @@ public class GamePanel extends JPanel {
         public void keyTyped(KeyEvent e) {
         }
 
-        private void unfreezeJSW() {
-            freeze = false;
-            //Make sure that the player responds to any keys that have been pressed throughout the freeze e.g.
-            //if the freeze was because the player had walked into a nasty and the walking key is still being held then
-            //make the player walk
-            movementFinished(PlayerMovementType.MOVED_BACK_TO_START, false);
-        }
-
-        private void freezeJSW() {
-            freeze = true;
-            leftMover.stopImmediately();
-            rightMover.stopImmediately();
-            jumpMover.stopImmediately();
-            fallMover.stopImmediately();
-        }
-
         @Override
         public void keyPressed(KeyEvent e) {
 
             switch (e.getKeyChar()) {
                 case (KEY_LEFT): {
                     leftKeyPressed = true;
-                    if(!freeze) {
-                        //Can't move left if we're already moving left or already moving in any other direction
-                        if (!leftMover.isRunning() && !rightMover.isRunning() && !jumpMover.isRunning() && !fallMover.isRunning()) {
-                            leftMover.start();
-                        }
+                    //Can't move left if we're already moving left or already moving in any other direction
+                    if (!leftMover.isRunning() && !rightMover.isRunning() && !jumpMover.isRunning() && !fallMover.isRunning()) {
+                        leftMover.start();
                     }
+
                     break;
                 }
                 case (KEY_RIGHT): {
                     rightKeyPressed = true;
-                    if(!freeze) {
-                        if (!leftMover.isRunning() && !rightMover.isRunning() && !jumpMover.isRunning() && !fallMover.isRunning()) {
-                            rightMover.start();
-                        }
+                    if (!leftMover.isRunning() && !rightMover.isRunning() && !jumpMover.isRunning() && !fallMover.isRunning()) {
+                        rightMover.start();
                     }
                     break;
                 }
                 case (KEY_JUMP): {
                     jumpKeyPressed = true;
-                    if(!freeze) {
-                        //Can't jump if we're falling or already jumping
-                        if (!fallMover.isRunning() && !jumpMover.isRunning()) {
-                            //If we're already moving left or right we will jump in that direction but we must stop the
-                            //movement first otherwise it will interfere with the jumping movment
-                            if (leftMover.isRunning()) {
-                                leftMover.requestStop(true);
-                            } else if (rightMover.isRunning()) {
-                                rightMover.requestStop(true);
-                            }
-                            jumpMover.start();
+                    //Can't jump if we're falling or already jumping
+                    if (!fallMover.isRunning() && !jumpMover.isRunning()) {
+                        //If we're already moving left or right we will jump in that direction but we must stop the
+                        //movement first otherwise it will interfere with the jumping movment
+                        if (leftMover.isRunning()) {
+                            leftMover.requestStop(true);
+                        } else if (rightMover.isRunning()) {
+                            rightMover.requestStop(true);
                         }
+                        jumpMover.start();
                     }
                     break;
                 }
@@ -395,48 +359,137 @@ public class GamePanel extends JPanel {
 
         }
 
-        //Called when a movement has finished.  This could be because the player has collided with something, released
-        //the key for that movement or is now falling e.g. if they have walked off the end of a platform
-        private void movementFinished(PlayerMovementType movementType, boolean falling) {
-            if(!freeze) {
-                //If we need to fall then this takes priority over everything else
-                if (falling && movementType != PlayerMovementType.FALL) {
-                    fallMover.start();
-                } else if (movementType == PlayerMovementType.JUMP) {
-                    //if we've just finished a jump and the user has been holding down the left or right key then start the
-                    //player sprite moving in that direction
-                    if (leftKeyPressed) {
-                        leftMover.start();
-                    } else if (rightKeyPressed) {
-                        rightMover.start();
-                    }
-                } else if (movementType == PlayerMovementType.FALL || movementType == PlayerMovementType.MOVED_BACK_TO_START) {
-                    //if we've just finished falling or dying and the user has been holding down the left, right or jump key then start the
-                    //player sprite moving accordingly
-                    if (jumpKeyPressed) {
-                        jumpMover.start();
-                    } else if (leftKeyPressed) {
-                        leftMover.start();
-                    } else if (rightKeyPressed) {
-                        rightMover.start();
+        //Called to notify the controller that the jsw has hit something while falling.  Returns true if the movement should
+        //be stopped.
+        private boolean hitWhileFalling(GameObject hit) {
+            if(hit instanceof Lethal || hit instanceof FinishingObject) {
+                processShowstopper(hit);
+                return true;
+            }
+
+            if(hit instanceof Platform) {
+                movementFinished(PlayerMovementType.FALL);
+                return true;
+            }
+
+            return false;
+        }
+
+        //Called to notify the controller that the jsw has hit something while walking
+        private boolean hitWhileWalking(GameObject hit, PlayerMovementType playerMovementType) {
+            if(hit instanceof Lethal || hit instanceof FinishingObject) {
+                processShowstopper(hit);
+                return true;
+            }
+
+            if(hit instanceof Platform) {
+                movementFinished(playerMovementType);
+                return true;
+            }
+
+            return false;
+        }
+
+        //Called to notify the controller that the jsw has hit something while jumping.  As jumping involves moving in
+        //both the X and Y directions this callback needs to behave differently depending on which direction the
+        //player was moving at the time.
+        private JumpMovementResult hitWhileJumping(GameObject hit, int[] movements, boolean movingInYDirection) {
+            if(hit instanceof Lethal || hit instanceof FinishingObject) {
+                processShowstopper(hit);
+                return JumpMovementResult.STOP_COMPLETELY;
+            }
+
+            JumpMovementResult result = JumpMovementResult.MOVE;
+            if (hit instanceof Platform) {
+                //If the player has hit a platform then it could either stop them moving in this direction or stop
+                //them entirely
+                result = JumpMovementResult.DONT_MOVE_IN_THIS_DIRECTION;
+                if(movingInYDirection) {
+                    //Stop the jump completely if the JSW:
+                    //1: is only going up or down
+                    //2: is moving across and down (we don't want them sliding along the ground)
+                    if(movements[0] == 0 || movements[1] > 0) {
+                        result = JumpMovementResult.STOP_COMPLETELY;
                     }
                 }
-                //if we've just finished moving left or right and the user has been holding down the key for moving
-                //in the opposite direction then start moving in that direction
-                else if (movementType == PlayerMovementType.WALK_LEFT) {
-                    //if we've just finished moving left or right and the user has been holding down the key for moving
-                    //in the opposite direction then start moving in that direction
-                    if (rightKeyPressed && jumpKeyPressed) {
-                        jumpMover.start();
-                    } else if (rightKeyPressed) {
-                        rightMover.start();
+                else {
+                    //Stop the jump if the jsw is only moving left or right and has hit something
+                    if(movements[1] == 0) {
+                        result = JumpMovementResult.STOP_COMPLETELY;
                     }
-                } else if (movementType == PlayerMovementType.WALK_RIGHT) {
-                    if (leftKeyPressed && jumpKeyPressed) {
-                        jumpMover.start();
-                    } else if (leftKeyPressed) {
-                        leftMover.start();
-                    }
+                }
+            }
+
+            if(result == JumpMovementResult.STOP_COMPLETELY) {
+                //The jump is stopped so check if the jsw needs to fall
+                if (!doFallCheck()) {
+                    //The jump got stopped and the jsw does not need to fall, so the movement's finished
+                    movementFinished(PlayerMovementType.JUMP);
+                }
+            }
+
+            return result;
+        }
+
+        //Called when a jump movement completed without being stopped prematurely e.g. by the player hitting a platform
+        private void jumpFinishedWithoutBeingStopped() {
+            if(!doFallCheck()) {
+                jSWControlsHandler.movementFinished(PlayerMovementType.JUMP);
+            }
+        }
+
+        //Called when a left./right movement completed without being stopped prematurely e.g. by the player hitting a platform
+        private void leftRightMoveFinishedWithoutBeingStopped(PlayerMovementType playerMovementType) {
+            if(!doFallCheck()) {
+                jSWControlsHandler.movementFinished(playerMovementType);
+            }
+        }
+
+        //Returns true if the player should fall e.g. if they have nothing underneath them
+        private boolean doFallCheck() {
+            GameObject standingOn = jsw.checkIfBottomIsTouching(goingDownCaresAbout);
+            if(standingOn == null || !(standingOn instanceof Platform)) {
+                fallMover.start();
+                return true;
+            }
+            return false;
+        }
+
+        //Called when a movement has finished.
+        private void movementFinished(PlayerMovementType movementType) {
+
+            if (movementType == PlayerMovementType.JUMP) {
+                //if we've just finished a jump and the user has been holding down the left or right key then start the
+                //player sprite moving in that direction
+                if (leftKeyPressed) {
+                    leftMover.start();
+                } else if (rightKeyPressed) {
+                    rightMover.start();
+                }
+            } else if (movementType == PlayerMovementType.FALL || movementType == PlayerMovementType.MOVED_BACK_TO_START) {
+                //if we've just finished falling or dying and the user has been holding down the left, right or jump key then start the
+                //player sprite moving accordingly
+                if (jumpKeyPressed) {
+                    jumpMover.start();
+                } else if (leftKeyPressed) {
+                    leftMover.start();
+                } else if (rightKeyPressed) {
+                    rightMover.start();
+                }
+            }
+            //if we've just finished moving left or right and the user has been holding down the key for moving
+            //in the opposite direction then start moving in that direction
+            else if (movementType == PlayerMovementType.WALK_LEFT) {
+                if (rightKeyPressed && jumpKeyPressed) {
+                    jumpMover.start();
+                } else if (rightKeyPressed) {
+                    rightMover.start();
+                }
+            } else if (movementType == PlayerMovementType.WALK_RIGHT) {
+                if (leftKeyPressed && jumpKeyPressed) {
+                    jumpMover.start();
+                } else if (leftKeyPressed) {
+                    leftMover.start();
                 }
             }
         }
@@ -447,23 +500,17 @@ public class GamePanel extends JPanel {
             switch (e.getKeyChar()) {
                 case (KEY_LEFT): {
                     leftKeyPressed = false;
-                    if(!freeze) {
-                        leftMover.requestStop(false);
-                    }
+                    leftMover.requestStop(false);
                     break;
                 }
                 case (KEY_RIGHT): {
                     rightKeyPressed = false;
-                    if(!freeze) {
-                        rightMover.requestStop(false);
-                    }
+                    rightMover.requestStop(false);
                     break;
                 }
                 case (KEY_JUMP): {
                     jumpKeyPressed = false;
-                    if(!freeze) {
-                        jumpMover.requestStop(false);
-                    }
+                    jumpMover.requestStop(false);
                     break;
                 }
                 default: {
@@ -480,30 +527,41 @@ public class GamePanel extends JPanel {
         }
     }
 
-    //Runnable class that updates the location of the JSW
+    //Perform the relevant actions for when the player has hit something e.g. a finishing object
+    public void processShowstopper(GameObject showStopper) {
+        if(showStopper instanceof Lethal) {
+            removeKeyListener(jSWControlsHandler);
+            Executors.newSingleThreadExecutor().submit(()->{playerHitLethalObject(showStopper);});
+        }
+        else if(showStopper instanceof FinishingObject){
+            removeKeyListener(jSWControlsHandler);
+            Executors.newSingleThreadExecutor().submit(()->{playerHitFinishingObject(showStopper);});
+        }
+        else {
+            throw new IllegalArgumentException("Unknown type of showstopper " + showStopper);
+        }
+    }
+
+    //Runnable class that updates the location of the JSW.  Used by the movement classes.
     private abstract class JSWMover implements Runnable {
 
-
-        private final PlayerMovementType movementType;
         //the service used to run this runnable
         private final ExecutorService executorService;
         //true if this mover running
-        private volatile boolean running;
-        //the distance that the sprite moves before sleeping or checking other variables
-        protected final int numPixelsPerMovement;
-        //the num millis to sleep between the aforementioned movements (if applicable).  This is for controlling the
-        //speed at which the sprite moves.
-        private final int numMillisBetweenMovements;
+        protected volatile boolean running;
+        //the distance that the sprite moves before pausing and the num millis the pause is for.  These 2 together
+        //control the speed of the movements
+        protected final int numPixelsBetweenSleeps;
+        protected final int numMillisBetweenMovements;
         //true if a request has been made for the movement to stop e.g. if the key governing the movement has been released
-        private volatile boolean stopRequestReceived;
+        protected volatile boolean stopRequestReceived;
         //the process that is running the routine
         private Future future;
 
-        private JSWMover(PlayerMovementType movementType, ExecutorService executorService,
+        private JSWMover(ExecutorService executorService,
                          int numPixelsPerMovement, int numMillisBetweenMovements) {
-            this.movementType = movementType;
             this.executorService = executorService;
-            this.numPixelsPerMovement = numPixelsPerMovement;
+            this.numPixelsBetweenSleeps = numPixelsPerMovement;
             this.numMillisBetweenMovements = numMillisBetweenMovements;
         }
 
@@ -515,7 +573,7 @@ public class GamePanel extends JPanel {
 
         /**
          * Submits a request to stop the movement gracefully.  If the "wait" parameter is true then this blocks until the thread for the routine has completed.
-         * Note that the {@link JSWControlsHandler} will still be notified when this movement is finished.
+         * Note that the {@link JSWControlsHandler} will still be notified when this movement is finished either way.
          */
         public void requestStop(boolean wait) {
             stopRequestReceived = true;
@@ -531,81 +589,13 @@ public class GamePanel extends JPanel {
             }
         }
 
-        public void stopImmediately() {
-            if(future != null) {
-                future.cancel(true);
-            }
-        }
-
         private boolean isRunning() {
             return running;
-        }
-
-        //Call the subclasses movement routine.  This will move the sprite the minimum distance required
-        //before the routine needs to pause.  If it returns true then the entire move has finished and we can
-        //stop moving if we have received a request to stop, otherwise we can start moving again.  For example, a jump may consist
-        //of many of these move-pause, move-pause, move-pause cycles before it finishes and returns true, as jumping moves
-        // the player sprite across quite a long distance, whereas moving left or right may only consist of one cycle.
-        // Once the movement has finished then a check is made to see if the sprite should now fall, and if so this
-        //will stop the movement even if it has not been requested to stop.
-        //Also note that most movement subclasses will move the sprite less than the minimumdistanc and immediately return
-        //true if they detect that the sprite has collided with something.
-        public void run() {
-            stopRequestReceived = false;
-            boolean shouldFall = false;
-            boolean stopMoving = false;
-
-            try {
-                while (!stopMoving) {
-                    boolean moveFinished = doMove();
-                    jsw.onMove();
-                    //@todo - should this be determined in here?  Can't we determine it when the movement is finished?
-                    shouldFall = shouldStartFalling();
-                    stopMoving = moveFinished && (stopRequestReceived || shouldFall);
-                    if (!stopMoving) {
-                        Thread.sleep(numMillisBetweenMovements);
-                    }
-                }
-
-                running = false;
-                jSWControlsHandler.movementFinished(movementType, shouldFall);
-            }
-            catch(InterruptedException e) {
-                System.out.println("Movement stopped forcefully");
-                running = false;
-            }
-        }
-
-        protected abstract boolean doMove();
-
-        private boolean shouldStartFalling() {
-            if(movementType == PlayerMovementType.FALL) {
-                return false;
-            }
-            Rectangle jswCollisionArea = jsw.getImageArea();
-            //@todo check that the player hasn't walked on to a lethal object otherwise if you walk the player on to a lethal object that is at
-            //exactly the same level as the platform then it won't detect it.
-            return GameUtils.getCollidedWhileMovingUpOrDown(jsw, goingDownCaresAbout[jswCollisionArea.y +
-                            jswCollisionArea.height + 1]) == null;
         }
 
         private void shutdown() {
             stopRequestReceived = true;
             executorService.shutdown();
-        }
-
-        //Returns false if the collision is a movement stopping event e.g. they've collided with a lethal object
-        protected boolean checkPlayerCollisionOK(GameObject collidedWith) {
-            if(collidedWith instanceof Lethal) {
-                playerHitLethalObject((Lethal)collidedWith);
-                return true;
-            }
-            else if(collidedWith instanceof FinishingObject) {
-                playerHitFinishingObject((FinishingObject)collidedWith);
-                return true;
-            }
-
-            return false;
         }
     }
 
@@ -613,32 +603,41 @@ public class GamePanel extends JPanel {
     private class FallMover extends JSWMover {
 
         private FallMover() {
-            super(PlayerMovementType.FALL, Executors.newSingleThreadExecutor(),
+            super(Executors.newSingleThreadExecutor(),
                     FALL_NUM_PIXELS_PER_MOVEMENT,
                     FALL_NUM_MILLIS_BETWEEN_MOVEMENTS);
         }
+
         @Override
-        protected boolean doMove() {
-            int startCheckpoint = jsw.getY() + jsw.getHeight() + 1;
-            int endCheckPoint = jsw.getY() + jsw.getHeight() + numPixelsPerMovement;
-            GameObject collidedWith = null;
-            int i;
-            for(i = startCheckpoint ; i <= endCheckPoint && collidedWith == null ;i++) {
-                collidedWith = GameUtils.getCollidedWhileMovingUpOrDown(jsw, goingDownCaresAbout[i]);
-                if(collidedWith == null) {
-                    //We can fall
-                    jsw.setLocation(jsw.getImageArea().x, i-jsw.getImageArea().height);
+        public void run() {
+
+            stopRequestReceived = false;
+            boolean stopMoving = false;
+            int numPixelsFallen = 0;
+            while (!stopMoving) {
+                GameObject touching = jsw.checkIfBottomIsTouching(goingDownCaresAbout);
+                if(touching != null) {
+                    stopMoving = jSWControlsHandler.hitWhileFalling(touching);
                 }
-                else {
-                    checkPlayerCollisionOK(collidedWith);
-                    //@todo - this is stopping itself rather than the loop in the superclass doing it.  Can this be done
-                    //better?
-                    requestStop(false);
+                if(!stopMoving) {
+                    jsw.setLocation(jsw.getImageArea().x, jsw.getImageArea().y + 1);
+                    numPixelsFallen++;
+                    jsw.onMove();
+                }
+
+                stopMoving = stopMoving || stopRequestReceived;
+                if (!stopMoving && (numPixelsFallen % numPixelsBetweenSleeps == 0)) {
+                    GameUtils.sleepAndCatchInterrupt(numMillisBetweenMovements);
                 }
             }
-
-            return true;
+            running = false;
         }
+    }
+
+    private enum JumpMovementResult {
+        STOP_COMPLETELY,
+        DONT_MOVE_IN_THIS_DIRECTION,
+        MOVE;
     }
 
     //Handles the movement of the sprite when its jumping
@@ -651,14 +650,10 @@ public class GamePanel extends JPanel {
         private int[][] trajectoryLeft;
         private int[][] trajectoryUp;
 
-        private int startIndexInTrajectory;
-
-        private int[][] trajectoryBeingUsed;
-
 
         private JumpMover() {
 
-            super(PlayerMovementType.JUMP,Executors.newSingleThreadExecutor(), JUMP_NUM_PIXELS_PER_MOVEMENT,
+            super(Executors.newSingleThreadExecutor(), JUMP_NUM_PIXELS_PER_MOVEMENT,
                     JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS);
 
             //Jumping consists of 3 types of movement 1: up and across, 2: across 3: down and across.
@@ -702,76 +697,75 @@ public class GamePanel extends JPanel {
         }
 
         @Override
-        public boolean doMove() {
+        public void run() {
+
+            boolean stoppedBeforeFinishing = false;
 
             //Get the trajectory depending on which direction we are jumping in
-            if(trajectoryBeingUsed == null) {
-                trajectoryBeingUsed = jSWControlsHandler.leftKeyPressed ? trajectoryLeft :
-                        jSWControlsHandler.rightKeyPressed ? trajectoryRight : trajectoryUp;
-            }
+            int [][]trajectoryBeingUsed = jSWControlsHandler.leftKeyPressed ? trajectoryLeft :
+                    jSWControlsHandler.rightKeyPressed ? trajectoryRight : trajectoryUp;
 
-            //Only move the sprite the defined number of pixels for each movement before stopping
-            int endIndex = startIndexInTrajectory + numPixelsPerMovement;
+
             //Step along the trajectory array making the increments to the sprite's location.  If something blocks
-            //our path in one direction don't move the sprite in that direction but continue moving in the other
-            //direction e.g. if something's in front of us but not above us then don't move forward but continue
-            //any upwards movements.  A special case is made for when the sprite is moving downwards on the latter
-            //half of the jump and something blocks its downward movement.  If this is the case then the movement is
-            //stopped as if it's been totally blocked.  This is so as the sprite doesn't "slide" along platforms if it
-            //has jumped upwards on to one.
-            // If something blocks us in both directions then stop.
-            boolean movementTotallyBlocked = false;
-            GameObject collidedWith;
-            for(int i = startIndexInTrajectory; i < endIndex && !movementTotallyBlocked; i++) {
+            //our path then refer to the controller.
+            int i;
+            for (i = 0; i < trajectoryBeingUsed.length && !stoppedBeforeFinishing; i++) {
                 int[] movements = trajectoryBeingUsed[i];
-                Point proposedNewLocation = new Point(jsw.getX() + movements[0], jsw.getY() + movements[1]);
+                Point proposedNewLocation  = new Point(jsw.getX() + movements[0], jsw.getY() + movements[1]);
 
-                if(movements[1] != 0) {
-                    int yOrdinateToCheck = movements[1] < 0
-                            ?proposedNewLocation.y : proposedNewLocation.y +
-                            jsw.getHeight();
-                    GameObject[] possiblyCollidedWith = movements[1] < 0 ? goingUpCaresAbout[yOrdinateToCheck] : goingDownCaresAbout[yOrdinateToCheck];
-                    collidedWith = GameUtils.getCollidedWhileMovingUpOrDown(jsw, possiblyCollidedWith);
-                    if(collidedWith == null) {
-                        jsw.setLocation(jsw.getX(), proposedNewLocation.y);
+                if (movements[1] != 0) {
+                    //JSW needs to move up or down
+                    GameObject touching = movements[1] < 0 ? jsw.checkIfTopIsTouching(goingUpCaresAbout) : jsw.checkIfBottomIsTouching(goingDownCaresAbout);
+                    JumpMovementResult jumpMovementResult = JumpMovementResult.MOVE;
+                    if(touching != null) {
+                        //If the jsw has hit something while jumping then it might stop the entire movement or just movement
+                        //in this direction
+                        jumpMovementResult = jSWControlsHandler.hitWhileJumping(touching, movements, true);
+                        stoppedBeforeFinishing = jumpMovementResult == JumpMovementResult.STOP_COMPLETELY;
                     }
-                    else {
-                        //JSW has hit something while moving up or down.  Block the movement if the JSW:
-                        //1: has hit something significant like a lethal object
-                        //2: is only going up or down
-                        //3: is moving across and down (we don't want them sliding along the ground)
-                        movementTotallyBlocked = checkPlayerCollisionOK(collidedWith) || movements[0] == 0 || movements[1] > 0;
+
+                    if(jumpMovementResult == JumpMovementResult.MOVE) {
+                        updateLocationY(proposedNewLocation);
                     }
                 }
 
-                if(movements[0] != 0 && !movementTotallyBlocked) {
-                    collidedWith = GameUtils.getCollidedWhileMovingAcross(jsw, movements[0] < 0 ? goingLeftCaresAbout[proposedNewLocation.x] :
-                            goingRightCaresAbout[proposedNewLocation.x + jsw.getWidth()]);
-                    if(collidedWith == null) {
-                        jsw.setLocation(proposedNewLocation.x, jsw.getY());
+                if (!stoppedBeforeFinishing && movements[0] != 0) {
+                    //JSW needs to moves left or right
+                    GameObject touching = movements[0] < 0 ? jsw.checkIfLHSIsTouching(goingLeftCaresAbout) : jsw.checkIfRHSIsTouching(goingRightCaresAbout);
+                    JumpMovementResult jumpMovementResult = JumpMovementResult.MOVE;
+                    if(touching != null) {
+                        jumpMovementResult = jSWControlsHandler.hitWhileJumping(touching, movements, false);
+                        stoppedBeforeFinishing = jumpMovementResult == JumpMovementResult.STOP_COMPLETELY;
                     }
-                    else {
-                        //JSW has hit something while moving left or right.  Block the movement if the JSW :
-                        //1: Has hit something significant like a lethal object
-                        //2: is only moving left or right
-                        movementTotallyBlocked = checkPlayerCollisionOK(collidedWith) || movements[1] == 0;
+
+                    if(jumpMovementResult == JumpMovementResult.MOVE) {
+                        updateLocationX(proposedNewLocation);
                     }
                 }
 
+                if(!stoppedBeforeFinishing && (i + 1) % numPixelsBetweenSleeps == 0) {
+                    GameUtils.sleepAndCatchInterrupt(numMillisBetweenMovements);
+                }
             }
 
-            boolean finishedMovement = endIndex == trajectoryBeingUsed.length  || movementTotallyBlocked;
+            //If the jsw has completed the jump without being stopped prematurely then tell the controller it's finished.
+            // Note that if it was stopped prematurely then the controller will already have been notified so we don't need to tell it
+            //anything.
+            if(i == trajectoryBeingUsed.length && !stoppedBeforeFinishing) {
+                jSWControlsHandler.jumpFinishedWithoutBeingStopped();
+            }
 
-            if(finishedMovement) {
-                //If we're finished jumping then reset these variables so we're ready to start a new jump
-                startIndexInTrajectory = 0;
-                trajectoryBeingUsed = null;
-            }
-            else {
-                //If we haven't finished jumping yet then make sure we remember where we left off
-                startIndexInTrajectory = endIndex;
-            }
-            return finishedMovement;
+            running = false;
+        }
+
+        private void updateLocationY(Point proposedLocation) {
+            jsw.setLocation(jsw.getX(), proposedLocation.y);
+            jsw.onMove();
+        }
+
+        private void updateLocationX(Point proposedLocation) {
+            jsw.setLocation(proposedLocation.x, jsw.getY());
+            jsw.onMove();
         }
     }
 
@@ -780,61 +774,108 @@ public class GamePanel extends JPanel {
 
 
         private LeftMover() {
-            super(PlayerMovementType.WALK_LEFT,
-                    Executors.newSingleThreadExecutor(), LEFT_RIGHT_NUM_PIXELS_PER_MOVEMENT,
-                    LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS);
+            super(Executors.newSingleThreadExecutor(), LEFT_RIGHT_NUM_PIXELS_PER_MOVEMENT,
+                LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS);
         }
 
         @Override
-        protected boolean doMove() {
-
-            int startCheckpoint = jsw.getX() - 1;
-            int endCheckPoint = jsw.getX() - numPixelsPerMovement;
-
-            GameObject collidedWith = null;
-            int i;
-            for(i = startCheckpoint ; i >= endCheckPoint && collidedWith == null ;i--) {
-                collidedWith = GameUtils.getCollidedWhileMovingAcross(jsw, goingLeftCaresAbout[i]);
-                if(collidedWith == null) {
-                    //We can move
-                    jsw.setLocation(i, jsw.getY());
+        public void run() {
+            boolean hasBeenStopped = false;
+            stopRequestReceived = false;
+            int numPixelsMoved = 0;
+            while(!hasBeenStopped) {
+                GameObject touching = jsw.checkIfLHSIsTouching(goingLeftCaresAbout);
+                if (touching == null) {
+                    //Not touching anything so jsw can move
+                    numPixelsMoved = move(numPixelsMoved);
+                    //Now that it's moved dheck if JSW should fall
+                    hasBeenStopped = jSWControlsHandler.doFallCheck();
                 }
                 else {
-                    checkPlayerCollisionOK(collidedWith);
+                    //Jsw is touching something so see if this is something that will stop up
+                    hasBeenStopped = jSWControlsHandler.hitWhileWalking(touching, PlayerMovementType.WALK_LEFT);
+                    if(!hasBeenStopped) {
+                        numPixelsMoved = move(numPixelsMoved);
+                        //Now that it's moved dheck if JSW should fall
+                        hasBeenStopped = jSWControlsHandler.doFallCheck();
+                    }
+                }
+
+                if(!hasBeenStopped) {
+                    //Movement has finished without being stopped prematurely
+                    if(stopRequestReceived) {
+                        hasBeenStopped = true;
+                        jSWControlsHandler.leftRightMoveFinishedWithoutBeingStopped(PlayerMovementType.WALK_LEFT);
+                    }
+                    else {
+                        //Even though the movement has finished without being stopped then, if no stop request has been
+                        //received, initiate another cycle pausing beforehand if necessary
+                        if((numPixelsMoved % numPixelsBetweenSleeps) == 0) {
+                            GameUtils.sleepAndCatchInterrupt(numMillisBetweenMovements);
+                        }
+                    }
                 }
             }
-            return true;
+            running = false;
+        }
+
+        private int move(int numberPixelsMoved) {
+            //We can move
+            jsw.setLocation(jsw.getX() - 1, jsw.getY());
+            jsw.onMove();
+            return ++numberPixelsMoved;
         }
     };
 
-    //Moves a sprite right
+    //Moves a sprite right.  Identical to the left mover except this goes in the other direction
     private class RightMover extends JSWMover {
 
 
         private RightMover() {
-            super(PlayerMovementType.WALK_RIGHT, Executors.newSingleThreadExecutor(),
+            super(Executors.newSingleThreadExecutor(),
                     LEFT_RIGHT_NUM_PIXELS_PER_MOVEMENT,
                     LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS);
         }
 
         @Override
-        protected boolean doMove() {
-            int startCheckpoint = jsw.getX() + jsw.getWidth() + 1;
-            int endCheckPoint = jsw.getX() + jsw.getWidth() + numPixelsPerMovement;
-
-            GameObject collidedWith = null;
-            int i;
-            for(i = startCheckpoint ; i <= endCheckPoint && collidedWith == null ;i++) {
-                collidedWith = GameUtils.getCollidedWhileMovingAcross(jsw, goingRightCaresAbout[i]);
-                if(collidedWith == null) {
-                    //We can move
-                    jsw.setLocation(i - jsw.getWidth(), jsw.getY());
+        public void run() {
+            boolean hasBeenStopped = false;
+            stopRequestReceived = false;
+            int numPixelsMoved = 0;
+            while(!hasBeenStopped) {
+                GameObject touching = jsw.checkIfRHSIsTouching(goingRightCaresAbout);
+                if (touching == null) {
+                    numPixelsMoved = move(numPixelsMoved);
+                    hasBeenStopped = jSWControlsHandler.doFallCheck();
                 }
                 else {
-                    checkPlayerCollisionOK(collidedWith);
+                    hasBeenStopped = jSWControlsHandler.hitWhileWalking(touching, PlayerMovementType.WALK_RIGHT);
+                    if(!hasBeenStopped) {
+                        numPixelsMoved = move(numPixelsMoved);
+                        hasBeenStopped = jSWControlsHandler.doFallCheck();
+                    }
+                }
+
+                if(!hasBeenStopped) {
+                    if(stopRequestReceived) {
+                        hasBeenStopped = true;
+                        jSWControlsHandler.leftRightMoveFinishedWithoutBeingStopped(PlayerMovementType.WALK_RIGHT);
+                    }
+                    else {
+                        if((numPixelsMoved % numPixelsBetweenSleeps) == 0) {
+                            GameUtils.sleepAndCatchInterrupt(numMillisBetweenMovements);
+                        }
+                    }
                 }
             }
-            return true;
+            running = false;
+        }
+
+        private int move(int numberPixelsMoved) {
+            //We can move
+            jsw.setLocation(jsw.getX() + 1, jsw.getY());
+            jsw.onMove();
+            return ++numberPixelsMoved;
         }
     };
 
@@ -845,5 +886,64 @@ public class GamePanel extends JPanel {
         FALL,
         //e.g. For when the player dies
         MOVED_BACK_TO_START;
+    }
+
+    //Paints the game objects in their respective location etc..  Does the painting most of the time.
+    private class StandardPainter implements Consumer<Graphics> {
+
+        //The colour of the background in the game
+        private Color backgroundColor;
+
+        public StandardPainter(Color backgroundColor) {
+            this.backgroundColor = backgroundColor;
+        }
+
+        public void accept(Graphics g) {
+
+            g.setColor(backgroundColor);
+            Dimension screenSize = getSize();
+            //@todo - if there is an issue with slowness then it could be that the static objects like the platforms are being
+            //repainted every time when they don't need to be.  See the GameObject.doPainting and the static game object's paintObject methods.  There is
+            //commented out code in these methods that only paints the object once.  This didn't work when it was implemented because the
+            //object would get painted once and then, when the next iteration of the game loop was called and this code here was called,
+            //they would get wiped out by the rectangle drawn below and then never painted again.  So if there is slowness then this code could be reinstated and
+            //this rectangle should never be drawn.  Instead the moving objects only could be rubbed out and repainted.
+            g.fillRect(0, 0, screenSize.width, screenSize.height);
+
+            for (Platform platform : platforms) {
+                platform.doPainting(g);
+            }
+
+            for (StaticLethalObject staticLethalObject : staticLethalObjects) {
+                staticLethalObject.doPainting(g);
+            }
+
+            for (FinishingObject finishingObject : finishingObjects) {
+                finishingObject.doPainting(g);
+            }
+
+            jsw.doPainting(g);
+
+            for (Nasty nasty : nasties) {
+                nasty.doPainting(g);
+            }
+        }
+    }
+
+    //Used to display a particular background and an optional message
+    private class MessagePainter implements Consumer<Graphics> {
+        //Not null if the screen should simply display a message e.g. if the player has finished the game
+        private volatile String message;
+        private volatile Color backgroundColor;
+        public void accept(Graphics g) {
+            g.setColor(backgroundColor);
+            Dimension screenSize = getSize();
+            g.fillRect(0, 0, screenSize.width, screenSize.height);
+            if(message != null) {
+                g.setColor(Color.BLACK);
+                g.setFont(g.getFont().deriveFont(g.getFont().getSize() * 10f));
+                g.drawString(message, (int) (screenSize.width * 0.3), (int) (screenSize.height * 0.5));
+            }
+        }
     }
 }

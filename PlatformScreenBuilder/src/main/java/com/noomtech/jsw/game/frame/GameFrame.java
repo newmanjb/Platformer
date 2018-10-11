@@ -3,6 +3,10 @@ package com.noomtech.jsw.game.frame;
 import com.datastax.driver.core.*;
 import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.game.gameobjects.*;
+//import com.noomtech.jsw.game.gameobjects.objects.FinishingObject;
+//import com.noomtech.jsw.game.gameobjects.objects.JSW;
+//import com.noomtech.jsw.game.gameobjects.objects.Platform;
+//import com.noomtech.jsw.game.gameobjects.objects.StaticLethalObject;
 import com.noomtech.jsw.game.gamethread.GamePanel;
 
 import javax.swing.*;
@@ -30,6 +34,24 @@ public class GameFrame extends JFrame {
         cassandraSession = cluster.connect();
 
         List<GameObject> gameObjects = load();
+
+//        List<GameObject> gameObjects = new ArrayList<>();
+//        JSW jsw = new JSW(new Rectangle(800, 800, 100, 100), null);
+//        StaticLethalObject s1 = new StaticLethalObject(new Rectangle(450, 850, 50, 50), null);
+//        FinishingObject f1 = new FinishingObject(new Rectangle(1200, 850, 50, 50), null);
+//        Platform p1 = new Platform(new Rectangle(400, 900, 1000, 50), null);
+//        Platform p2 = new Platform(new Rectangle(450, 840, 40, 10), null);
+//        Platform p3 = new Platform(new Rectangle(1200, 840, 40, 10), null);
+//        Platform p4 = new Platform(new Rectangle(600, 730, 200, 20), null);
+//
+//        gameObjects.add(jsw);
+//        gameObjects.add(p1);
+//        gameObjects.add(p2);
+//        gameObjects.add(p3);
+//        gameObjects.add(p4);
+//        gameObjects.add(s1);
+//        gameObjects.add(f1);
+
         gamePanel = new GamePanel(
                 gameObjects);
 
@@ -109,7 +131,13 @@ public class GameFrame extends JFrame {
     }
 
     private void quit() {
-        gamePanel.stop();
+        try {
+            gamePanel.stop();
+        }
+        catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+
         boolean stopped = false;
         try {
             cassandraSession.close();

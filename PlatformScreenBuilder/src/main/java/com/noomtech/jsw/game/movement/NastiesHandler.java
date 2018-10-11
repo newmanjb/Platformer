@@ -6,6 +6,7 @@ import com.noomtech.jsw.game.gamethread.GamePanel;
 import com.noomtech.jsw.game.utils.GameUtils;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 
 /**
@@ -52,18 +53,15 @@ public class NastiesHandler implements Runnable {
      */
     private void doMove(Nasty nasty) {
         int moveDirection = nasty.getMoveYDirection();
-        int yOrdinateToCheck = moveDirection > 0 ? nasty.getY() + nasty.getHeight() : nasty.getY();
-        GameObject[] possibleCollisionArea = moveDirection > 0 ? checkWhenMovingDown[yOrdinateToCheck] :
-                checkWhenMovingUp[yOrdinateToCheck + moveDirection];
-        GameObject collidedwith = GameUtils.getCollidedWhileMovingUpOrDown(nasty, possibleCollisionArea);
-        if(collidedwith != null) {
+        GameObject collidedWith = moveDirection > 0 ? nasty.checkIfBottomIsTouching(checkWhenMovingDown) : nasty.checkIfTopIsTouching(checkWhenMovingUp);
+        if(collidedWith != null) {
             nasty.onCollision();
         }
         nasty.setLocation(nasty.getX(), nasty.getY() + nasty.getMoveYDirection());
         nasty.onMove();
         if(parent.getPlayerCollisionArea().intersects(nasty.getImageArea())) {
             //The player's hit a nasty!!!!
-            parent.playerHitLethalObject(nasty);
+            Executors.newSingleThreadExecutor().submit(() -> {parent.processShowstopper(nasty);});
         }
     }
 }

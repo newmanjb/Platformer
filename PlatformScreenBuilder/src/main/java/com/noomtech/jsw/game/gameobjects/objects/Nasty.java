@@ -5,7 +5,6 @@ import com.noomtech.jsw.game.gameobjects.AnimationFrame;
 import com.noomtech.jsw.game.gameobjects.Lethal;
 
 import java.awt.*;
-import java.io.IOException;
 import java.util.Map;
 
 
@@ -33,7 +32,7 @@ public class Nasty extends MovingGameObject implements Lethal {
     private static final String ANIMATION_FRAMES_DIRECTORY_NAME = Nasty.class.getSimpleName();
 
 
-    public Nasty(Rectangle area, Map<String,String> attributes) throws IOException {
+    public Nasty(Rectangle area, Map<String,String> attributes) {
         super(area, attributes);
         animationFrames = animationFramesMap.get(ANIM_CATEGORY_MOVE);
         setToStartingState();

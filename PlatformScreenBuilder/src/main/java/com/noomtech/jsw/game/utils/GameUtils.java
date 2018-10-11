@@ -2,7 +2,6 @@ package com.noomtech.jsw.game.utils;
 
 
 import com.noomtech.jsw.common.utils.CommonUtils;
-import com.noomtech.jsw.game.gameobjects.GameObject;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -21,52 +20,6 @@ public class GameUtils {
     private final static BigDecimal BASE_ON_THIS_SCREEN_HEIGHT = new BigDecimal("1080");
     private final static MathContext SCALING_TO_SCREEN_MATH_CONTEXT = new MathContext(15, RoundingMode.HALF_UP);
 
-
-    /**
-     * Checks if the object in the first param has collided with any of the objects in the second param while moving up or down.
-     * @param gameObject The game object that may have collided with any of the game objects in the given array
-     * @param possiblyCollidedWithThese The objects to check for collision with the first param e.g. these could include platforms or lethal objects
-     * @return The object that has been oollided with or null if there has been no collision
-     */
-    public static GameObject getCollidedWhileMovingUpOrDown(GameObject gameObject, GameObject[] possiblyCollidedWithThese) {
-        if(possiblyCollidedWithThese != null) {
-            for (GameObject possiblyCollidedWith : possiblyCollidedWithThese) {
-                if (gameObject != possiblyCollidedWith) {
-                    int lhsOfJsw = gameObject.getX();
-                    int rhsOfJsw = lhsOfJsw + gameObject.getWidth();
-                    int lhsOfCp = possiblyCollidedWith.getX();
-                    int rhsOfCp = lhsOfCp + possiblyCollidedWith.getWidth();
-                    if(!(rhsOfJsw < lhsOfCp || lhsOfJsw > rhsOfCp)) {
-                        return possiblyCollidedWith;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Checks if the object in the first param has collided with any of the objects in the second param while moving left or right.
-     * @param gameObject The game object that may have collided with any of the game objects in the given array
-     * @param possiblyCollidedWithThese The objects to check for collision with the first param e.g. these could include platforms or lethal objects
-     * @return The object that has been oollided with or null if there has been no collision
-     */
-    public static GameObject getCollidedWhileMovingAcross(GameObject gameObject, GameObject possiblyCollidedWithThese[]) {
-        if(possiblyCollidedWithThese != null) {
-            for (GameObject possiblyCollidedWith : possiblyCollidedWithThese) {
-                if (gameObject != possiblyCollidedWith) {
-                    int topOfGameObject = gameObject.getY();
-                    int bottomOfGameObject = topOfGameObject + gameObject.getHeight();
-                    int topOfCp = possiblyCollidedWith.getY();
-                    int bottomOfCp = topOfCp + possiblyCollidedWith.getHeight();
-                    if(!(bottomOfGameObject < topOfCp || topOfGameObject > bottomOfCp)) {
-                        return possiblyCollidedWith;
-                    }
-                }
-            }
-        }
-        return null;
-    }
 
     public static void sleepAndCatchInterrupt(long millis) {
         try {
