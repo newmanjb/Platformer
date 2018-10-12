@@ -297,15 +297,15 @@ public class DrawingPanel extends JPanel {
         }
     }
 
-    List<EditorObject> getEditorObjects() {
+    public List<EditorObject> getEditorObjects() {
         return new ArrayList<>(editorObjects);
     }
 
-    List<EditorObject> getToDelete() {
+    public List<EditorObject> getToDelete() {
         return toDelete;
     }
 
-    void clearDeleteList() {
+    public void clearDeleteList() {
         toDelete.clear();
     }
 }

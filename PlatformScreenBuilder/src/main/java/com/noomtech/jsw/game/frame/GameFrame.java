@@ -1,18 +1,12 @@
 package com.noomtech.jsw.game.frame;
 
-import com.datastax.driver.core.*;
-import com.noomtech.jsw.common.utils.CommonUtils;
-import com.noomtech.jsw.game.gameobjects.*;
-//import com.noomtech.jsw.game.gameobjects.objects.FinishingObject;
-//import com.noomtech.jsw.game.gameobjects.objects.JSW;
-//import com.noomtech.jsw.game.gameobjects.objects.Platform;
-//import com.noomtech.jsw.game.gameobjects.objects.StaticLethalObject;
+import com.noomtech.jsw.common.utils.db.CassandraDBAdapter;
+import com.noomtech.jsw.common.utils.db.DatabaseAdapter;
+import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gamethread.GamePanel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.math.BigDecimal;
-import java.util.*;
 import java.util.List;
 
 
@@ -23,18 +17,17 @@ public class GameFrame extends JFrame {
 
 
     private final GamePanel gamePanel;
-    private final Session cassandraSession;
-    private final Cluster cluster;
+    private DatabaseAdapter databaseAdapter;
+
 
     //@todo - save the screen size in the editor, don't hardcode it
     public GameFrame() throws Exception {
 
-        Cluster.Builder b = Cluster.builder().addContactPoint("10.130.84.52");
-        cluster = b.build();
-        cassandraSession = cluster.connect();
+        databaseAdapter = CassandraDBAdapter.getInstance();
+        List<GameObject> gameObjects = databaseAdapter.loadGameObjects();
 
-        List<GameObject> gameObjects = load();
-
+//        Useful for drawing test platforms and nasties if we can't connect to the db
+//
 //        List<GameObject> gameObjects = new ArrayList<>();
 //        JSW jsw = new JSW(new Rectangle(800, 800, 100, 100), null);
 //        StaticLethalObject s1 = new StaticLethalObject(new Rectangle(450, 850, 50, 50), null);
@@ -97,39 +90,6 @@ public class GameFrame extends JFrame {
         setVisible(true);
     }
 
-    /**
-     * Loads the game data from the cassandra db.
-     */
-    private List<GameObject> load() throws Exception {
-
-        String selectStatement = "SELECT class,id,attributes,rectangle FROM jsw.COLLISION_AREAS";
-        BoundStatement b = cassandraSession.prepare(selectStatement).bind();
-        ResultSet rs = cassandraSession.execute(b);
-        List<Row> rows = rs.all();
-        List<GameObject> toReturn = new ArrayList<>();
-        for(Row row : rows) {
-
-            TupleValue tupleValue = row.getTupleValue(3);
-            TupleValue startTuple = tupleValue.get(0,TupleValue.class);
-            TupleValue endTuple = tupleValue.get(1,TupleValue.class);
-            //Pixel values such as x, y, width and height are converted to be proprtions of the scrren size first
-            //before being saved e.g. if the scrren size width is 1500 and the value is 300 then the value will be
-            //saved as 0.2. So they must be converted back before being used to draw objects.  This way the game is portable
-            //across different resolutions and monitors.
-            Rectangle rectangle = CommonUtils.convertFromProportionOfScreenSize(startTuple.get(0,BigDecimal.class), startTuple.get(1,BigDecimal.class),
-                    endTuple.get(0,BigDecimal.class), endTuple.get(1,BigDecimal.class));
-            String classVal = row.getString(0);
-            Map<String,String> attributes = row.getMap(2, String.class, String.class);
-            //The type of game object is represented as the full name of the underlying class so as it can be instantiated
-            //using reflection
-            GameObject gameObject = (GameObject)Class.forName(classVal).getConstructor(
-                    Rectangle.class, Map.class).newInstance(rectangle, attributes);
-            toReturn.add(gameObject);
-        }
-
-        return toReturn;
-    }
-
     private void quit() {
         try {
             gamePanel.stop();
@@ -140,8 +100,7 @@ public class GameFrame extends JFrame {
 
         boolean stopped = false;
         try {
-            cassandraSession.close();
-            cluster.close();
+            databaseAdapter.shutdown();
             stopped = true;
         }
         catch(Exception e) {
