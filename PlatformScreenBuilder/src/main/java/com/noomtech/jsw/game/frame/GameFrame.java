@@ -1,7 +1,7 @@
 package com.noomtech.jsw.game.frame;
 
-import com.noomtech.jsw.common.utils.db.CassandraDBAdapter;
 import com.noomtech.jsw.common.utils.db.DatabaseAdapter;
+import com.noomtech.jsw.common.utils.db.MongoDBAdapter;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gamethread.GamePanel;
 
@@ -23,7 +23,7 @@ public class GameFrame extends JFrame {
     //@todo - save the screen size in the editor, don't hardcode it
     public GameFrame() throws Exception {
 
-        databaseAdapter = CassandraDBAdapter.getInstance();
+        databaseAdapter = MongoDBAdapter.getInstance();
         List<GameObject> gameObjects = databaseAdapter.loadGameObjects();
 
 //        Useful for drawing test platforms and nasties if we can't connect to the db

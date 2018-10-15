@@ -83,7 +83,7 @@ public class CassandraDBAdapter implements DatabaseAdapter {
             boundStatement.setString(0, gameObject.getClass().getName());
             boundStatement.setLong(1, c.getId());
             if(!cassandraSession.execute(boundStatement).wasApplied()) {
-                throw new IllegalArgumentException("Didn't work!");
+                throw new IllegalArgumentException("Could not delete editor object " + c);
             }
         }
         drawingPanel.clearDeleteList();

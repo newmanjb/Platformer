@@ -49,4 +49,14 @@ public class EditorObject {
     public GameObject getGameObject() {
         return gameObject;
     }
+
+    @Override
+    public String toString() {
+        return "EditorObject{" +
+                "isBeingMoved=" + isBeingMoved +
+                ", isSelected=" + isSelected +
+                ", id=" + id +
+                ", gameObject=" + gameObject +
+                '}';
+    }
 }

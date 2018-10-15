@@ -3,6 +3,7 @@ package com.noomtech.jsw.game.gameobjects;
 import com.noomtech.jsw.game.movement.CollisionHandler;
 
 import java.awt.*;
+import java.util.Arrays;
 import java.util.Map;
 
 
@@ -31,6 +32,10 @@ public abstract class GameObject {
 
 
     public GameObject(Rectangle imageArea, Map<String,String> attributes) {
+        if(attributes == null) {
+            throw new IllegalArgumentException("Null attributes not allowed.  Please specify an empty map");
+        }
+
         this.imageArea = imageArea;
 
         this.attributes = attributes;
@@ -115,5 +120,16 @@ public abstract class GameObject {
 
     public GameObject checkIfTopIsTouching(GameObject[][] relevantBoundaries) {
         return collisionHandler.checkIfTouchingAnythingGoingUp(relevantBoundaries);
+    }
+
+    @Override
+    public String toString() {
+        return "GameObject{" +
+                "imageArea=" + imageArea +
+                ", attributes=" + attributes +
+                ", startingLocation=" + startingLocation +
+                ", collisionAreas=" + Arrays.toString(collisionAreas) +
+                ", collisionHandler=" + collisionHandler +
+                '}';
     }
 }

@@ -1,7 +1,7 @@
 package com.noomtech.jsw.editor.frame;
 
-import com.noomtech.jsw.common.utils.db.CassandraDBAdapter;
 import com.noomtech.jsw.common.utils.db.DatabaseAdapter;
+import com.noomtech.jsw.common.utils.db.MongoDBAdapter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,7 +20,7 @@ public class MainFrame extends JFrame {
 
         setTitle("Collision Editor");
 
-        dbAdapter = CassandraDBAdapter.getInstance();
+        dbAdapter = MongoDBAdapter.getInstance();
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         screenSize.height = (int)Math.rint(screenSize.height * 0.92);
