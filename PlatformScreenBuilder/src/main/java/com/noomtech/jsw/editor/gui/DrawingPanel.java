@@ -8,8 +8,6 @@ import java.awt.*;
 import java.util.List;
 
 
-//@todo fix bug in editor with plaetforms zooming away from mouse pointer
-
 /**
  * Responsible for the painting.  This is the "view" in the MVC pattern used in the editor.
  * The {@link MouseMovementHandler} is the controller.  The collection of root objects is the data.
