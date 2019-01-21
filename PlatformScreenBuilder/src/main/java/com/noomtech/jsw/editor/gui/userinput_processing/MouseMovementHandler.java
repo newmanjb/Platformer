@@ -272,21 +272,17 @@ public class MouseMovementHandler extends MouseAdapter {
                 //The type of game object is represented as the full name of the underlying class so as it can be instantiated
                 //using reflection when it's loaded
                 String theClass = CommonUtils.SELECTABLE_GAME_OBJECT_PACKAGE + "." + classBox.getSelectedItem();
-                GameObject g;
+                GameObject newGameObject;
                 try {
-                    g = (GameObject)Class.forName(theClass).getConstructor(Rectangle.class, Map.class).newInstance(
+                    newGameObject = (GameObject)Class.forName(theClass).getConstructor(Rectangle.class, Map.class).newInstance(
                             rootObject.getArea(), attributes);
                 }
                 catch(Exception c) {
                     throw new IllegalArgumentException("Couldn't create game object", c);
                 }
 
-                RootObject newRootObject = new RootObject(g, rootObject.getId());
-                if(!MODEL.remove(rootObject)) {
-                    throw new IllegalStateException("Trying to edit something that isn't in the model!!");
-                }
-                MODEL.add(newRootObject);
-                record_rootObjectUpdated(newRootObject);
+                rootObject.setGameObject(newGameObject);
+                record_rootObjectUpdated(rootObject);
 
                 setVisible(false);
                 dispose();

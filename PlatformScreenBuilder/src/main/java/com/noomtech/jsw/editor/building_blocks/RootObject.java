@@ -18,16 +18,13 @@ public class RootObject implements Editable, Saveable {
     private boolean isBeingMoved;
     private boolean isSelected;
     private long id;
-    private final GameObject gameObject;
-    private final List<CollisionAreaEditableObject> collisionAreaEditableObjectList;
+    private GameObject gameObject;
+    private List<CollisionAreaEditableObject> collisionAreaEditableObjectList;
     private static final String COLLECTION_NAME = DBConstants.COLLECTION_NAME_GAME_OBJECTS;
 
     public RootObject(GameObject gameObject, long id) {
         this.id = id;
-        this.gameObject = gameObject;
-        collisionAreaEditableObjectList = Arrays.stream(gameObject.getCollisionAreas()).map(r -> {
-            return new CollisionAreaEditableObject(r);
-        }).collect(Collectors.toList());
+        setGameObject(gameObject);
     }
 
 
@@ -76,6 +73,13 @@ public class RootObject implements Editable, Saveable {
 
     public GameObject getGameObject() {
         return gameObject;
+    }
+
+    public void setGameObject(GameObject gameObject) {
+        collisionAreaEditableObjectList = Arrays.stream(gameObject.getCollisionAreas()).map(r -> {
+            return new CollisionAreaEditableObject(r);
+        }).collect(Collectors.toList());
+        this.gameObject = gameObject;
     }
 
     public void addCollisionArea(CollisionAreaEditableObject collisionAreaEditableObject) {

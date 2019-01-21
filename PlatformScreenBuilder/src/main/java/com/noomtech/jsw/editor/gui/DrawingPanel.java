@@ -8,7 +8,6 @@ import java.awt.*;
 import java.util.List;
 
 
-//@todo fix bug when platform added, changed to JSW, saved then reloaded and type-change isn't saved.
 //@todo fix bug in editor with plaetforms zooming away from mouse pointer
 
 /**
