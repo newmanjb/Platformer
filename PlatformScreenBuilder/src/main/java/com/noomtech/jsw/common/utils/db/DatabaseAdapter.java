@@ -1,7 +1,8 @@
 package com.noomtech.jsw.common.utils.db;
 
-import com.noomtech.jsw.editor.building_blocks.EditorObject;
-import com.noomtech.jsw.editor.frame.DrawingPanel;
+import com.noomtech.jsw.editor.building_blocks.RootObject;
+import com.noomtech.jsw.editor.gui.DrawingPanel;
+import com.noomtech.jsw.editor.gui.userinput_processing.MouseMovementHandler;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 
 import java.util.List;
@@ -15,9 +16,9 @@ public interface DatabaseAdapter {
 
     List<GameObject> loadGameObjects() throws Exception;
 
-    List<EditorObject> loadEditorObjects() throws Exception;
+    List<RootObject> loadEditorObjects() throws Exception;
 
-    void save(DrawingPanel drawingPanel) throws Exception;
+    void save(MouseMovementHandler controller) throws Exception;
 
     void shutdown() throws Exception;
 }

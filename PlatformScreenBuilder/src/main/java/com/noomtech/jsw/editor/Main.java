@@ -1,6 +1,6 @@
 package com.noomtech.jsw.editor;
 
-import com.noomtech.jsw.editor.frame.MainFrame;
+import com.noomtech.jsw.editor.gui.MainFrame;
 
 public class Main {
 

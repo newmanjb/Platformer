@@ -3,6 +3,7 @@ package com.noomtech.jsw.game.gamethread;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.Lethal;
 import com.noomtech.jsw.game.gameobjects.objects.*;
+import com.noomtech.jsw.game.movement.CollisionHandler;
 import com.noomtech.jsw.game.movement.NastiesHandler;
 import com.noomtech.jsw.game.utils.GameUtils;
 
@@ -32,7 +33,11 @@ import java.util.function.Consumer;
 public class GamePanel extends JPanel {
 
 
-    private static final int SCREEN_SIZE = 4000;
+    /**
+     * This handles collisions between objects during the game
+     * @see CollisionHandler
+     */
+    private final CollisionHandler COLLISION_HANDLER;
 
     //Does the painting.  This can be swapped around according to what we need
     private volatile Consumer<Graphics> painter;
@@ -79,24 +84,6 @@ public class GamePanel extends JPanel {
     private Thread nastiesThread;
 
 
-    //Each of thes arrays below is as long as the screen size (which is currently square).  The relevant boundary of each static object that
-    //can affect the player e.g. platform or lethal object, in relation to the direction that the player sprite happens to be moving
-    //forms its index in the appropriate array.
-    //These arrays are then used by the functionality that controls the player's movement in order to quickly detect
-    //whether they have collided with something e.g.
-
-    //if there is a platform with a collision area (rectangle) at x = 50, y=70 that is 20 wide and 10 high then the left boundary (x=50) is the only thing
-    //that the player will be able to collide with when moving right, so this rectangle will be placed at index 50 in the
-    //array that is checked when the play is moving right.  The lower boundary at y=80 (70 + 10) will be what the functionality
-    //cares about when the player sprite is moving up, so the rectangle will be placed at index 80 in the list that is checked when
-    //the spring is moving up the screen.
-
-    private final GameObject[][] goingRightCaresAbout = new GameObject[SCREEN_SIZE][];
-    private final GameObject[][] goingLeftCaresAbout = new GameObject[SCREEN_SIZE][];
-    private final GameObject[][] goingUpCaresAbout = new GameObject[SCREEN_SIZE][];
-    private final GameObject[][] goingDownCaresAbout = new GameObject[SCREEN_SIZE][];
-
-
     public GamePanel(
             List<GameObject> gameObjects) {
 
@@ -139,30 +126,10 @@ public class GamePanel extends JPanel {
         staticObjects.addAll(platforms);
         staticObjects.addAll(staticLethalObjects);
         staticObjects.addAll(finishingObjects);
-        for(GameObject g : staticObjects) {
-            Rectangle r = g.getImageArea();
-            Point p = g.getLocation();
-            goingLeftCaresAbout[p.x + r.width - 1] = buildNewGameObjects(goingLeftCaresAbout[p.x + r.width], g);
-            goingRightCaresAbout[p.x] = buildNewGameObjects(goingRightCaresAbout[p.x], g);;
-            goingUpCaresAbout[p.y + r.height - 1] = buildNewGameObjects(goingUpCaresAbout[p.y + r.height], g);;
-            goingDownCaresAbout[p.y] = buildNewGameObjects(goingDownCaresAbout[p.y], g);;
-        }
+
+        COLLISION_HANDLER = new CollisionHandler(staticObjects, 4000);
 
         setFocusable(true);
-    }
-
-    private static GameObject[] buildNewGameObjects(GameObject[] existingGameObjects, GameObject gameObjectToAdd) {
-        GameObject[] newGameObjects;
-        if(existingGameObjects == null) {
-            newGameObjects = new GameObject[1];
-            newGameObjects[0] = gameObjectToAdd;
-        }
-        else {
-            newGameObjects = new GameObject[existingGameObjects.length+1];
-            System.arraycopy(existingGameObjects, 0, newGameObjects, 0, existingGameObjects.length);
-            newGameObjects[existingGameObjects.length] = gameObjectToAdd;
-        }
-        return newGameObjects;
     }
 
     //Starts the game
@@ -207,7 +174,7 @@ public class GamePanel extends JPanel {
 
     private void startMovementComponents() {
         jSWControlsHandler = new JSWControlsHandler(new LeftMover(), new RightMover(), new JumpMover());
-        nastiesHandler = new NastiesHandler(this, nasties, goingDownCaresAbout, goingUpCaresAbout, NASTY_NUM_MILLIS_BETWEEN_MOVEMENTS);
+        nastiesHandler = new NastiesHandler(this, nasties, COLLISION_HANDLER, NASTY_NUM_MILLIS_BETWEEN_MOVEMENTS);
         addKeyListener(jSWControlsHandler);
 
         stopNastiesThread = false;
@@ -447,7 +414,7 @@ public class GamePanel extends JPanel {
 
         //Returns true if the player should fall e.g. if they have nothing underneath them
         private boolean doFallCheck() {
-            GameObject standingOn = jsw.checkIfBottomIsTouching(goingDownCaresAbout);
+            GameObject standingOn = COLLISION_HANDLER.checkIfTouchingAnythingGoingDown(jsw);
             if(standingOn == null || !(standingOn instanceof Platform)) {
                 fallMover.start();
                 return true;
@@ -615,7 +582,7 @@ public class GamePanel extends JPanel {
             boolean stopMoving = false;
             int numPixelsFallen = 0;
             while (!stopMoving) {
-                GameObject touching = jsw.checkIfBottomIsTouching(goingDownCaresAbout);
+                GameObject touching = COLLISION_HANDLER.checkIfTouchingAnythingGoingDown(jsw);
                 if(touching != null) {
                     stopMoving = jSWControlsHandler.hitWhileFalling(touching);
                 }
@@ -715,7 +682,7 @@ public class GamePanel extends JPanel {
 
                 if (movements[1] != 0) {
                     //JSW needs to move up or down
-                    GameObject touching = movements[1] < 0 ? jsw.checkIfTopIsTouching(goingUpCaresAbout) : jsw.checkIfBottomIsTouching(goingDownCaresAbout);
+                    GameObject touching = movements[1] < 0 ? COLLISION_HANDLER.checkIfTouchingAnythingGoingUp(jsw) : COLLISION_HANDLER.checkIfTouchingAnythingGoingDown(jsw);
                     JumpMovementResult jumpMovementResult = JumpMovementResult.MOVE;
                     if(touching != null) {
                         //If the jsw has hit something while jumping then it might stop the entire movement or just movement
@@ -731,7 +698,7 @@ public class GamePanel extends JPanel {
 
                 if (!stoppedBeforeFinishing && movements[0] != 0) {
                     //JSW needs to moves left or right
-                    GameObject touching = movements[0] < 0 ? jsw.checkIfLHSIsTouching(goingLeftCaresAbout) : jsw.checkIfRHSIsTouching(goingRightCaresAbout);
+                    GameObject touching = movements[0] < 0 ? COLLISION_HANDLER.checkIfTouchingAnythingGoingLeft(jsw) : COLLISION_HANDLER.checkIfTouchingAnythingGoingRight(jsw);
                     JumpMovementResult jumpMovementResult = JumpMovementResult.MOVE;
                     if(touching != null) {
                         jumpMovementResult = jSWControlsHandler.hitWhileJumping(touching, movements, false);
@@ -784,7 +751,7 @@ public class GamePanel extends JPanel {
             stopRequestReceived = false;
             int numPixelsMoved = 0;
             while(!hasBeenStopped) {
-                GameObject touching = jsw.checkIfLHSIsTouching(goingLeftCaresAbout);
+                GameObject touching = COLLISION_HANDLER.checkIfTouchingAnythingGoingLeft(jsw);
                 if (touching == null) {
                     //Not touching anything so jsw can move
                     numPixelsMoved = move(numPixelsMoved);
@@ -843,7 +810,7 @@ public class GamePanel extends JPanel {
             stopRequestReceived = false;
             int numPixelsMoved = 0;
             while(!hasBeenStopped) {
-                GameObject touching = jsw.checkIfRHSIsTouching(goingRightCaresAbout);
+                GameObject touching = COLLISION_HANDLER.checkIfTouchingAnythingGoingRight(jsw);
                 if (touching == null) {
                     numPixelsMoved = move(numPixelsMoved);
                     hasBeenStopped = jSWControlsHandler.doFallCheck();

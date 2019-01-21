@@ -28,8 +28,7 @@ public class Platform extends NonMovingObject {
     public void paintObject(Graphics g) {
 
         //if(!staticObjectsDontNeedToBeDrawnAgain) {
-            Rectangle r = getImageArea();
-            g.drawImage(image, r.x, r.y, r.width, r.height, Color.WHITE, null);
-        //}
+        Rectangle r = getImageArea();
+        g.drawImage(image, r.x, r.y, r.width, r.height, Color.WHITE, null);
     }
 }

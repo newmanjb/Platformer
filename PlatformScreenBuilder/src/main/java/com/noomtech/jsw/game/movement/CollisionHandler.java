@@ -1,137 +1,196 @@
 package com.noomtech.jsw.game.movement;
 
 import com.noomtech.jsw.game.gameobjects.GameObject;
-import com.noomtech.jsw.game.gamethread.GamePanel;
 
 import java.awt.*;
+import java.util.List;
+
 
 
 /**
- * Has a 1-1 relationship with a game object (referred to as the "host").  This is responsible for calculating if the game object has collided with
- * a given object.
- * @see GameObject#checkIfBottomIsTouching(GameObject[][])
- * @see GameObject#checkIfTopIsTouching(GameObject[][])
- * @see GameObject#checkIfLHSIsTouching(GameObject[][])
- * @see GameObject#checkIfRHSIsTouching(GameObject[][])
- * @see GamePanel#goingDownCaresAbout
- * @see GamePanel#goingUpCaresAbout
- * @see GamePanel#goingLeftCaresAbout
- * @see GamePanel#goingRightCaresAbout
- * @author Joshua Newman, NChain Ltd, October 2018
+ * Responsible for calculating if the collision area of a game object has collided with the collision area of
+ * another game object.
+ * @see GameObject
+ * @see GameObject#getCollisionAreas()
+ * @author Joshua Newman
  */
 public class CollisionHandler {
 
+    //Each of these arrays below is as long as the screen size (which is currently square).  The relevant boundary of each
+    //static object's, e.g. platform or lethal object, collision areas in relation to the direction that the player sprite happens to be moving
+    //forms its index in the appropriate array.
+    //These arrays are then used by the functionality that controls the sprite movements in order to quickly detect
+    //whether they have collided with something e.g.
 
-    private GameObject host;
+    //if there is a platform with a collision area (rectangle) at x = 50, y=70 that is 20 wide and 10 high then the left boundary (x=50) is the only thing
+    //that another game object's collision area will be able to collide with when moving right, so this rectangle will be placed at index 50 in the
+    //array that is checked when something moves right.  The lower boundary at y=80 (70 + 10) will be what the functionality
+    //cares about when something is moving up, so the rectangle will be placed at index 80 in the list that is checked when
+    //the sprite is moving up the screen.
 
-    //These arrays are built from the game object's collision areas and work on the same principal as their equivalents
-    //in the main game panel, except they cover the area within this game object.  When an object is detected to have
-    //touched the boundary of the host game object for this class (defined by the area covered by its image) it means
-    //that the object could potentially have collided with any of these collision areas, so these arrays are used to
-    //determine that.
-    private Rectangle[][] goingUpCaresAbout;
-    private Rectangle[][] goingDownCaresAbout;
-    private Rectangle[][] goingLeftCaresAbout;
-    private Rectangle[][] goingRightCaresAbout;
+    //Each object in the array is a pair of the aforementioned boundary and the game object that owns it.  So the game object that
+    //has been collided with can easily be found.
+
+    //The API below allows a game object to be specified, the player for example.  The API will
+    //use the arrays below to quickly determine if any collision areas from the game object in question are touching any other collision areas,
+    //and if so what game object are they owned by.
+
+    //So in summary this class holds the boundaries of all the collision areas of all the static objects in the game, and also
+    //knows what static objects each of these collision area boundaries are part of.  Using this data it can quickly determine if
+    //any given game object's collision areas are touching any of these boundaries and which game object e.g. a platform or static lethal object,
+    //the collision area being touched is part of.
+
+    private final CollisionAreaToGameObject[][] goingRightCaresAbout;
+    private final CollisionAreaToGameObject[][] goingLeftCaresAbout;
+    private final CollisionAreaToGameObject[][] goingUpCaresAbout;
+    private final CollisionAreaToGameObject[][] goingDownCaresAbout;
 
 
-    public CollisionHandler(GameObject host) {
-        this.host = host;
-        buildCollisionAreasFromHost();
-    }
+    /**
+     * @param staticObjects List of objects in the game that the player can collide with and which do not themselves move e.g.
+     *                      platforms, non-moving lethal objects etc..  The order of the list is not important
+     * @param screenSize The game window is square so this one number is its size in pixels
+     */
+    public CollisionHandler(List<GameObject> staticObjects, int screenSize) {
 
+        goingRightCaresAbout = new CollisionAreaToGameObject[screenSize][];
+        goingLeftCaresAbout = new CollisionAreaToGameObject[screenSize][];
+        goingUpCaresAbout = new CollisionAreaToGameObject[screenSize][];
+        goingDownCaresAbout = new CollisionAreaToGameObject[screenSize][];
 
-    //Builds the boundary arrays defined above using the rectangles of the host's collision areas
-    public void buildCollisionAreasFromHost() {
-        Rectangle[] collisionAreas = host.getCollisionAreas();
-        int hostHeight = host.getHeight();
-        int hostWidth = host.getWidth();
-
-        goingUpCaresAbout = new Rectangle[hostHeight][];
-        goingDownCaresAbout = new Rectangle[hostHeight][];
-        goingLeftCaresAbout = new Rectangle[hostWidth][];
-        goingRightCaresAbout = new Rectangle[hostWidth][];
-        for(Rectangle collisionArea : collisionAreas) {
-            addCollisionAreaToBoundaryLines(collisionArea, collisionArea.x, goingRightCaresAbout, true);
-            addCollisionAreaToBoundaryLines(collisionArea, collisionArea.x + (hostWidth - 1), goingLeftCaresAbout, true);
-            addCollisionAreaToBoundaryLines(collisionArea, collisionArea.y, goingDownCaresAbout, false);
-            addCollisionAreaToBoundaryLines(collisionArea, collisionArea.y + (hostHeight - 1), goingUpCaresAbout, false);
+        //Build the above arrays
+        for(GameObject g : staticObjects) {
+            Rectangle[] collisionAreasToAdd = g.getCollisionAreas();
+            for(Rectangle collisionAreaToAdd : collisionAreasToAdd) {
+                Point p = collisionAreaToAdd.getLocation();
+                goingLeftCaresAbout[p.x + collisionAreaToAdd.width - 1] = populateBoundaries(goingLeftCaresAbout[p.x +
+                        collisionAreaToAdd.width - 1], collisionAreaToAdd, g);
+                goingRightCaresAbout[p.x] = populateBoundaries(goingRightCaresAbout[p.x],
+                        collisionAreaToAdd, g);
+                goingUpCaresAbout[p.y + collisionAreaToAdd.height - 1] = populateBoundaries(goingUpCaresAbout[p.y +
+                        collisionAreaToAdd.height - 1], collisionAreaToAdd, g);
+                goingDownCaresAbout[p.y] = populateBoundaries(goingDownCaresAbout[p.y], collisionAreaToAdd, g);
+            }
         }
     }
 
-
-    private void addCollisionAreaToBoundaryLines(Rectangle collisionArea, int ordinate, Rectangle[][] boundaryLinesToPopulate, boolean across) {
-
-        int ordinateInRelationToArea = ordinate - (across ? host.getX() : host.getY());
-
-        Rectangle[] existingCollisionBoundaries = boundaryLinesToPopulate[ordinateInRelationToArea];
-        if(existingCollisionBoundaries != null) {
-            Rectangle[] dest = new Rectangle[existingCollisionBoundaries.length + 1];
-            System.arraycopy(existingCollisionBoundaries, 0, dest, 0, existingCollisionBoundaries.length);
-            dest[dest.length - 1] = collisionArea;
-            existingCollisionBoundaries = dest;
+    private static CollisionAreaToGameObject[] populateBoundaries(CollisionAreaToGameObject[] existing, Rectangle collisionAreaToAdd, GameObject gameObjectToAdd) {
+        CollisionAreaToGameObject[] newCAtoGO;
+        if(existing == null) {
+            newCAtoGO = new CollisionAreaToGameObject[1];
+            newCAtoGO[0] = new CollisionAreaToGameObject(collisionAreaToAdd, gameObjectToAdd);
         }
         else {
-            existingCollisionBoundaries = new Rectangle[]{collisionArea};
+            newCAtoGO = new CollisionAreaToGameObject[existing.length+1];
+            System.arraycopy(existing, 0, newCAtoGO, 0, existing.length);
+                newCAtoGO[existing.length] = new CollisionAreaToGameObject(collisionAreaToAdd, gameObjectToAdd);
         }
-        boundaryLinesToPopulate[ordinateInRelationToArea] = existingCollisionBoundaries;
+        return newCAtoGO;
     }
 
-    //Determine if the RHS of the host is touching any of the objects provided in the parameters
-    public GameObject checkIfTouchingAnythingGoingRight(GameObject[][] objectsInField) {
-        int rhsOfHost = host.getX() + host.getWidth() - 1;
-        if(rhsOfHost == objectsInField.length - 1) {
-            return null;
+
+    /**
+     * Determine if the RHS of the given game object is touching anything
+     */
+    public GameObject checkIfTouchingAnythingGoingRight(GameObject go) {
+        int rhsOfGo = go.getX() + go.getWidth() - 1;
+        if(rhsOfGo > goingRightCaresAbout.length - 1) {
+            throw new IllegalStateException("RHS of game object is out of bounds");
         }
-        else if(rhsOfHost > objectsInField.length - 1) {
-            throw new IllegalStateException("RHS of host is out of bounds");
+
+        Rectangle[] goCollisionAreas = go.getCollisionAreas();
+        for(Rectangle goCollisionArea : goCollisionAreas) {
+
+            if(goCollisionArea.x + goCollisionArea.width - 1 != goingRightCaresAbout.length - 1) {
+                GameObject touching = checkIfAnythingIntersectedWhenMovingAcross(go, goCollisionArea,
+                        goingRightCaresAbout[goCollisionArea.x + goCollisionArea.width]);
+                if(touching != null) {
+                    return touching;
+                }
+            }
         }
-        return checkIfAnythingIntersectedWhenMovingAcross(objectsInField[host.getX() + host.getWidth()]);
+        return null;
     }
 
-    //Determine if the LHS of the host is touching any of the objects provided in the parameters
-    public GameObject checkIfTouchingAnythingGoingLeft(GameObject[][] objectsInField) {
-        if(host.getX() == 0) {
-            return null;
+    /**
+     * Determine if the LHS of the given game object is touching anything
+     */
+    public GameObject checkIfTouchingAnythingGoingLeft(GameObject go) {
+        if(go.getX() < 0) {
+            throw new IllegalStateException("LHS of game object is out of bounds");
         }
-        else if(host.getX() < 0) {
-            throw new IllegalStateException("LHS of host is out of bounds");
+
+        Rectangle[] goCollisionAreas = go.getCollisionAreas();
+        for(Rectangle goCollisionArea : goCollisionAreas) {
+
+            if(goCollisionArea.x != 0) {
+                GameObject touching = checkIfAnythingIntersectedWhenMovingAcross(go, goCollisionArea,
+                        goingLeftCaresAbout[goCollisionArea.x - 1]);
+                if (touching != null) {
+                    return touching;
+                }
+            }
         }
-        return checkIfAnythingIntersectedWhenMovingAcross(objectsInField[host.getX() -1]);
+        return null;
     }
 
-    //Determine if the top of the host is touching any of the objects provided in the parameters
-    public GameObject checkIfTouchingAnythingGoingUp(GameObject[][] objectsInField) {
-        if(host.getY() == 0) {
-            return null;
+    /**
+     * Determine if the top of the given game object is touching anything
+     */
+    public GameObject checkIfTouchingAnythingGoingUp(GameObject go) {
+
+        if(go.getY() < 0) {
+            throw new IllegalStateException("Top of game object is out of bounds");
         }
-        else if(host.getY() < 0) {
-            throw new IllegalStateException("Top of host is out of bounds");
+
+        Rectangle[] goCollisionAreas = go.getCollisionAreas();
+        for(Rectangle goCollisionArea : goCollisionAreas) {
+            if(goCollisionArea.y != 0) {
+                GameObject touching = checkIfAnythingIntersectedWhenMovingUpOrDown(go, goCollisionArea,
+                        goingUpCaresAbout[goCollisionArea.y - 1]);
+                if(touching != null) {
+                    return touching;
+                }
+            }
         }
-        return checkIfAnythingIntersectedWhenMovingUpOrDown(objectsInField[host.getY() - 1]);
+        return null;
     }
 
-    //Determine if the bottom of the host is touching any of the objects provided in the parameters
-    public GameObject checkIfTouchingAnythingGoingDown(GameObject[][] objectsInField) {
-        int bottomOfHost = host.getY() + host.getHeight() - 1;
-        if(bottomOfHost == objectsInField.length - 1) {
-            return null;
+    /**
+     * Determine if the bottom the given game object is touching anything
+     */
+    public GameObject checkIfTouchingAnythingGoingDown(GameObject go) {
+        int bottomOfGo = go.getY() + go.getHeight() - 1;
+        if(bottomOfGo > goingDownCaresAbout.length - 1) {
+            throw new IllegalStateException("Bottom of game object is out of bounds");
         }
-        else if(bottomOfHost > objectsInField.length - 1) {
-            throw new IllegalStateException("Bottom of host is out of bounds");
+
+        Rectangle[] goCollisionAreas = go.getCollisionAreas();
+        for(Rectangle goCollisionArea : goCollisionAreas) {
+            if(goCollisionArea.y + goCollisionArea.height - 1 == goingDownCaresAbout.length - 1) {
+                return null;
+            }
+            GameObject touching = checkIfAnythingIntersectedWhenMovingUpOrDown(go, goCollisionArea,
+                    goingDownCaresAbout[goCollisionArea.y + goCollisionArea.height]);
+            if(touching != null) {
+                return touching;
+            }
         }
-        return checkIfAnythingIntersectedWhenMovingUpOrDown(objectsInField[host.getY() + host.getHeight()]);
+        return null;
     }
 
-    private GameObject checkIfAnythingIntersectedWhenMovingAcross(GameObject[] possiblyTouchingThese) {
-        if(possiblyTouchingThese != null) {
-            for (GameObject possiblyTouchingThis : possiblyTouchingThese) {
-                if (host != possiblyTouchingThis) {
-                    int topOfGameObject = host.getY();
-                    int bottomOfGameObject = topOfGameObject + host.getHeight() - 1;
-                    int topOfCp = possiblyTouchingThis.getY();
-                    int bottomOfCp = topOfCp + possiblyTouchingThis.getHeight() - 1;
-                    if(!(bottomOfGameObject < topOfCp || topOfGameObject > bottomOfCp)) {
+    private GameObject checkIfAnythingIntersectedWhenMovingAcross(GameObject movingGameObject, Rectangle movingCollisionArea, CollisionAreaToGameObject[] collisionAreaToGameObjects) {
+        if(collisionAreaToGameObjects != null) {
+            for (CollisionAreaToGameObject collisionAreaToGameObject : collisionAreaToGameObjects) {
+                GameObject possiblyTouchingThis = collisionAreaToGameObject.getGameObject();
+                if(movingGameObject != possiblyTouchingThis) {
+                    Rectangle collisionArea_possiblyTouching = collisionAreaToGameObject.getCollisionArea();
+
+                    int topOfMovingCA = movingCollisionArea.y;
+                    int bottomOfMovingCA = topOfMovingCA + movingCollisionArea.height - 1;
+                    double topOfPT = collisionArea_possiblyTouching.getY();
+                    double bottomOfPT = topOfPT + collisionArea_possiblyTouching.getHeight() - 1;
+                    if (!(bottomOfMovingCA < topOfPT || topOfMovingCA > bottomOfPT)) {
                         return possiblyTouchingThis;
                     }
                 }
@@ -140,15 +199,17 @@ public class CollisionHandler {
         return null;
     }
 
-    private GameObject checkIfAnythingIntersectedWhenMovingUpOrDown(GameObject[] possiblyTouchingThese) {
-        if(possiblyTouchingThese != null) {
-            for (GameObject possiblyTouchingThis : possiblyTouchingThese) {
-                if (host != possiblyTouchingThis) {
-                    int lhsOfJsw = host.getX();
-                    int rhsOfJsw = lhsOfJsw + (host.getWidth() - 1);
-                    int lhsOfCp = possiblyTouchingThis.getX();
-                    int rhsOfCp = lhsOfCp + (possiblyTouchingThis.getWidth() - 1);
-                    if(!(rhsOfJsw < lhsOfCp || lhsOfJsw > rhsOfCp)) {
+    private GameObject checkIfAnythingIntersectedWhenMovingUpOrDown(GameObject movingGameObject, Rectangle movingCollisionArea, CollisionAreaToGameObject[] collisionAreaToGameObjects) {
+        if(collisionAreaToGameObjects != null) {
+            for (CollisionAreaToGameObject collisionAreaToGameObject : collisionAreaToGameObjects) {
+                GameObject possiblyTouchingThis = collisionAreaToGameObject.getGameObject();
+                if(movingGameObject != possiblyTouchingThis) {
+                    Rectangle collisionArea_possiblyTouching = collisionAreaToGameObject.getCollisionArea();
+                    int lhsOfMovingCA = movingCollisionArea.x;
+                    int rhsOfMovingCA = lhsOfMovingCA + (movingCollisionArea.width - 1);
+                    double lhsOfPT = collisionArea_possiblyTouching.getX();
+                    double rhsOfOT = lhsOfPT + (collisionArea_possiblyTouching.getWidth() - 1);
+                    if (!(rhsOfMovingCA < lhsOfPT || lhsOfMovingCA > rhsOfOT)) {
                         return possiblyTouchingThis;
                     }
                 }

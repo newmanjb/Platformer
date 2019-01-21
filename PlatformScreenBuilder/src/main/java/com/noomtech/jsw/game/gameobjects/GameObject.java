@@ -1,7 +1,5 @@
 package com.noomtech.jsw.game.gameobjects;
 
-import com.noomtech.jsw.game.movement.CollisionHandler;
-
 import java.awt.*;
 import java.util.Arrays;
 import java.util.Map;
@@ -24,11 +22,7 @@ public abstract class GameObject {
     //Set to true once this object has been drawn.  Used by objects that never change in appearance during the game
     //protected boolean staticObjectsDontNeedToBeDrawnAgain;
 
-    //Holds the collision areas associated with this game object.  The collision areas are the areas that if
-    //intersected by another object's colllision area mean that a collision between the 2 objects has occurred.
     protected Rectangle[] collisionAreas;
-    //Delegate that handles all calculations associated with determining if a collision has occurred.
-    protected CollisionHandler collisionHandler;
 
 
     public GameObject(Rectangle imageArea, Map<String,String> attributes) {
@@ -43,8 +37,6 @@ public abstract class GameObject {
 
         //Default the collision areas to just be the entire area of the game object's image
         this.collisionAreas = new Rectangle[]{imageArea};
-
-        collisionHandler = new CollisionHandler(this);
     }
 
 
@@ -61,10 +53,6 @@ public abstract class GameObject {
 
     public Rectangle getImageArea() {
         return imageArea;
-    }
-
-    public void setImageArea(Rectangle imageArea) {
-        this.imageArea = imageArea;
     }
 
     public Map<String,String> getAttributes() {
@@ -87,40 +75,41 @@ public abstract class GameObject {
         return imageArea.y;
     }
 
+    /**
+     * Returns the game object's "collision areas".  These are rectangles that represent the physical boundaries of the game
+     * object.  For example, something rectangular like a platform might only have one collision area, which will be the
+     * same as the boundaries of its image, but a more complex sprite with an irregular shape might have many in order
+     * to properly define its boundaries.
+     * If a collision area from one object is touching the collision are of another object then the two objects are
+     * considered as touching each other by the game
+     * @return The collision areas of this game object
+     * @see com.noomtech.jsw.game.movement.CollisionHandler
+     */
     public Rectangle[] getCollisionAreas() {
         return collisionAreas;
     }
 
     public void setCollisionAreas(Rectangle[] newCollisionAreas) {
         this.collisionAreas = newCollisionAreas;
-        collisionHandler.buildCollisionAreasFromHost();
     }
 
     public void setLocation(int x, int y) {
         Rectangle r = getImageArea();
+        int xDiff = x - r.x;
+        int yDiff = y - r.y;
         r.x = x;
         r.y = y;
+
+        for(Rectangle ca : collisionAreas) {
+            ca.x += xDiff;
+            ca.y += yDiff;
+        }
     }
 
     public Point getLocation() {
         return imageArea.getLocation();
     }
 
-    public GameObject checkIfBottomIsTouching(GameObject[][] relevantBoundaries) {
-        return collisionHandler.checkIfTouchingAnythingGoingDown(relevantBoundaries);
-    }
-
-    public GameObject checkIfRHSIsTouching(GameObject[][] relevantBoundaries) {
-        return collisionHandler.checkIfTouchingAnythingGoingRight(relevantBoundaries);
-    }
-
-    public GameObject checkIfLHSIsTouching(GameObject[][] relevantBoundaries) {
-        return collisionHandler.checkIfTouchingAnythingGoingLeft(relevantBoundaries);
-    }
-
-    public GameObject checkIfTopIsTouching(GameObject[][] relevantBoundaries) {
-        return collisionHandler.checkIfTouchingAnythingGoingUp(relevantBoundaries);
-    }
 
     @Override
     public String toString() {
@@ -129,7 +118,6 @@ public abstract class GameObject {
                 ", attributes=" + attributes +
                 ", startingLocation=" + startingLocation +
                 ", collisionAreas=" + Arrays.toString(collisionAreas) +
-                ", collisionHandler=" + collisionHandler +
                 '}';
     }
 }

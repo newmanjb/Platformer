@@ -18,20 +18,17 @@ public class NastiesHandler implements Runnable {
 
 
     private List<Nasty> nasties;
-    private GameObject[][] checkWhenMovingDown;
-    private GameObject[][] checkWhenMovingUp;
+    private final CollisionHandler COLLISION_HANDLER;
     private long sleepDurationBetweenMovements;
     private GamePanel parent;
 
 
     public NastiesHandler(
-            GamePanel parent, List<Nasty> nasties, GameObject[][] checkWhenMovingDown,
-            GameObject[][] checkWhenMovingUp, long sleepDurationBetweenMovements) {
+            GamePanel parent, List<Nasty> nasties, CollisionHandler collisionHandler, long sleepDurationBetweenMovements) {
 
         this.parent = parent;
         this.nasties = nasties;
-        this.checkWhenMovingDown = checkWhenMovingDown;
-        this.checkWhenMovingUp = checkWhenMovingUp;
+        this.COLLISION_HANDLER = collisionHandler;
         this.sleepDurationBetweenMovements = sleepDurationBetweenMovements;
     }
 
@@ -53,7 +50,8 @@ public class NastiesHandler implements Runnable {
      */
     private void doMove(Nasty nasty) {
         int moveDirection = nasty.getMoveYDirection();
-        GameObject collidedWith = moveDirection > 0 ? nasty.checkIfBottomIsTouching(checkWhenMovingDown) : nasty.checkIfTopIsTouching(checkWhenMovingUp);
+        GameObject collidedWith = moveDirection > 0 ? COLLISION_HANDLER.checkIfTouchingAnythingGoingDown(nasty) :
+                COLLISION_HANDLER.checkIfTouchingAnythingGoingUp(nasty);
         if(collidedWith != null) {
             nasty.onCollision();
         }
