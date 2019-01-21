@@ -53,22 +53,8 @@ public class RootObject implements Editable, Saveable {
     }
 
     public void setLocation(Rectangle rectangle) {
-        int xDiff = rectangle.x - gameObject.getX();
-        int yDiff = rectangle.y - gameObject.getY();
         gameObject.setLocation(rectangle.x, rectangle.y);
-
-        for(CollisionAreaEditableObject collisionAreaEditableObject : collisionAreaEditableObjectList) {
-            double currrentX = collisionAreaEditableObject.getArea().getX();
-            double currrentY = collisionAreaEditableObject.getArea().getY();
-            collisionAreaEditableObject.getArea().setLocation((int)currrentX + xDiff, (int)currrentY + yDiff);
-        }
-
-        Rectangle[] dest = new Rectangle[collisionAreaEditableObjectList.size()];
-        for(int i = 0; i < dest.length; i++) {
-            dest[i] = collisionAreaEditableObjectList.get(i).getArea();
-        }
-
-        gameObject.setCollisionAreas(dest);
+        refreshFromGameObject();
     }
 
     public GameObject getGameObject() {
@@ -76,10 +62,8 @@ public class RootObject implements Editable, Saveable {
     }
 
     public void setGameObject(GameObject gameObject) {
-        collisionAreaEditableObjectList = Arrays.stream(gameObject.getCollisionAreas()).map(r -> {
-            return new CollisionAreaEditableObject(r);
-        }).collect(Collectors.toList());
         this.gameObject = gameObject;
+        refreshFromGameObject();
     }
 
     public void addCollisionArea(CollisionAreaEditableObject collisionAreaEditableObject) {
@@ -142,5 +126,12 @@ public class RootObject implements Editable, Saveable {
                 ", gameObject=" + gameObject +
                 ", collisionAreaEditableObjectList=" + collisionAreaEditableObjectList +
                 '}';
+    }
+
+
+    private void refreshFromGameObject() {
+        collisionAreaEditableObjectList = Arrays.stream(gameObject.getCollisionAreas()).map(r -> {
+            return new CollisionAreaEditableObject(r);
+        }).collect(Collectors.toList());
     }
 }
