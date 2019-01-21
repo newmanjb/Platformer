@@ -8,7 +8,9 @@ import com.noomtech.jsw.game.gameobjects.GameObject;
 
 import java.awt.*;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -25,6 +27,10 @@ public class RootObject implements Editable, Saveable {
     public RootObject(GameObject gameObject, long id) {
         this.id = id;
         setGameObject(gameObject);
+    }
+
+    private RootObject(long id) {
+        this.id = id;
     }
 
 
@@ -111,6 +117,31 @@ public class RootObject implements Editable, Saveable {
 
     public String getCollectionName() {
         return COLLECTION_NAME;
+    }
+
+    @Override
+    public boolean supportsCopy() {
+        return true;
+    }
+
+    @Override
+    public Object copy() throws Exception {
+
+        RootObject copy = new RootObject(System.currentTimeMillis());
+        copy.setBeingMoved(false);
+        copy.setSelected(false);
+        Class gameObjectClass = gameObject.getClass();
+        GameObject newGameObject = (GameObject) Class.forName(gameObjectClass.getName()).getConstructor(Rectangle.class, Map.class).newInstance(
+                new Rectangle(gameObject.getImageArea()), new HashMap(gameObject.getAttributes()));
+        Rectangle[] newCollisionAreas = new Rectangle[gameObject.getCollisionAreas().length];
+        for(int i = 0 ; i < gameObject.getCollisionAreas().length; i++) {
+            newCollisionAreas[i] = new Rectangle(gameObject.getCollisionAreas()[i]);
+        }
+
+        newGameObject.setCollisionAreas(newCollisionAreas);
+        copy.setGameObject(newGameObject);
+
+        return copy;
     }
 
     public boolean equals(Object other) {

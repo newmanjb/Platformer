@@ -69,4 +69,17 @@ public class DrawingPanel extends JPanel {
         this.beingDrawn = beingDrawn;
         repaint();
     }
+
+    public boolean intersectsWithAnyRootObjects(Rectangle rectangle) {
+        for(RootObject rootObject : rootObjects) {
+            if(rectangle.intersects(rootObject.getArea())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Dimension getScreenSize() {
+        return getSize();
+    }
 }

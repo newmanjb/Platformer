@@ -44,6 +44,16 @@ public class CollisionAreaEditableObject implements Editable {
     public void setSelected(boolean isSelected) { this.isSelected = isSelected; }
 
     @Override
+    public boolean supportsCopy() {
+        return false;
+    }
+
+    @Override
+    public Object copy() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void doPainting(Graphics g, DrawingSettings drawingSettings) {
         if(drawingSettings.getDrawCollisionAreas()) {
             g.setColor(Color.BLACK);

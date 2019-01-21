@@ -17,10 +17,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -35,6 +33,9 @@ public class MouseMovementHandler extends MouseAdapter {
     private CollisionAreaEditableObject collisionAreaPressedOn;
     private int buttonPressed;
     private Mode currentMode = Mode.NORMAL;
+    //If something has been copied it is held here ready to be pasted
+    private RootObject copied;
+
     private enum Mode {
         NORMAL,
         COLLISION_AREA;
@@ -213,14 +214,99 @@ public class MouseMovementHandler extends MouseAdapter {
     private class EditorObjectMenuPopup implements ReleaseAction {
         @Override
         public void released(Editable pressedOn, int buttonPressed, Point pressedAt, MouseEvent e) {
-            Editable releasedOn = getRootObjectForPoint(e.getPoint());
-            if(releasedOn == pressedOn) {
-                JMenuItem jMenuItem = new JMenuItem();
-                jMenuItem.addActionListener(new DeleteAction(pressedOn));
-                jMenuItem.setText("Delete");
+            RootObject releasedOn = getRootObjectForPoint(e.getPoint());
+            if (releasedOn == pressedOn) {
+                List<JMenuItem> itemList = new ArrayList<>();
+                JMenuItem deleteMenuItem = new JMenuItem();
+                deleteMenuItem.addActionListener(new DeleteAction(pressedOn));
+                deleteMenuItem.setText("Delete");
+                itemList.add(deleteMenuItem);
+
+                if(pressedOn.supportsCopy()) {
+                    JMenuItem copyMenuItem = new JMenuItem();
+                    copyMenuItem.addActionListener(new CopyAction((RootObject) pressedOn));
+                    copyMenuItem.setText("Copy");
+                    itemList.add(copyMenuItem);
+                }
+
                 JPopupMenu popupMenu = new JPopupMenu();
-                popupMenu.add(jMenuItem);
+                for (JMenuItem jMenuItem : itemList) {
+                    popupMenu.add(jMenuItem);
+                }
                 popupMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
+        }
+    }
+
+    private class CopyAction implements Action {
+        private RootObject pressedOn;
+        private CopyAction(RootObject pressedOn) {
+            this.pressedOn = pressedOn;
+        }
+        @Override
+        public Object getValue(String key) {
+            return null;
+        }
+        @Override
+        public void putValue(String key, Object value) {
+        }
+        @Override
+        public void setEnabled(boolean b) {
+        }
+        @Override
+        public boolean isEnabled() {
+            return true;
+        }
+        @Override
+        public void addPropertyChangeListener(PropertyChangeListener listener) {
+        }
+        @Override
+        public void removePropertyChangeListener(PropertyChangeListener listener) {
+        }
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            copied = pressedOn;
+        }
+    }
+
+
+    private class PasteAction implements Action {
+        private Point pastedAt;
+
+        public PasteAction(Point pastedAt) {
+            this.pastedAt = pastedAt;
+        }
+
+        @Override
+        public Object getValue(String key) {
+            return null;
+        }
+        @Override
+        public void putValue(String key, Object value) {
+        }
+        @Override
+        public void setEnabled(boolean b) {
+        }
+        @Override
+        public boolean isEnabled() {
+            return true;
+        }
+        @Override
+        public void addPropertyChangeListener(PropertyChangeListener listener) {
+        }
+        @Override
+        public void removePropertyChangeListener(PropertyChangeListener listener) {
+        }
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                RootObject copy = (RootObject) copied.copy();
+                copy.setLocation(new Rectangle(pastedAt.x, pastedAt.y, copy.getArea().width, copy.getArea().height));
+                MODEL.add(copy);
+                record_rootObjectAdded(copy);
+            }
+            catch(Exception ex) {
+                System.out.println("Problem copying object:  " + ex);
             }
         }
     }
@@ -243,14 +329,43 @@ public class MouseMovementHandler extends MouseAdapter {
     private class MainMenuPopup implements ReleaseAction {
         @Override
         public void released(Editable pressedOn, int buttonPressed, Point pressedAt, MouseEvent e) {
-            JMenuItem jMenuItem = new JMenuItem();
-            jMenuItem.addActionListener(new ChangeModeAction());
-            jMenuItem.setText(currentMode == Mode.NORMAL ? "Collision Area Mode" : "Normal Mode");
+            List<JMenuItem> itemList = new ArrayList<>();
+            JMenuItem modeItem = new JMenuItem();
+            modeItem.addActionListener(new ChangeModeAction());
+            modeItem.setText(currentMode == Mode.NORMAL ? "Collision Area Mode" : "Normal Mode");
+            itemList.add(modeItem);
+            //Only add the paste action if its appropiate
+            if(canPaste(pressedAt)) {
+                JMenuItem pasteMenuItem = new JMenuItem();
+                pasteMenuItem.addActionListener(new PasteAction(pressedAt));
+                pasteMenuItem.setText("Paste");
+                itemList.add(pasteMenuItem);
+            }
+
             JPopupMenu popupMenu = new JPopupMenu();
-            popupMenu.add(jMenuItem);
+            for(JMenuItem jMenuItem : itemList) {
+                popupMenu.add(jMenuItem);
+            }
+
             popupMenu.show(e.getComponent(), e.getX(), e.getY());
         }
+
+        private boolean canPaste(Point at) {
+            if(copied != null && currentMode == Mode.NORMAL) {
+                Rectangle potentialPasteArea = new Rectangle(copied.getArea());
+                potentialPasteArea.setLocation(at);
+                Dimension screenSize = VIEW.getScreenSize();
+                //Make sure that when it's pasted it doesn't clash with anything else
+                if(!(potentialPasteArea.x + potentialPasteArea.width >= screenSize.width ||
+                        potentialPasteArea.y + potentialPasteArea.height >= screenSize.height)) {
+                    return !VIEW.intersectsWithAnyRootObjects(potentialPasteArea);
+                }
+            }
+            return false;
+        }
     }
+
+
 
     private class AttributesPopup extends JDialog {
         AttributesPopup(final RootObject rootObject) {

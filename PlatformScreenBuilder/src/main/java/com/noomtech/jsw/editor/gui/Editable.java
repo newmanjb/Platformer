@@ -26,4 +26,14 @@ public interface Editable {
     int hashCode();
 
     boolean equals(Object other);
+
+    /**
+     * @return false if this object cannot be copied
+     */
+    boolean supportsCopy();
+
+    /**
+     * @return A deep-copy of this object
+     */
+    Object copy() throws Exception;
 }
