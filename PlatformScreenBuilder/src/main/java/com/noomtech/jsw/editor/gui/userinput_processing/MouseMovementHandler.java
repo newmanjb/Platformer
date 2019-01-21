@@ -273,9 +273,12 @@ public class MouseMovementHandler extends MouseAdapter {
                 //using reflection when it's loaded
                 String theClass = CommonUtils.SELECTABLE_GAME_OBJECT_PACKAGE + "." + classBox.getSelectedItem();
                 GameObject newGameObject;
+                GameObject oldGameObject = rootObject.getGameObject();
                 try {
                     newGameObject = (GameObject)Class.forName(theClass).getConstructor(Rectangle.class, Map.class).newInstance(
                             rootObject.getArea(), attributes);
+                    newGameObject.setCollisionAreas(oldGameObject.getCollisionAreas());
+                    newGameObject.setLocation(oldGameObject.getX(), oldGameObject.getY());
                 }
                 catch(Exception c) {
                     throw new IllegalArgumentException("Couldn't create game object", c);
