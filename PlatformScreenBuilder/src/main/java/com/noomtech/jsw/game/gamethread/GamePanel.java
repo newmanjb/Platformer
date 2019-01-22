@@ -51,8 +51,8 @@ public class GamePanel extends JPanel {
     //The speed of the movements is scaled based on the existing screen size in relation to a 1920 x 1080 size e.g.
     //if this was being run on a much smaller screen of half the resolution (960 x 540) then these delays would have to
     //be twice as long as the distance for the player to walk across the screen for example would be half as much.
-    private final int LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(BigDecimal.TEN);
-    private final int JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(BigDecimal.TEN);
+    private final int LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(new BigDecimal("8"));
+    private final int JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(new BigDecimal("8"));
     private final int FALL_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenHeightValue(new BigDecimal("50"));
     private final int NASTY_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenHeightValue(BigDecimal.TEN);
 
@@ -623,12 +623,15 @@ public class GamePanel extends JPanel {
             super(Executors.newSingleThreadExecutor(), JUMP_NUM_PIXELS_PER_MOVEMENT,
                     JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS);
 
+            int playerWidth = GameUtils.getScaledPixelsToScreenWidthValue(new BigDecimal(jsw.getWidth()));
+            int playerHeight = GameUtils.getScaledPixelsToScreenWidthValue(new BigDecimal(jsw.getHeight()));
+
             //Jumping consists of 3 types of movement 1: up and across, 2: across 3: down and across.
             //Each movement is only 1 pixel up/down and/or across but the number of these movements needs to be scaled
             // in relation to the screen size.
-            int numOfMovementsUpAndAcross = GameUtils.getScaledPixelsToScreenWidthValue(new BigDecimal(100));
-            int numOfMovementsAcross = GameUtils.getScaledPixelsToScreenWidthValue(new BigDecimal(100));
-            int numOfMovementsDownAndAcross = GameUtils.getScaledPixelsToScreenWidthValue(new BigDecimal(100));
+            int numOfMovementsUpAndAcross = GameUtils.getScaledPixelsToScreenWidthValue(new BigDecimal(playerHeight));
+            int numOfMovementsAcross = GameUtils.getScaledPixelsToScreenWidthValue(new BigDecimal(playerWidth));
+            int numOfMovementsDownAndAcross = GameUtils.getScaledPixelsToScreenWidthValue(new BigDecimal(playerHeight));
             List<int[]> trajectoryRightList = new ArrayList(numOfMovementsUpAndAcross + numOfMovementsAcross + numOfMovementsDownAndAcross);
             for(int i = 0 ; i < numOfMovementsUpAndAcross ; i++) {
                 trajectoryRightList.add(new int[]{1,-1});

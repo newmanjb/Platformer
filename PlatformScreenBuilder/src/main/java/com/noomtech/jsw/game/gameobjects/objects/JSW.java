@@ -17,7 +17,7 @@ public class JSW extends MovingGameObject {
     private int numPixelsMovedLeft;
     private int numPixelsMovedRight;
     //This is the num pixels that the player can move before the next frame is displayed
-    private static int pixelsPerFrameChange = 20;
+    private static int pixelsPerFrameChange = 12;
     //The frames for moving left
     private AnimationFrame[] leftFrames;
     //The frames for moving right
