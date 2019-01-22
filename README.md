@@ -1,5 +1,3 @@
 # Platformer
-
-21/01/19 -  
-1: todos in the code (which are for smaller issues) 
-2: change the jump pattern, as it's a bit too long at the moment
+1: jump is too long and slow - change the pattern
+2: todos in the code (for smaller issues) 
