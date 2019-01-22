@@ -92,7 +92,7 @@ public class JSW extends MovingGameObject {
     }
 
     public void setToStartingState() {
-        getImageArea().setLocation(startingLocation);
+        setLocation(startingLocation.x, startingLocation.y);
         currentFrameList = rightFrames;
         currentFrameIdx = 0;;
         numPixelsMovedRight = 0;
