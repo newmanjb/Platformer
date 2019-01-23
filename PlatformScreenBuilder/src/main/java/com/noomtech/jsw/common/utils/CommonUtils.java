@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CommonUtils {
 
@@ -31,6 +32,7 @@ public class CommonUtils {
             File.separator;
     private static final String STATIC_OBJECT_IMAGES_FOLDER = CommonUtils.class.getClassLoader().getResource(
             "imagesForStaticObjects").getFile() + File.separator;
+    private static final String IMAGE_FILE_PREFIX = "___";
 
     public static volatile boolean gameIsRunning;
 
@@ -79,8 +81,9 @@ public class CommonUtils {
 
     /**
      * Searches the {@link #ANIMATION_FRAMES_FOLDER} directory, which should be on the classpath, for the images files
-     * corresponding to the given animation categories for the given animation directory.
-     * @param animationDirectoryName The root directory for the game object's images.  This should be directly under
+     * corresponding to the given animation categories for the given animation directory.  Only files who's names start with
+     * {@link #IMAGE_FILE_PREFIX} will be returned in the map.  All others will be ignored.
+      * @param animationDirectoryName The root directory for the game object's images.  This should be directly under
      *                               the {@link CommonUtils#ANIMATION_FRAMES_FOLDER}
      * @param animationCategories The names of the animation categories that the files are being collected for.  Each animation
      *                            category name must correspond to a directory under the animation directory name that is provided
@@ -106,17 +109,7 @@ public class CommonUtils {
         Map<String, File[]> animCategoryToFileList = new HashMap<>(categoryDirectories.length);
         String animCategoriesDirPath = f.getPath();
         for(String animCategory : animationCategories) {
-            File animCategoryDir = new File(animCategoriesDirPath + File.separator + animCategory);
-            if(!animCategoryDir.exists() || !animCategoryDir.isDirectory()) {
-                throw new IllegalArgumentException("Invalid file: " + animCategoryDir.getPath());
-            }
-
-            File[] animFrameFiles = animCategoryDir.listFiles();
-            if(animFrameFiles.length == 0) {
-                throw new IllegalArgumentException("No anim frames in " + animCategoryDir.getPath());
-            }
-
-            Arrays.sort(animFrameFiles, (a, b) -> {return a.getName().compareTo(b.getName());});
+            File[] animFrameFiles = getImagesFromAbsolutePath(animCategoriesDirPath + File.separator + animCategory);
             animCategoryToFileList.put(animCategory, animFrameFiles);
         }
 
@@ -125,22 +118,47 @@ public class CommonUtils {
 
     /**
      * Returns the files under {@link #STATIC_OBJECT_IMAGES_FOLDER}  + {@link File#separator} +
-     * directory name provided.
+     * directory name provided.  The file names must be prefixed with {@link #IMAGE_FILE_PREFIX}.  Any that are not
+     * are ignored.
      * The {@link #STATIC_OBJECT_IMAGES_FOLDER} should be on the classpath.
      */
-    public static File[] getImage(String directoryName) {
-        File directoryFile = new File(STATIC_OBJECT_IMAGES_FOLDER + directoryName);
+    public static File[] getImagesForStaticObjects(String directoryName) {
+        return getImagesFromAbsolutePath(STATIC_OBJECT_IMAGES_FOLDER + directoryName);
+    }
+
+    private static File[] getImagesFromAbsolutePath(String absolutePath) {
+        File directoryFile = new File(absolutePath);
         if(!directoryFile.exists() || !directoryFile.isDirectory()) {
             throw new IllegalArgumentException(directoryFile.getPath() + " is invalid");
         }
 
-        File[] files = directoryFile.listFiles();
-        if(files.length == 0) {
-            throw new IllegalArgumentException("No files in " + directoryFile.getPath());
+        File[] filteredFiles = Arrays.stream(directoryFile.listFiles()).filter(file -> {return file.getName().startsWith("___");}).collect(Collectors.toList()).toArray(new File[]{});
+        if(filteredFiles.length == 0) {
+            throw new IllegalArgumentException("No files starting with '" + IMAGE_FILE_PREFIX + "' in " + directoryFile.getPath());
         }
-        if(files.length > 1) {
-            Arrays.sort(files, (a,b)->{return a.getName().compareTo(b.getName());});
+        Arrays.sort(filteredFiles, (a,b)->{return a.getName().compareTo(b.getName());});
+
+        return filteredFiles;
+
+    }
+
+    /**
+     * Add the new image files to the given image directory.  The old files starting with {@link #IMAGE_FILE_PREFIX} will have the
+     * prefix replaced in their names, and the new files will have the prefix added to their names.
+     * @param destDirectory
+     * @param newFiles
+     */
+    public static void addNewFilesToImageDir(File destDirectory, File[] newFiles) {
+        List<File> filteredFilesList = Arrays.stream(destDirectory.listFiles()).filter(file -> {return file.getName().startsWith("___");}).collect(Collectors.toList());
+
+        if(filteredFilesList.size() > 0) {
+            for(File f : filteredFilesList) {
+                f.renameTo(new File(f.getParent() + File.separator + f.getName().replace(IMAGE_FILE_PREFIX, "")));
+            }
         }
-        return files;
+
+        for(File f : newFiles) {
+            f.renameTo(new File(destDirectory.getPath() + File.separator + IMAGE_FILE_PREFIX + f.getName()));
+        }
     }
 }

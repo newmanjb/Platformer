@@ -27,7 +27,7 @@ public abstract class NonMovingObject extends GameObject {
 
         //Load the image
         String directoryName = getImageDirectory();
-        File[] files = CommonUtils.getImage(directoryName);
+        File[] files = CommonUtils.getImagesForStaticObjects(directoryName);
         File imageFile = files[0];
 
         try {
