@@ -37,10 +37,13 @@ public abstract class GameObject {
 
         //Default the collision areas to just be the entire area of the game object's image
         this.collisionAreas = new Rectangle[]{imageArea};
+        onImageUpdated();
     }
 
 
     protected abstract void paintObject(Graphics g);
+
+    public abstract void onImageUpdated();
 
     public final void doPainting(Graphics g) {
         paintObject(g);

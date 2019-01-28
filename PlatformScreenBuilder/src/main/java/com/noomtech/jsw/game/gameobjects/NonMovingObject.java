@@ -15,7 +15,7 @@ import java.util.Map;
 public abstract class NonMovingObject extends GameObject {
 
 
-    protected final BufferedImage image;
+    protected BufferedImage image;
 
 
     /**
@@ -24,7 +24,10 @@ public abstract class NonMovingObject extends GameObject {
      */
     protected NonMovingObject(Rectangle r, Map<String,String> attributes) {
         super(r, attributes);
+    }
 
+    @Override
+    public void onImageUpdated() {
         //Load the image
         String directoryName = getImageDirectory();
         File[] files = CommonUtils.getImagesForStaticObjects(directoryName);
@@ -39,7 +42,7 @@ public abstract class NonMovingObject extends GameObject {
     }
 
     /**
-     * @return The name of the directory under {@link CommonUtils#STATIC_OBJECT_IMAGES_FOLDER} in which
+     * @return The name of the directory under {@link CommonUtils#STATIC_OBJECT_IMAGES_FOLDER_FILE} in which
      * the image file for this object resides.
      * @see CommonUtils#getAnimationImages(String, String[])
      */

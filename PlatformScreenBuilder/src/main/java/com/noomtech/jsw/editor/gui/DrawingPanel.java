@@ -11,6 +11,8 @@ import java.util.List;
 /**
  * Responsible for the painting.  This is the "view" in the MVC pattern used in the editor.
  * The {@link MouseMovementHandler} is the controller.  The collection of root objects is the data.
+ * @todo - updating the image for the game objects in the editor is permanent i.e. doesn't make a difference if you
+ * quit without saving
  */
 public class DrawingPanel extends JPanel {
 
@@ -77,6 +79,15 @@ public class DrawingPanel extends JPanel {
             }
         }
         return false;
+    }
+
+    public void onImageForRootObjectUpdated() {
+        //@todo - doing ALL root objects here.  If this ever gets slow then we'll need to add a mechanism which
+        //only does the root objects whos images have been updated.
+        for(RootObject rootObject : rootObjects) {
+            rootObject.onImageUpdated();
+        }
+        repaint();
     }
 
     public Dimension getScreenSize() {

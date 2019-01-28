@@ -7,14 +7,22 @@ import java.awt.Toolkit;
 import java.awt.Rectangle;
 import java.awt.Point;
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class CommonUtils {
 
+
+    //Paths related to the config directory
+    private static final String CONFIG_FOLDER_PATH = System.getProperty("config");
+    private static final File CONFIG_FOLDER_FILE = new File(CONFIG_FOLDER_PATH);
 
     public static final String SELECTABLE_GAME_OBJECT_PACKAGE = JSW.class.getPackage().getName();
     public static final String SELECTABLE_GAME_OBJECT_DIRECTORY = SELECTABLE_GAME_OBJECT_PACKAGE.replace(".", File.separator);
@@ -28,11 +36,16 @@ public class CommonUtils {
     private static final MathContext MC_CONVERT_TO_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
     private static final MathContext MC_CONVERT_FROM_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
 
-    private static final String ANIMATION_FRAMES_FOLDER = CommonUtils.class.getClassLoader().getResource("animationFrames").getFile() +
-            File.separator;
-    private static final String STATIC_OBJECT_IMAGES_FOLDER = CommonUtils.class.getClassLoader().getResource(
-            "imagesForStaticObjects").getFile() + File.separator;
+    //Each image file that is used must start with this prefix otherwise it will be ignored
     private static final String IMAGE_FILE_PREFIX = "___";
+
+    //The image directories.  These will all be in the config.
+
+    public static final File ANIMATION_FRAMES_FOLDER_FILE = new File(CONFIG_FOLDER_PATH + File.separator + "animationFrames");
+    private static final String ANIMATION_FRAMES_FOLDER_STRING = ANIMATION_FRAMES_FOLDER_FILE.getAbsolutePath() +
+            File.separator;
+    public static final File STATIC_OBJECT_IMAGES_FOLDER_FILE = new File(CONFIG_FOLDER_PATH + File.separator + "imagesForStaticObjects");
+    private static final String STATIC_OBJECT_IMAGES_FOLDER_STRING = STATIC_OBJECT_IMAGES_FOLDER_FILE.getAbsolutePath() + File.separator;
 
     public static volatile boolean gameIsRunning;
 
@@ -80,11 +93,11 @@ public class CommonUtils {
     }
 
     /**
-     * Searches the {@link #ANIMATION_FRAMES_FOLDER} directory, which should be on the classpath, for the images files
+     * Searches the {@link #ANIMATION_FRAMES_FOLDER_STRING} directory for the images files
      * corresponding to the given animation categories for the given animation directory.  Only files who's names start with
      * {@link #IMAGE_FILE_PREFIX} will be returned in the map.  All others will be ignored.
       * @param animationDirectoryName The root directory for the game object's images.  This should be directly under
-     *                               the {@link CommonUtils#ANIMATION_FRAMES_FOLDER}
+     *                               the {@link CommonUtils#ANIMATION_FRAMES_FOLDER_STRING}
      * @param animationCategories The names of the animation categories that the files are being collected for.  Each animation
      *                            category name must correspond to a directory under the animation directory name that is provided
      *                            for the first parameter.
@@ -96,7 +109,7 @@ public class CommonUtils {
      *         and image_3.jpg is the last.
      */
     public static Map<String,File[]> getAnimationImages(String animationDirectoryName, String[] animationCategories) {
-        File f = new File(ANIMATION_FRAMES_FOLDER + animationDirectoryName);
+        File f = new File(ANIMATION_FRAMES_FOLDER_STRING + animationDirectoryName);
         if(!f.exists() || !f.isDirectory()) {
             throw new IllegalArgumentException("Invalid file for " + f.getPath());
         }
@@ -117,13 +130,12 @@ public class CommonUtils {
     }
 
     /**
-     * Returns the files under {@link #STATIC_OBJECT_IMAGES_FOLDER}  + {@link File#separator} +
+     * Returns the files under {@link #STATIC_OBJECT_IMAGES_FOLDER_STRING}  + {@link File#separator} +
      * directory name provided.  The file names must be prefixed with {@link #IMAGE_FILE_PREFIX}.  Any that are not
      * are ignored.
-     * The {@link #STATIC_OBJECT_IMAGES_FOLDER} should be on the classpath.
      */
     public static File[] getImagesForStaticObjects(String directoryName) {
-        return getImagesFromAbsolutePath(STATIC_OBJECT_IMAGES_FOLDER + directoryName);
+        return getImagesFromAbsolutePath(STATIC_OBJECT_IMAGES_FOLDER_STRING + directoryName);
     }
 
     private static File[] getImagesFromAbsolutePath(String absolutePath) {
@@ -143,22 +155,39 @@ public class CommonUtils {
     }
 
     /**
-     * Add the new image files to the given image directory.  The old files starting with {@link #IMAGE_FILE_PREFIX} will have the
-     * prefix replaced in their names, and the new files will have the prefix added to their names.
-     * @param destDirectory
+     * Add the new image files to the given image directory.  Any existing files in the directory will be deleted
+     * and the new files will have the {@link #IMAGE_FILE_PREFIX} added to the start of their names.
+     * @param chosenDestDir
      * @param newFiles
      */
-    public static void addNewFilesToImageDir(File destDirectory, File[] newFiles) {
-        List<File> filteredFilesList = Arrays.stream(destDirectory.listFiles()).filter(file -> {return file.getName().startsWith("___");}).collect(Collectors.toList());
+    public static void changeFilesInImageDir(File chosenDestDir, File ... newFiles) throws IOException  {
 
-        if(filteredFilesList.size() > 0) {
-            for(File f : filteredFilesList) {
-                f.renameTo(new File(f.getParent() + File.separator + f.getName().replace(IMAGE_FILE_PREFIX, "")));
-            }
+        //Get the directory relative to the config directory
+        File parent = chosenDestDir.getParentFile();
+        StringBuilder sb = new StringBuilder(File.separator + chosenDestDir.getName());
+        while(parent != null && !parent.equals(CONFIG_FOLDER_FILE)) {
+            sb.insert(0, File.separator + parent.getName());
+            parent = parent.getParentFile();
+        }
+        if(parent == null) {
+            throw new IllegalArgumentException();
         }
 
-        for(File f : newFiles) {
-            f.renameTo(new File(destDirectory.getPath() + File.separator + IMAGE_FILE_PREFIX + f.getName()));
+        File relativeDestDirectory = new File(sb.toString());
+
+        File absoluteDestDirectory = new File(CONFIG_FOLDER_PATH + File.separator + relativeDestDirectory);
+        if(!absoluteDestDirectory.exists() || !absoluteDestDirectory.isDirectory()) {
+            throw new IllegalArgumentException();
+        }
+
+        File[] filesToDelete = absoluteDestDirectory.listFiles();
+        for(File toDelete : filesToDelete) {
+            Files.delete(Paths.get(toDelete.toURI()));
+        }
+
+        for(File newFile : newFiles) {
+            Files.copy(Paths.get(newFile.toURI()), Paths.get( absoluteDestDirectory.getAbsolutePath() +
+                    File.separator + IMAGE_FILE_PREFIX + newFile.getName()));
         }
     }
 }

@@ -60,4 +60,9 @@ public class CollisionAreaEditableObject implements Editable {
             g.drawRect(collisionArea.x, collisionArea.y, collisionArea.width, collisionArea.height);
         }
     }
+
+    @Override
+    public void onImageUpdated() {
+        throw new UnsupportedOperationException();
+    }
 }

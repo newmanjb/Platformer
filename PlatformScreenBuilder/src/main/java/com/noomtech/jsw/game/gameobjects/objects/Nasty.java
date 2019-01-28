@@ -34,8 +34,13 @@ public class Nasty extends MovingGameObject implements Lethal {
 
     public Nasty(Rectangle area, Map<String,String> attributes) {
         super(area, attributes);
-        animationFrames = animationFramesMap.get(ANIM_CATEGORY_MOVE);
         setToStartingState();
+    }
+
+    @Override
+    public void onImageUpdated() {
+        super.onImageUpdated();
+        animationFrames = animationFramesMap.get(ANIM_CATEGORY_MOVE);
     }
 
     @Override

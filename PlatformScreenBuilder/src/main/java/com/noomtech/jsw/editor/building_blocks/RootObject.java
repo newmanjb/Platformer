@@ -144,6 +144,10 @@ public class RootObject implements Editable, Saveable {
         return copy;
     }
 
+    public void onImageUpdated() {
+        gameObject.onImageUpdated();
+    }
+
     public boolean equals(Object other) {
         return other instanceof RootObject && ((RootObject)other).getId() == getId();
     }

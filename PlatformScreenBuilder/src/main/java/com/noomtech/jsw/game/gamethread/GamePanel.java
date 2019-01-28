@@ -21,14 +21,7 @@ import java.util.function.Consumer;
 
 
 /**
- * This panel class is responsible for the painting and also acts as the controller.
- *
- * The game itself is a simple Manic Miner/Jet Set Willy style game i.e. with controls of "left", "right" and "jump" in a screen full of
- * platforms.
- *
- * There is quite a lot of code around obtaining a high level of precision on the controls, as this is important in a platform game.
- *
- * @author Joshua Newman
+ * This panel class is responsible for the painting and also acts as the controller
  */
 public class GamePanel extends JPanel {
 

@@ -27,6 +27,9 @@ public interface Editable {
 
     boolean equals(Object other);
 
+    //Should be called after the image for the object has been updated so as the object can rebuild itself
+    void onImageUpdated();
+
     /**
      * @return false if this object cannot be copied
      */

@@ -11,7 +11,7 @@ import java.util.List;
 
 
 /**
- * Holds the {@link GamePanel} and is responsible for loading the configuration that it uses.
+ * Holds the {@link GamePanel} and is responsible for loading the game objects from the database that it uses.
  */
 public class GameFrame extends JFrame {
 
@@ -23,6 +23,11 @@ public class GameFrame extends JFrame {
     //@todo - save the screen size in the editor, don't hardcode it
     public GameFrame() throws Exception {
 
+        //Get the config directory
+        String config = System.getProperty("config");
+        if(config == null || config.equals("")) {
+            throw new IllegalArgumentException("No config specified");
+        }
         databaseAdapter = MongoDBAdapter.getInstance();
         List<GameObject> gameObjects = databaseAdapter.loadGameObjects();
 

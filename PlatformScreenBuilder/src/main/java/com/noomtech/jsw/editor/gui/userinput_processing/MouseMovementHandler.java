@@ -11,11 +11,13 @@ import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.objects.Platform;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -49,6 +51,19 @@ public class MouseMovementHandler extends MouseAdapter {
     private final ReleaseAction mainMenuPopup = new MainMenuPopup();
     private final ReleaseAction addEditable = new AddEditable();
     private final ReleaseAction updateEditable = new UpdateEditable();
+
+    private final JMenuItem STATIC_IMG_UPDATE_MENU_ITEM;
+    {
+        STATIC_IMG_UPDATE_MENU_ITEM = new JMenuItem();
+        STATIC_IMG_UPDATE_MENU_ITEM.setText("Update static image");
+        STATIC_IMG_UPDATE_MENU_ITEM.addActionListener(new SelectStaticImgFileAction());
+    }
+    private final JMenuItem ANIMATION_IMG_UPDATE_MENU_ITEM;
+    {
+        ANIMATION_IMG_UPDATE_MENU_ITEM = new JMenuItem();
+        ANIMATION_IMG_UPDATE_MENU_ITEM.setText("Update animation images");
+        ANIMATION_IMG_UPDATE_MENU_ITEM.addActionListener(new SelectAnimationImgFilesAction());
+    }
 
     private final DrawingPanel VIEW;
     private final List<RootObject> MODEL;
@@ -342,6 +357,9 @@ public class MouseMovementHandler extends MouseAdapter {
                 itemList.add(pasteMenuItem);
             }
 
+            itemList.add(STATIC_IMG_UPDATE_MENU_ITEM);
+            itemList.add(ANIMATION_IMG_UPDATE_MENU_ITEM);
+
             JPopupMenu popupMenu = new JPopupMenu();
             for(JMenuItem jMenuItem : itemList) {
                 popupMenu.add(jMenuItem);
@@ -599,6 +617,107 @@ public class MouseMovementHandler extends MouseAdapter {
             }
             else {
                 throw new UnsupportedOperationException("Unknown mode " + currentMode);
+            }
+        }
+    }
+
+
+    private class SelectStaticImgFileAction extends UpdateImgFileAction {
+        private SelectStaticImgFileAction() {
+            super(CommonUtils.STATIC_OBJECT_IMAGES_FOLDER_FILE, false);
+        }
+    }
+    private class SelectAnimationImgFilesAction extends UpdateImgFileAction {
+        private SelectAnimationImgFilesAction() {
+            super(CommonUtils.ANIMATION_FRAMES_FOLDER_FILE, true);
+        }
+    }
+
+    private class UpdateImgFileAction implements Action {
+
+
+        private File destDir;
+        private boolean allowMultiSelection;
+        private UpdateImgFileAction(File destDir, boolean allowMultiSelection) {
+            this.destDir = destDir;
+            this.allowMultiSelection = allowMultiSelection;
+        }
+        private final Set<String> ACCEPTED_EXTENSIONS = new HashSet();
+        {
+            ACCEPTED_EXTENSIONS.add(".png");
+            ACCEPTED_EXTENSIONS.add(".jpg");
+            ACCEPTED_EXTENSIONS.add(".JPG");
+            ACCEPTED_EXTENSIONS.add(".jpeg");
+            ACCEPTED_EXTENSIONS.add(".JPEG");
+        }
+        private final FileFilter IMAGE_FILE_FILTER = new FileFilter() {
+            public boolean accept(File f) {
+                String fileName = f.getName();
+                int indexOfDot = fileName.indexOf(".");
+                if(indexOfDot > -1) {
+                    String extension = fileName.substring(fileName.lastIndexOf("."), fileName.length());
+                    return ACCEPTED_EXTENSIONS.contains(extension);
+                }
+                return f.isDirectory();
+            }
+            public String getDescription() {
+                return "Image Files";
+            }
+        };
+        private final FileFilter DESTINATION_FILE_FILTER = new FileFilter() {
+            public boolean accept(File f) {
+                return f.isDirectory();
+            }
+            public String getDescription() {
+                return "Image Directories";
+            }
+        };
+
+        public Object getValue(String key) {
+            return null;
+        }
+        public void putValue(String key, Object value) { }
+        public void setEnabled(boolean b) {
+        }
+        @Override
+        public boolean isEnabled() {
+            return true;
+        }
+        @Override
+        public void addPropertyChangeListener(PropertyChangeListener listener) {
+        }
+        @Override
+        public void removePropertyChangeListener(PropertyChangeListener listener) {
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+
+            JFileChooser jFileChooser = new JFileChooser();
+            jFileChooser.setMultiSelectionEnabled(allowMultiSelection);
+            jFileChooser.setDialogTitle("Choose Image File" + (allowMultiSelection ? "s" : ""));
+            jFileChooser.addChoosableFileFilter(IMAGE_FILE_FILTER);
+            jFileChooser.setAcceptAllFileFilterUsed(false);
+
+            if(jFileChooser.showDialog(null, null) == JFileChooser.APPROVE_OPTION) {
+                File[] chosenFiles = allowMultiSelection ? jFileChooser.getSelectedFiles() : new File[]{jFileChooser.getSelectedFile()};
+                JFileChooser destFileChooser = new JFileChooser();
+                destFileChooser.setMultiSelectionEnabled(false);
+                destFileChooser.setCurrentDirectory(destDir);
+                destFileChooser.setDialogTitle("Choose Destination");
+                destFileChooser.setAcceptAllFileFilterUsed(false);
+                destFileChooser.setFileFilter(DESTINATION_FILE_FILTER);
+                destFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                if (destFileChooser.showDialog(null, null) == JFileChooser.APPROVE_OPTION) {
+                    File chosenDestination = destFileChooser.getSelectedFile();
+                    try {
+                        CommonUtils.changeFilesInImageDir(chosenDestination, chosenFiles);
+                        VIEW.onImageForRootObjectUpdated();
+                    }
+                    catch(IOException ex) {
+                        ex.printStackTrace();
+                    }
+                }
             }
         }
     }

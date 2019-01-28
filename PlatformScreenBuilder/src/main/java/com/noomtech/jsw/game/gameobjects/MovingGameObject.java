@@ -32,9 +32,14 @@ public abstract class MovingGameObject extends GameObject {
      */
     public MovingGameObject(Rectangle imageArea, Map<String, String> attributes) {
         super(imageArea, attributes);
+    }
+
+    @Override
+    protected abstract void paintObject(Graphics g);
+
+    @Override
+    public void onImageUpdated() {
         try {
-
-
             String animationDirectory = getAnimationFramesDirectoryName();
             String[] animationCategories = getAnimationFrameCategories();
             //This method obtains the files for each image and they are then converted to images when the map is built below
@@ -55,7 +60,6 @@ public abstract class MovingGameObject extends GameObject {
         } catch (Exception e) {
             throw new IllegalStateException("Could not set attributes", e);
         }
-
     }
 
     /**

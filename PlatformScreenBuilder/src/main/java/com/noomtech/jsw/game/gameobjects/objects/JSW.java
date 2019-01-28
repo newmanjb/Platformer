@@ -37,10 +37,16 @@ public class JSW extends MovingGameObject {
 
     public JSW(Rectangle area, Map<String,String> attributes) {
         super(area, attributes);
+        setToStartingState();
+    }
+
+
+    @Override
+    public void onImageUpdated() {
+        super.onImageUpdated();
         leftFrames = animationFramesMap.get(ANIM_CATEGORY_LEFT);
         rightFrames = animationFramesMap.get(ANIM_CATEGORY_RIGHT);
         currentFrameList = rightFrames;
-        setToStartingState();
     }
 
     @Override
