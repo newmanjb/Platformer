@@ -162,31 +162,13 @@ public class CommonUtils {
      */
     public static void changeFilesInImageDir(File chosenDestDir, File ... newFiles) throws IOException  {
 
-        //Get the directory relative to the config directory
-        File parent = chosenDestDir.getParentFile();
-        StringBuilder sb = new StringBuilder(File.separator + chosenDestDir.getName());
-        while(parent != null && !parent.equals(CONFIG_FOLDER_FILE)) {
-            sb.insert(0, File.separator + parent.getName());
-            parent = parent.getParentFile();
-        }
-        if(parent == null) {
-            throw new IllegalArgumentException();
-        }
-
-        File relativeDestDirectory = new File(sb.toString());
-
-        File absoluteDestDirectory = new File(CONFIG_FOLDER_PATH + File.separator + relativeDestDirectory);
-        if(!absoluteDestDirectory.exists() || !absoluteDestDirectory.isDirectory()) {
-            throw new IllegalArgumentException();
-        }
-
-        File[] filesToDelete = absoluteDestDirectory.listFiles();
+        File[] filesToDelete = chosenDestDir.listFiles();
         for(File toDelete : filesToDelete) {
             Files.delete(Paths.get(toDelete.toURI()));
         }
 
         for(File newFile : newFiles) {
-            Files.copy(Paths.get(newFile.toURI()), Paths.get( absoluteDestDirectory.getAbsolutePath() +
+            Files.copy(Paths.get(newFile.toURI()), Paths.get( chosenDestDir.getAbsolutePath() +
                     File.separator + IMAGE_FILE_PREFIX + newFile.getName()));
         }
     }
