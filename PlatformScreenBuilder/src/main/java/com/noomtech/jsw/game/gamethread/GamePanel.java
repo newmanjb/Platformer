@@ -120,7 +120,7 @@ public class GamePanel extends JPanel {
         staticObjects.addAll(staticLethalObjects);
         staticObjects.addAll(finishingObjects);
 
-        COLLISION_HANDLER = new CollisionHandler(staticObjects, 4000);
+        COLLISION_HANDLER = new CollisionHandler(staticObjects, 4000, jsw);
 
         setFocusable(true);
     }
@@ -195,10 +195,6 @@ public class GamePanel extends JPanel {
     public void paint(Graphics g) {
         super.paint(g);
         painter.accept(g);
-    }
-
-    public Rectangle getPlayerCollisionArea() {
-        return jsw.getImageArea();
     }
 
     //Callback for when the the player has hit a lethal object

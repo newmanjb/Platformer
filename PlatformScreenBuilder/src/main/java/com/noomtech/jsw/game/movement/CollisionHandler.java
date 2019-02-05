@@ -1,10 +1,11 @@
 package com.noomtech.jsw.game.movement;
 
 import com.noomtech.jsw.game.gameobjects.GameObject;
+import com.noomtech.jsw.game.gameobjects.MovingGameObject;
+import com.noomtech.jsw.game.gameobjects.objects.JSW;
 
 import java.awt.*;
 import java.util.List;
-
 
 
 /**
@@ -45,13 +46,16 @@ public class CollisionHandler {
     private final CollisionAreaToGameObject[][] goingUpCaresAbout;
     private final CollisionAreaToGameObject[][] goingDownCaresAbout;
 
+    //The player in the game
+    private final JSW jsw;
+
 
     /**
      * @param staticObjects List of objects in the game that the player can collide with and which do not themselves move e.g.
      *                      platforms, non-moving lethal objects etc..  The order of the list is not important
      * @param screenSize The game window is square so this one number is its size in pixels
      */
-    public CollisionHandler(List<GameObject> staticObjects, int screenSize) {
+    public CollisionHandler(List<GameObject> staticObjects, int screenSize, JSW jsw) {
 
         goingRightCaresAbout = new CollisionAreaToGameObject[screenSize][];
         goingLeftCaresAbout = new CollisionAreaToGameObject[screenSize][];
@@ -72,6 +76,8 @@ public class CollisionHandler {
                 goingDownCaresAbout[p.y] = populateBoundaries(goingDownCaresAbout[p.y], collisionAreaToAdd, g);
             }
         }
+
+        this.jsw = jsw;
     }
 
     private static CollisionAreaToGameObject[] populateBoundaries(CollisionAreaToGameObject[] existing, Rectangle collisionAreaToAdd, GameObject gameObjectToAdd) {
@@ -178,6 +184,11 @@ public class CollisionHandler {
         }
         return null;
     }
+
+    public boolean hasMovingObjectHitJSW(MovingGameObject movingGameObject) {
+        return jsw.getImageArea().intersects(movingGameObject.getImageArea());
+    }
+
 
     private GameObject checkIfAnythingIntersectedWhenMovingAcross(GameObject movingGameObject, Rectangle movingCollisionArea, CollisionAreaToGameObject[] collisionAreaToGameObjects) {
         if(collisionAreaToGameObjects != null) {

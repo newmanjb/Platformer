@@ -1,6 +1,5 @@
 package com.noomtech.jsw.game.movement;
 
-import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.objects.Nasty;
 import com.noomtech.jsw.game.gamethread.GamePanel;
 import com.noomtech.jsw.game.utils.GameUtils;
@@ -10,7 +9,11 @@ import java.util.concurrent.Executors;
 
 
 /**
- * Handles the movements of the nasties.
+ * Handles the movements of all the nasties in one thread:
+ *  1:  Loop through all nasties and move each one once
+ *  2: Sleep for a configured amount of time
+ *  3: Goto 1
+ *
  * @see Nasty
  * @author Joshua Newman
  */
@@ -45,20 +48,12 @@ public class NastiesHandler implements Runnable {
     }
 
     /**
-     * Move the nasty the given number of pixels
+     * Move the nasty
      * @see Nasty
      */
     private void doMove(Nasty nasty) {
-        int moveDirection = nasty.getMoveYDirection();
-        GameObject collidedWith = moveDirection > 0 ? COLLISION_HANDLER.checkIfTouchingAnythingGoingDown(nasty) :
-                COLLISION_HANDLER.checkIfTouchingAnythingGoingUp(nasty);
-        if(collidedWith != null) {
-            nasty.onCollision();
-        }
-        nasty.setLocation(nasty.getX(), nasty.getY() + nasty.getMoveYDirection());
-        nasty.onMove();
-        if(parent.getPlayerCollisionArea().intersects(nasty.getImageArea())) {
-            //The player's hit a nasty!!!!
+        if(nasty.doMove(COLLISION_HANDLER)) {
+            //The player's hit a nasty
             Executors.newSingleThreadExecutor().submit(() -> {parent.processShowstopper(nasty);});
         }
     }

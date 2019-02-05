@@ -1,8 +1,10 @@
 package com.noomtech.jsw.game.gameobjects.objects;
 
+import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.MovingGameObject;
 import com.noomtech.jsw.game.gameobjects.AnimationFrame;
 import com.noomtech.jsw.game.gameobjects.Lethal;
+import com.noomtech.jsw.game.movement.CollisionHandler;
 
 import java.awt.*;
 import java.util.Map;
@@ -36,6 +38,7 @@ public class Nasty extends MovingGameObject implements Lethal {
         super(area, attributes);
         setToStartingState();
     }
+
 
     @Override
     public void onImageUpdated() {
@@ -84,6 +87,26 @@ public class Nasty extends MovingGameObject implements Lethal {
     public String getAnimationFramesDirectoryName() {
         return ANIMATION_FRAMES_DIRECTORY_NAME;
     }
+
+    /**
+     * Move the nasty and return true if the move has resulted in a "show stopper" e.g.
+     * the nasty has hit the player
+     * @see Nasty
+     * @see com.noomtech.jsw.game.movement.NastiesHandler
+     */
+    public boolean doMove(CollisionHandler collisionHandler) {
+        int moveDirection = getMoveYDirection();
+        GameObject collidedWith = moveDirection > 0 ? collisionHandler.checkIfTouchingAnythingGoingDown(this) :
+                collisionHandler.checkIfTouchingAnythingGoingUp(this);
+        if(collidedWith != null) {
+            onCollision();
+        }
+        setLocation(getX(), getY() + getMoveYDirection());
+        onMove();
+
+        return collisionHandler.hasMovingObjectHitJSW(this);
+    }
+
 
     /**
      * Works in the same way as {@link JSW#reactToMove()} except that this only
