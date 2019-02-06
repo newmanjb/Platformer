@@ -15,7 +15,7 @@ public abstract class GameObject {
     /** A rectangle representing the boundaries and location of the object's image.  This is used to define its location **/
     private Rectangle imageArea;
     //The properties of the object
-    private Map<String,String> attributes;
+    protected Map<String,String> attributes;
     //This is where the game object is first located when the game starts
     protected Point startingLocation;
     //-- Reinstate if needed --

@@ -23,8 +23,9 @@ public abstract class XorYMovingGameMovingObject extends MovingGameObject implem
     //Which direction it starts moving in
     private static final String ATTRIBUTE_MOVE_DIRECTION = "movement_direction";
 
-    //The direction along its x_axis that this object is moving.  Default to 1 i.e. right for x-x_axis and down for y-x_axis
-    private volatile int moveDirection;
+    //The direction along its x_axis that this object is moving.  Default to 1 i.e. right for x-x_axis.  Would be -1
+    //for the y axis
+    private volatile boolean move_direction_positive;
     //If this object moves along the x-axis (left and right) or y (up and down).  Defaults to y.
     private boolean x_axis;
     //Num pixels the object can move before the animation frame is updated
@@ -43,11 +44,9 @@ public abstract class XorYMovingGameMovingObject extends MovingGameObject implem
 
     public XorYMovingGameMovingObject(Rectangle area, Map<String,String> attributes) {
         super(area, attributes);
-        x_axis = Boolean.parseBoolean(CommonUtils.getAttribute(attributes, ATTRIBUTE_AXIS_KEY, "false"));
-        moveDirection = Integer.parseInt(CommonUtils.getAttribute(attributes, ATTRIBUTE_MOVE_DIRECTION, "1"));
-
         setToStartingState();
     }
+
 
     @Override
     public String[] getAnimationFrameCategories() {
@@ -66,7 +65,8 @@ public abstract class XorYMovingGameMovingObject extends MovingGameObject implem
 
     public void setToStartingState() {
         setLocation(startingLocation.x, startingLocation.y);
-        moveDirection = 1;
+        x_axis = Boolean.parseBoolean(CommonUtils.getAttribute(attributes, ATTRIBUTE_AXIS_KEY, "false"));
+        move_direction_positive = Boolean.parseBoolean(CommonUtils.getAttribute(attributes, ATTRIBUTE_MOVE_DIRECTION, "true"));
         lastOrdinate = getY();
         amountMovedSinceLastFrameChange = 0;
         currentFrameIdx = 0;
@@ -76,18 +76,18 @@ public abstract class XorYMovingGameMovingObject extends MovingGameObject implem
      * Move the object and return true if the move has hit the player
      */
     public boolean doMove(CollisionHandler collisionHandler) {
-        GameObject collidedWith =  x_axis ? moveDirection > 0 ? collisionHandler.checkIfTouchingAnythingGoingRight(this) :
+        GameObject collidedWith =  x_axis ? move_direction_positive ? collisionHandler.checkIfTouchingAnythingGoingRight(this) :
                 collisionHandler.checkIfTouchingAnythingGoingLeft(this) :
-                moveDirection > 0 ? collisionHandler.checkIfTouchingAnythingGoingDown(this) :
+                move_direction_positive ? collisionHandler.checkIfTouchingAnythingGoingDown(this) :
                 collisionHandler.checkIfTouchingAnythingGoingUp(this);
         if(collidedWith != null) {
             //Reverse the moving direction
-            this.moveDirection = -this.moveDirection;
+            this.move_direction_positive = !move_direction_positive;
             //Reset the animation variables as we will now be moving in a different direction
             lastOrdinate = getCurrentOrdinateOnMovementAxis();
             amountMovedSinceLastFrameChange = 0;
         }
-        setLocation(x_axis ? getX() + moveDirection : getX(), x_axis ? getY() : getY() + moveDirection);
+        setLocation(x_axis ? getX() + (move_direction_positive ? 1 : -1) : getX(), x_axis ? getY() : getY() + (move_direction_positive ? 1 : -1));
 
         //Work out the number of animation frames we need to move on (if any)
         int amountMovedNow = getCurrentOrdinateOnMovementAxis() - lastOrdinate;

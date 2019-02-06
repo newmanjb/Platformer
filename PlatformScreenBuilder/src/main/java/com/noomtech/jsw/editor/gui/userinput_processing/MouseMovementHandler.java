@@ -38,6 +38,8 @@ public class MouseMovementHandler extends MouseAdapter {
     //If something has been copied it is held here ready to be pasted
     private RootObject copied;
 
+    private static final String NEWLINE = System.getProperty("line.separator");
+
     private enum Mode {
         NORMAL,
         COLLISION_AREA;
@@ -396,10 +398,14 @@ public class MouseMovementHandler extends MouseAdapter {
                 String attributeString = textArea.getText();
                 Map<String,String> attributes = new HashMap<>();
                 if(attributeString != null && !attributeString.equals("")) {
-                    String[] keyValPairs = attributeString.split(",");
+                    String[] keyValPairs = attributeString.split("[" + NEWLINE + "]");
                     for(String keyValPair : keyValPairs) {
-                        String[] keyValArray = keyValPair.split("=");
-                        attributes.put(keyValArray[0], keyValArray[1]);
+                        //Check this in case the user has hit return at the end of typing the last property,
+                        //meaning that the above split call has resulted in the last entry being an empty string
+                        if(keyValPair.length() > 0) {
+                            String[] keyValArray = keyValPair.split("=");
+                            attributes.put(keyValArray[0], keyValArray[1]);
+                        }
                     }
                 }
                 //The type of game object is represented as the full name of the underlying class so as it can be instantiated
@@ -430,9 +436,9 @@ public class MouseMovementHandler extends MouseAdapter {
                 if (!attributes.isEmpty()) {
                     StringBuilder sb = new StringBuilder();
                     for (Map.Entry<String, String> entry : attributes.entrySet()) {
-                        sb.append(entry.getKey() + "=" + entry.getValue() + ",");
+                        sb.append(entry.getKey() + "=" + entry.getValue() + NEWLINE);
                     }
-                    textArea.setText(sb.substring(0, sb.length() - 1));
+                    textArea.setText(sb.substring(0, sb.length() - NEWLINE.length()));
                 }
 
                 classBox.setSelectedItem(gameObject.getClass().getSimpleName());
