@@ -47,7 +47,6 @@ public class GamePanel extends JPanel {
     private final int LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(new BigDecimal("8"));
     private final int JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(new BigDecimal("8"));
     private final int FALL_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenHeightValue(new BigDecimal("50"));
-    private final int NASTY_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenHeightValue(BigDecimal.TEN);
 
     //Used for symchronization around the starting and stopping of the game
     private final Object START_STOP_MUTEX = new Object();
@@ -167,7 +166,7 @@ public class GamePanel extends JPanel {
 
     private void startMovementComponents() {
         jSWControlsHandler = new JSWControlsHandler(new LeftMover(), new RightMover(), new JumpMover());
-        nastiesHandler = new NastiesHandler(this, nasties, COLLISION_HANDLER, NASTY_NUM_MILLIS_BETWEEN_MOVEMENTS);
+        nastiesHandler = new NastiesHandler(this, nasties, COLLISION_HANDLER);
         addKeyListener(jSWControlsHandler);
 
         stopNastiesThread = false;

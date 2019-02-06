@@ -10,6 +10,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.UpdateOptions;
 import com.noomtech.jsw.common.utils.CommonUtils;
+import com.noomtech.jsw.common.utils.GlobalConfig;
 import com.noomtech.jsw.editor.building_blocks.RootObject;
 import com.noomtech.jsw.editor.gui.Saveable;
 import com.noomtech.jsw.editor.gui.userinput_processing.MouseMovementHandler;
@@ -36,8 +37,10 @@ public class MongoDBAdapter implements DatabaseAdapter {
     private Map<String,MongoCollection<Document>> collectionMap = new HashMap<>();
 
     private MongoDBAdapter() {
-        MongoClient mongo = new MongoClient( "localhost" , 27017 );
-        database = mongo.getDatabase("jsw");
+        GlobalConfig globalConfig = GlobalConfig.getInstance();
+        MongoClient mongo = new MongoClient( (String)globalConfig.get("db_host"),
+                Integer.parseInt(globalConfig.getProperty("db_port")));
+        database = mongo.getDatabase((String)globalConfig.get("db_name"));
     }
     private static final class InstanceHolder {
         private static final MongoDBAdapter mongoDBAdapter = new MongoDBAdapter();

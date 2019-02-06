@@ -1,9 +1,11 @@
 package com.noomtech.jsw.game.movement;
 
+import com.noomtech.jsw.common.utils.GlobalConfig;
 import com.noomtech.jsw.game.gameobjects.objects.Nasty;
 import com.noomtech.jsw.game.gamethread.GamePanel;
 import com.noomtech.jsw.game.utils.GameUtils;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -27,12 +29,16 @@ public class NastiesHandler implements Runnable {
 
 
     public NastiesHandler(
-            GamePanel parent, List<Nasty> nasties, CollisionHandler collisionHandler, long sleepDurationBetweenMovements) {
+            GamePanel parent, List<Nasty> nasties, CollisionHandler collisionHandler) {
 
         this.parent = parent;
         this.nasties = nasties;
         this.COLLISION_HANDLER = collisionHandler;
-        this.sleepDurationBetweenMovements = sleepDurationBetweenMovements;
+
+        //Derive the sleep value using the num movement cycles per sec
+        long num_movement_cycles_ps = Long.parseLong(GlobalConfig.getInstance().getProperty("num_movement_cycles_ps"));
+        num_movement_cycles_ps = GameUtils.getScaledMsToScreenWidthValue(new BigDecimal(num_movement_cycles_ps));
+        sleepDurationBetweenMovements = 1000L/num_movement_cycles_ps;
     }
 
     public void run() {
