@@ -42,29 +42,28 @@ public class JSW extends MovingGameObject {
 
 
     @Override
-    public void onImageUpdated() {
-        super.onImageUpdated();
+    protected void refreshAfterImageUpdate() {
         leftFrames = animationFramesMap.get(ANIM_CATEGORY_LEFT);
         rightFrames = animationFramesMap.get(ANIM_CATEGORY_RIGHT);
         currentFrameList = rightFrames;
     }
 
     @Override
-    public void paintObject(Graphics graphics) {
+    protected void paintObject(Graphics graphics) {
         currentFrameList[currentFrameIdx].draw(graphics, getImageArea());
     }
 
     @Override
-    public String[] getAnimationFrameCategories() {
+    protected String[] getAnimationFrameCategories() {
         return ALL_ANIMATION_FRAME_CATEGORIES;
     }
 
     @Override
-    public String getAnimationFramesDirectoryName() {
+    protected String getAnimationFramesDirectoryName() {
         return ANIM_FRAMES_DIRECTORY;
     }
 
-    public void reactToMove() {
+    public void onMove() {
         int xdiff = getX() - lastXLocation;
         int numFramesMoved = 0;
         if(xdiff > 0) {

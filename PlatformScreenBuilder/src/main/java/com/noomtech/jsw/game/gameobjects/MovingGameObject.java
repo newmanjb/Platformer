@@ -38,7 +38,7 @@ public abstract class MovingGameObject extends GameObject {
     protected abstract void paintObject(Graphics g);
 
     @Override
-    public void onImageUpdated() {
+    public final void onImageUpdated() {
         try {
             String animationDirectory = getAnimationFramesDirectoryName();
             String[] animationCategories = getAnimationFrameCategories();
@@ -57,24 +57,21 @@ public abstract class MovingGameObject extends GameObject {
                 }
                 animationFramesMap.put(entries.getKey(), animationFrames);
             }
+
+            refreshAfterImageUpdate();
         } catch (Exception e) {
             throw new IllegalStateException("Could not set attributes", e);
         }
     }
 
-    /**
-     * Callback for when the object has moved
-     */
-    public void onMove() {
-        reactToMove();
-    }
+    protected abstract void refreshAfterImageUpdate();
 
     /**
      * @return The animation frame categories for this game object
      * @see #MovingGameObject(Rectangle, Map)
      * @see #getAnimationFramesDirectoryName()
      */
-    public abstract String[] getAnimationFrameCategories();
+    protected abstract String[] getAnimationFrameCategories();
 
     /**
      * @return The name of the root directory that the subdirectories for the animation categories are stored under
@@ -82,17 +79,11 @@ public abstract class MovingGameObject extends GameObject {
      * @see #getAnimationFrameCategories()
      * @see #MovingGameObject(Rectangle, Map)
      */
-    public abstract String getAnimationFramesDirectoryName();
-
-    /**
-     * Subclasses should override in order to process a movement.  They can detect the type of movement by examining
-     * their coordinates in related to their last set of coordinates on the previous move.
-     */
-    protected abstract void reactToMove();
+    protected abstract String getAnimationFramesDirectoryName();
 
     /**
      * Should set this object back the state it was in when it was drawn at the start of the game e.g. it should return
      * to its default location and display its default animation frame.
      */
-    public abstract void setToStartingState();
+    protected abstract void setToStartingState();
 }

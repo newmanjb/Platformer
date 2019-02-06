@@ -172,4 +172,15 @@ public class CommonUtils {
                     File.separator + IMAGE_FILE_PREFIX + newFile.getName()));
         }
     }
+
+    public static String getAttribute(Map<String,String> attributes, String key, String defaultVal) {
+        String existing = attributes.get(key);
+        if(existing == null) {
+            if(defaultVal == null) {
+                throw new IllegalStateException("Could not find attribute under key: " + key);
+            }
+            return defaultVal;
+        }
+        return existing;
+    }
 }

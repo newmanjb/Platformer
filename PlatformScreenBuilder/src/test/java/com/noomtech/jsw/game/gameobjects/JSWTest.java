@@ -28,94 +28,94 @@ public class JSWTest {
         //Walk right
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 0, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.8), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 0, false);
 
         jsw.setLocation(jsw.getX() + (int)(numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 1, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 1, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.8), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 1, false);
 
         jsw.setLocation(jsw.getX() + (int)(numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 2, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 2, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.8), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 2, false);
 
         jsw.setLocation(jsw.getX() + (int)(numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 0, false);
 
         //Walk left
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 0, true);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.8), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 0, true);
 
         jsw.setLocation(jsw.getX() - (int)(numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 1, true);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 1, true);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.8), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 1, true);
 
         jsw.setLocation(jsw.getX() - (int)(numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 2, true);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 2, true);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.8), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 2, true);
 
         jsw.setLocation(jsw.getX() - (int)(numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 0, true);
     }
@@ -135,22 +135,22 @@ public class JSWTest {
         checkVals(jsw, 0, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 0, false);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.1), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 0, true);
 
         jsw.setLocation(jsw.getX() + (int)(numPixelsPerMovement * 0.9), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 0, false);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.9), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 0, true);
     }
@@ -171,23 +171,23 @@ public class JSWTest {
         checkVals(jsw, 0, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 1.5), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 1, false);
 
         jsw.setLocation((int)(jsw.getX() + numPixelsPerMovement * 0.5), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 2, false);
 
         //Walk left
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 1.5), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 0, true);
 
         jsw.setLocation((int)(jsw.getX() - numPixelsPerMovement * 0.5), jsw.getY());
-        jsw.reactToMove();
+        jsw.onMove();
 
         checkVals(jsw, 1, true);
     }
