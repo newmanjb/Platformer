@@ -58,11 +58,6 @@ public class JSW extends MovingGameObject {
         return ALL_ANIMATION_FRAME_CATEGORIES;
     }
 
-    @Override
-    protected String getAnimationFramesDirectoryName() {
-        return ANIM_FRAMES_DIRECTORY;
-    }
-
     public void onMove() {
         int xdiff = getX() - lastXLocation;
         int numFramesMoved = 0;

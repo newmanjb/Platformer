@@ -28,7 +28,7 @@ public abstract class MovingGameObject extends GameObject {
      * ("Left"->{imgL1,imgL2,imgL3} "Right"->{imgR1,imgR2,imgR3}, "Jump"->{imgJ1,imgJ2,imgJ3,imgJ4})
      * @see CommonUtils#getAnimationImages(String, String[], long)
      * @see #getAnimationFrameCategories()
-     * @see #getAnimationFramesDirectoryName()
+     * @see #getImageFolderName()
      */
     public MovingGameObject(Rectangle imageArea, Map<String, String> attributes, long id) {
         super(imageArea, attributes, id);
@@ -40,7 +40,7 @@ public abstract class MovingGameObject extends GameObject {
     @Override
     public final void onImageUpdated() {
         try {
-            String animationDirectory = getAnimationFramesDirectoryName();
+            String animationDirectory = getImageFolderName();
             String[] animationCategories = getAnimationFrameCategories();
             //This method obtains the files for each image and they are then converted to images when the map is built below
             Map<String, File[]> keysToFiles = CommonUtils.getAnimationImages(animationDirectory, animationCategories, getId());
@@ -70,17 +70,10 @@ public abstract class MovingGameObject extends GameObject {
      * @return The animation frame categories for this game object
      * @see CommonUtils#getAnimationImages(String, String[], long)
      * @see #MovingGameObject(Rectangle, Map, long)
-     * @see #getAnimationFramesDirectoryName()
+     * @see GameObject#getImageFolderName()
      */
     protected abstract String[] getAnimationFrameCategories();
 
-    /**
-     * @return The name of the root directory that the subdirectories for the animation categories are stored under
-     * @see CommonUtils#getAnimationImages(String, String[], long)
-     * @see #getAnimationFrameCategories()
-     * @see #MovingGameObject(Rectangle, Map, long)
-     */
-    protected abstract String getAnimationFramesDirectoryName();
 
     /**
      * Should set this object back the state it was in when it was drawn at the start of the game e.g. it should return

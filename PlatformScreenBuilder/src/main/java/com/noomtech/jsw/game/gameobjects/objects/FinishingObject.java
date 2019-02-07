@@ -18,10 +18,6 @@ public class FinishingObject extends NonMovingObject {
         super(area, attributes, id);
     }
 
-    @Override
-    public String getImageDirectory() {
-        return this.getClass().getSimpleName();
-    }
 
     public void paintObject(Graphics g) {
       //  if(!staticObjectsDontNeedToBeDrawnAgain) {

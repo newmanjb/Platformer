@@ -13,17 +13,7 @@ import java.util.Map;
 public class Nasty extends XorYMovingGameMovingObject implements Lethal {
 
 
-
-    private static final String ANIMATION_FRAMES_DIRECTORY_NAME = Nasty.class.getSimpleName();
-
-
     public Nasty(Rectangle area, Map<String,String> attributes, long id) {
         super(area, attributes, id);
-    }
-
-
-    @Override
-    public String getAnimationFramesDirectoryName() {
-        return ANIMATION_FRAMES_DIRECTORY_NAME;
     }
 }

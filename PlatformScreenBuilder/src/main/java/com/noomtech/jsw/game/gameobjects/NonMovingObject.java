@@ -23,14 +23,14 @@ public abstract class NonMovingObject extends GameObject {
     }
 
     /**
-     * Loads the image for this game object using {@link #getImageDirectory()}
+     * Loads the image for this game object using {@link #getImageFolderName()}
      * @see CommonUtils#getImageForStaticObject(String, long)
-     * @see #getImageDirectory()
+     * @see #getImageFolderName()
      */
     @Override
     public void onImageUpdated() {
         //Load the image
-        String directoryName = getImageDirectory();
+        String directoryName = getImageFolderName();
         try {
             image = ImageIO.read(CommonUtils.getImageForStaticObject(directoryName, getId()));
         }
@@ -38,11 +38,4 @@ public abstract class NonMovingObject extends GameObject {
             throw new IllegalStateException("Could not load image", e);
         }
     }
-
-    /**
-     * @return The name of the directory under {@link CommonUtils#STATIC_OBJECT_IMAGES_FOLDER_FILE} in which
-     * the image file for this object resides.
-     * @see CommonUtils#getImageForStaticObject(String, long) (String, String[], long)
-     */
-    public abstract String getImageDirectory();
 }

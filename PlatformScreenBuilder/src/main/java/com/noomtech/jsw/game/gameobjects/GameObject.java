@@ -120,6 +120,12 @@ public abstract class GameObject {
         return imageArea.getLocation();
     }
 
+    /**
+     * @return The name of the root directory that holds this objects images
+     */
+    public final String getImageFolderName() {
+        return getClass().getSimpleName();
+    }
 
     @Override
     public String toString() {

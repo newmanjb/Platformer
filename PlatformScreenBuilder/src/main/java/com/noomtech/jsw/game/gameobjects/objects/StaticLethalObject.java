@@ -18,10 +18,6 @@ public class StaticLethalObject extends NonMovingObject implements Lethal {
         super(area, attributes, id);
     }
 
-    @Override
-    public String getImageDirectory() {
-        return this.getClass().getSimpleName();
-    }
 
     @Override
     public void paintObject(Graphics g) {

@@ -20,11 +20,6 @@ public class Platform extends NonMovingObject {
 
 
     @Override
-    public String getImageDirectory() {
-        return this.getClass().getSimpleName();
-    }
-
-    @Override
     public void paintObject(Graphics g) {
 
         //if(!staticObjectsDontNeedToBeDrawnAgain) {
