@@ -14,8 +14,8 @@ import java.util.Map;
 public class Platform extends NonMovingObject {
 
 
-    public Platform(Rectangle area, Map<String,String> attributes) throws IOException {
-        super(area, attributes);
+    public Platform(Rectangle area, Map<String,String> attributes, long id) throws IOException {
+        super(area, attributes, id);
     }
 
 

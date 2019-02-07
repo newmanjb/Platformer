@@ -35,8 +35,8 @@ public class JSW extends MovingGameObject {
     private static String[] ALL_ANIMATION_FRAME_CATEGORIES = new String[]{ANIM_CATEGORY_LEFT, ANIM_CATEGORY_RIGHT};
 
 
-    public JSW(Rectangle area, Map<String,String> attributes) {
-        super(area, attributes);
+    public JSW(Rectangle area, Map<String,String> attributes, long id) {
+        super(area, attributes, id);
         setToStartingState();
     }
 

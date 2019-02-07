@@ -24,6 +24,8 @@ public class CommonUtils {
     private static final String CONFIG_FOLDER_PATH = System.getProperty("config");
     private static final File CONFIG_FOLDER_FILE = new File(CONFIG_FOLDER_PATH);
 
+    //Should point to a folder where the user puts their images.  For convenience in the GUI.
+    public static final File MY_IMAGES_FOLDER = new File(GlobalConfig.getInstance().getProperty("my_images_folder"));
     public static final String SELECTABLE_GAME_OBJECT_PACKAGE = JSW.class.getPackage().getName();
     public static final String SELECTABLE_GAME_OBJECT_DIRECTORY = SELECTABLE_GAME_OBJECT_PACKAGE.replace(".", File.separator);
     //The list of game objects available for selection in the editor.
@@ -35,9 +37,6 @@ public class CommonUtils {
 
     private static final MathContext MC_CONVERT_TO_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
     private static final MathContext MC_CONVERT_FROM_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
-
-    //Each image file that is used must start with this prefix otherwise it will be ignored
-    private static final String IMAGE_FILE_PREFIX = "___";
 
     //The image directories.  These will all be in the config.
 
@@ -94,13 +93,17 @@ public class CommonUtils {
 
     /**
      * Searches the {@link #ANIMATION_FRAMES_FOLDER_STRING} directory for the images files
-     * corresponding to the given animation categories for the given animation directory.  Only files who's names start with
-     * {@link #IMAGE_FILE_PREFIX} will be returned in the map.  All others will be ignored.
+     * corresponding to the given animation categories for the given animation directory.  There will always be a set of image files
+     * in the directory that function as the default image files for all objects of this particular type.  This can be
+     * overridden this for an individual object using its id.
       * @param animationDirectoryName The root directory for the game object's images.  This should be directly under
      *                               the {@link CommonUtils#ANIMATION_FRAMES_FOLDER_STRING}
      * @param animationCategories The names of the animation categories that the files are being collected for.  Each animation
      *                            category name must correspond to a directory under the animation directory name that is provided
      *                            for the first parameter.
+     * @param id The id of the object that the images correspond to.  If there is a subdirectory with this id as the name within the
+     *           parent directory (the directory that contains the default image files for all objects of that type) then files in this
+     *           directory will be returned instead of the defaults.
      * @return A map containing lists of Files keyed under the name of the animation category directory they were found in e.g.
      *         {"Left"->[FileL1,FileL2],"Right"->[filer1,filer2},"Jump"->[FileJ1,FileJ2,FileJ3]}.  These files must be named such
      *         that, when the names are ordered in DESC order, they correspond to the animation cycle e.g. if the frames for
@@ -108,7 +111,7 @@ public class CommonUtils {
      *         image_1.jpg, image_2.jpg and image_3.jpg respectively, so image_1.jpg is the first frame displayed in the cycle
      *         and image_3.jpg is the last.
      */
-    public static Map<String,File[]> getAnimationImages(String animationDirectoryName, String[] animationCategories) {
+    public static Map<String,File[]> getAnimationImages(String animationDirectoryName, String[] animationCategories, long id) {
         File f = new File(ANIMATION_FRAMES_FOLDER_STRING + animationDirectoryName);
         if(!f.exists() || !f.isDirectory()) {
             throw new IllegalArgumentException("Invalid file for " + f.getPath());
@@ -122,7 +125,8 @@ public class CommonUtils {
         Map<String, File[]> animCategoryToFileList = new HashMap<>(categoryDirectories.length);
         String animCategoriesDirPath = f.getPath();
         for(String animCategory : animationCategories) {
-            File[] animFrameFiles = getImagesFromAbsolutePath(animCategoriesDirPath + File.separator + animCategory);
+            File[] animFrameFiles =
+                    getImagesFromAbsolutePath(animCategoriesDirPath + File.separator + animCategory, id);
             animCategoryToFileList.put(animCategory, animFrameFiles);
         }
 
@@ -130,33 +134,47 @@ public class CommonUtils {
     }
 
     /**
-     * Returns the files under {@link #STATIC_OBJECT_IMAGES_FOLDER_STRING}  + {@link File#separator} +
-     * directory name provided.  The file names must be prefixed with {@link #IMAGE_FILE_PREFIX}.  Any that are not
-     * are ignored.
+     * Returns the image file under {@link #STATIC_OBJECT_IMAGES_FOLDER_STRING}  + {@link File#separator} +
+     * directory name provided.  There will always be an image in this directory which functions as the default for all
+     * objects of this type.  This default can be overridden for individual objects by creating a subdirectory
+     * with that object's id as its name.  If such a subdirectory exists then the image within this directory
+     * will be returned as opposed to the default.
      */
-    public static File[] getImagesForStaticObjects(String directoryName) {
-        return getImagesFromAbsolutePath(STATIC_OBJECT_IMAGES_FOLDER_STRING + directoryName);
+    //@todo - cache the images under the dirname and do a look-up on the cache.  Only go to dirs if lookup fails.
+    // This is if all this starts to get slow because of too many sprites, as many sprites
+    //will have the same image anyway
+    public static File getImageForStaticObject(String directoryName, long id) {
+        File[] files = getImagesFromAbsolutePath(STATIC_OBJECT_IMAGES_FOLDER_STRING + directoryName, id);
+        if(files == null || files.length != 1) {
+            throw new IllegalStateException("Only supposed to find one file");
+        }
+        return files[0];
     }
 
-    private static File[] getImagesFromAbsolutePath(String absolutePath) {
+    private static File[] getImagesFromAbsolutePath(String absolutePath, long id) {
         File directoryFile = new File(absolutePath);
         if(!directoryFile.exists() || !directoryFile.isDirectory()) {
             throw new IllegalArgumentException(directoryFile.getPath() + " is invalid");
         }
 
-        File[] filteredFiles = Arrays.stream(directoryFile.listFiles()).filter(file -> {return file.getName().startsWith("___");}).collect(Collectors.toList()).toArray(new File[]{});
-        if(filteredFiles.length == 0) {
-            throw new IllegalArgumentException("No files starting with '" + IMAGE_FILE_PREFIX + "' in " + directoryFile.getPath());
+        String idString = Long.toString(id);
+        File overrideDir = new File(absolutePath + File.separator + idString);
+        if(overrideDir.exists()) {
+            return overrideDir.listFiles();
         }
-        Arrays.sort(filteredFiles, (a,b)->{return a.getName().compareTo(b.getName());});
+        else {
+            File[] files = directoryFile.listFiles();
+            files = Arrays.stream(files).filter(f -> {return f.isFile();}).sorted((a, b) -> {
+                        return a.getName().compareTo(b.getName());
+                    }
+            ).collect(Collectors.toList()).toArray(new File[0]);
 
-        return filteredFiles;
-
+            return files;
+        }
     }
 
     /**
-     * Add the new image files to the given image directory.  Any existing files in the directory will be deleted
-     * and the new files will have the {@link #IMAGE_FILE_PREFIX} added to the start of their names.
+     * Add the new image files to the given image directory.  Any existing files in the directory will be deleted.
      * @param chosenDestDir
      * @param newFiles
      */
@@ -169,7 +187,7 @@ public class CommonUtils {
 
         for(File newFile : newFiles) {
             Files.copy(Paths.get(newFile.toURI()), Paths.get( chosenDestDir.getAbsolutePath() +
-                    File.separator + IMAGE_FILE_PREFIX + newFile.getName()));
+                    File.separator + newFile.getName()));
         }
     }
 

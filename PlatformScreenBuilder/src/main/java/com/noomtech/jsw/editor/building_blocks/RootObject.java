@@ -19,18 +19,15 @@ public class RootObject implements Editable, Saveable {
 
     private boolean isBeingMoved;
     private boolean isSelected;
-    private long id;
     private GameObject gameObject;
     private List<CollisionAreaEditableObject> collisionAreaEditableObjectList;
     private static final String COLLECTION_NAME = DBConstants.COLLECTION_NAME_GAME_OBJECTS;
 
-    public RootObject(GameObject gameObject, long id) {
-        this.id = id;
+    public RootObject(GameObject gameObject) {
         setGameObject(gameObject);
     }
 
-    private RootObject(long id) {
-        this.id = id;
+    private RootObject() {
     }
 
 
@@ -43,7 +40,7 @@ public class RootObject implements Editable, Saveable {
     }
 
     public long getId() {
-        return id;
+        return gameObject.getId();
     }
 
     public boolean isSelected() {
@@ -112,7 +109,7 @@ public class RootObject implements Editable, Saveable {
     }
 
     public int hashCode() {
-        return (int)id;
+        return (int)gameObject.getId();
     }
 
     public String getCollectionName() {
@@ -127,12 +124,13 @@ public class RootObject implements Editable, Saveable {
     @Override
     public Object copy() throws Exception {
 
-        RootObject copy = new RootObject(System.currentTimeMillis());
+        long newId = System.currentTimeMillis();
+        RootObject copy = new RootObject();
         copy.setBeingMoved(false);
         copy.setSelected(false);
         Class gameObjectClass = gameObject.getClass();
-        GameObject newGameObject = (GameObject) Class.forName(gameObjectClass.getName()).getConstructor(Rectangle.class, Map.class).newInstance(
-                new Rectangle(gameObject.getImageArea()), new HashMap(gameObject.getAttributes()));
+        GameObject newGameObject = (GameObject) Class.forName(gameObjectClass.getName()).getConstructor(Rectangle.class, Map.class, long.class).newInstance(
+                new Rectangle(gameObject.getImageArea()), new HashMap(gameObject.getAttributes()), newId);
         Rectangle[] newCollisionAreas = new Rectangle[gameObject.getCollisionAreas().length];
         for(int i = 0 ; i < gameObject.getCollisionAreas().length; i++) {
             newCollisionAreas[i] = new Rectangle(gameObject.getCollisionAreas()[i]);
@@ -157,7 +155,7 @@ public class RootObject implements Editable, Saveable {
         return "RootObject{" +
                 "isBeingMoved=" + isBeingMoved +
                 ", isSelected=" + isSelected +
-                ", id=" + id +
+                ", id=" + getId() +
                 ", gameObject=" + gameObject +
                 ", collisionAreaEditableObjectList=" + collisionAreaEditableObjectList +
                 '}';

@@ -12,6 +12,8 @@ import java.util.Map;
 public abstract class GameObject {
 
 
+    //Unique id of this game object
+    private long id;
     /** A rectangle representing the boundaries and location of the object's image.  This is used to define its location **/
     private Rectangle imageArea;
     //The properties of the object
@@ -25,7 +27,7 @@ public abstract class GameObject {
     protected Rectangle[] collisionAreas;
 
 
-    public GameObject(Rectangle imageArea, Map<String,String> attributes) {
+    public GameObject(Rectangle imageArea, Map<String,String> attributes, long id) {
         if(attributes == null) {
             throw new IllegalArgumentException("Null attributes not allowed.  Please specify an empty map");
         }
@@ -34,6 +36,7 @@ public abstract class GameObject {
 
         this.attributes = attributes;
         startingLocation = imageArea.getLocation();
+        this.id = id;
 
         //Default the collision areas to just be the entire area of the game object's image
         this.collisionAreas = new Rectangle[]{imageArea};
@@ -52,6 +55,10 @@ public abstract class GameObject {
         //Set to true if the painting is part of the actual game where these types of object won't change.  Otherwise don't
         //e.g. if the painting is part of the editor where these objects can be moved
         //staticObjectsDontNeedToBeDrawnAgain = CommonUtils.gameIsRunning;
+    }
+
+    public final long getId() {
+        return id;
     }
 
     public Rectangle getImageArea() {

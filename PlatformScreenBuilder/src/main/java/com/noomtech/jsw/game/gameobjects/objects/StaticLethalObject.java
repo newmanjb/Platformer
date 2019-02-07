@@ -14,8 +14,8 @@ import java.util.Map;
 public class StaticLethalObject extends NonMovingObject implements Lethal {
 
 
-    public StaticLethalObject(Rectangle area, Map<String,String> attributes) {
-        super(area, attributes);
+    public StaticLethalObject(Rectangle area, Map<String,String> attributes, long id) {
+        super(area, attributes, id);
     }
 
     @Override

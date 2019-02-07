@@ -46,8 +46,8 @@ public abstract class XorYMovingGameMovingObject extends MovingGameObject implem
     private static final String[] ALL_ANIMATION_FRAME_CATEGORIES = new String[]{ANIM_CATEGORY_MOVE};
 
 
-    public XorYMovingGameMovingObject(Rectangle area, Map<String,String> attributes) {
-        super(area, attributes);
+    public XorYMovingGameMovingObject(Rectangle area, Map<String,String> attributes, long id) {
+        super(area, attributes, id);
         setToStartingState();
     }
 

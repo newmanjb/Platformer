@@ -194,13 +194,14 @@ public class MouseMovementHandler extends MouseAdapter {
             if(currentMode == Mode.NORMAL) {
                 GameObject defaultGameObject;
                 RootObject newRootObject;
+                long newID = System.currentTimeMillis();
                 try {
-                    defaultGameObject = new Platform(new Rectangle(VIEW.getBeingDrawn()), Collections.EMPTY_MAP);
+                    defaultGameObject = new Platform(new Rectangle(VIEW.getBeingDrawn()), Collections.EMPTY_MAP, newID);
                 } catch (IOException ex) {
                     throw new IllegalArgumentException("Couldn't load game object's resources" + ex);
                 }
 
-                newRootObject = new RootObject(defaultGameObject, System.currentTimeMillis());
+                newRootObject = new RootObject(defaultGameObject);
                 MODEL.add(newRootObject);
                 record_rootObjectAdded(newRootObject);
             }
@@ -389,7 +390,7 @@ public class MouseMovementHandler extends MouseAdapter {
 
     private class AttributesPopup extends JDialog {
         AttributesPopup(final RootObject rootObject) {
-            super((JFrame)null, "Attributes", true);
+            super((JFrame)null, "Attributes for game object " + rootObject.getId(), true);
             setLayout(new BorderLayout());
             JComboBox<String> classBox = new JComboBox(CommonUtils.SELECTABLE_GAME_OBJECTS);
             JTextArea textArea = new JTextArea();
@@ -414,8 +415,8 @@ public class MouseMovementHandler extends MouseAdapter {
                 GameObject newGameObject;
                 GameObject oldGameObject = rootObject.getGameObject();
                 try {
-                    newGameObject = (GameObject)Class.forName(theClass).getConstructor(Rectangle.class, Map.class).newInstance(
-                            rootObject.getArea(), attributes);
+                    newGameObject = (GameObject)Class.forName(theClass).getConstructor(Rectangle.class, Map.class, long.class).newInstance(
+                            rootObject.getArea(), attributes, oldGameObject.getId());
                     newGameObject.setCollisionAreas(oldGameObject.getCollisionAreas());
                     newGameObject.setLocation(oldGameObject.getX(), oldGameObject.getY());
                 }
@@ -704,6 +705,7 @@ public class MouseMovementHandler extends MouseAdapter {
             jFileChooser.setDialogTitle("Choose Image File" + (allowMultiSelection ? "s" : ""));
             jFileChooser.addChoosableFileFilter(IMAGE_FILE_FILTER);
             jFileChooser.setAcceptAllFileFilterUsed(false);
+            jFileChooser.setCurrentDirectory(CommonUtils.MY_IMAGES_FOLDER);
 
             if(jFileChooser.showDialog(null, null) == JFileChooser.APPROVE_OPTION) {
                 File[] chosenFiles = allowMultiSelection ? jFileChooser.getSelectedFiles() : new File[]{jFileChooser.getSelectedFile()};

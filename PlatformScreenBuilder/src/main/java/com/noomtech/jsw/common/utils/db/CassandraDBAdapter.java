@@ -164,7 +164,7 @@ public class CassandraDBAdapter implements DatabaseAdapter {
             GameObject gameObject = (GameObject)Class.forName(classVal).getConstructor(Rectangle.class, Map.class).newInstance(
                     rectangle, attributes);
 
-            RootObject rootObject = new RootObject(gameObject, id);
+            RootObject rootObject = new RootObject(gameObject);
             toReturn.add(rootObject);
         }
         return toReturn;

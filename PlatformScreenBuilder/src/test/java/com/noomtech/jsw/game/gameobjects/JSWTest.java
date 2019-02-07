@@ -18,7 +18,7 @@ public class JSWTest {
     public void test1() throws Exception {
 
         int numPixelsPerMovement = 10;
-        JSW jsw = new JSW(new Rectangle(20,20,5,5), Collections.EMPTY_MAP);
+        JSW jsw = new JSW(new Rectangle(20,20,5,5), Collections.EMPTY_MAP, 1234l);
         Field f1 = JSW.class.getDeclaredField("pixelsPerFrameChange");
         f1.setAccessible(true);
         f1.setInt(jsw, numPixelsPerMovement);
@@ -127,7 +127,7 @@ public class JSWTest {
     public void test2() throws Exception {
 
         int numPixelsPerMovement = 10;
-        JSW jsw = new JSW(new Rectangle(20,20,5,5), Collections.EMPTY_MAP);
+        JSW jsw = new JSW(new Rectangle(20,20,5,5), Collections.EMPTY_MAP, 1234l);
         Field f1 = JSW.class.getDeclaredField("pixelsPerFrameChange");
         f1.setAccessible(true);
         f1.setInt(jsw, numPixelsPerMovement);
@@ -163,7 +163,7 @@ public class JSWTest {
     public void test3() throws Exception {
 
         int numPixelsPerMovement = 10;
-        JSW jsw = new JSW(new Rectangle(20,20,5,5), Collections.EMPTY_MAP);
+        JSW jsw = new JSW(new Rectangle(20,20,5,5), Collections.EMPTY_MAP, 1234l);
         Field f1 = JSW.class.getDeclaredField("pixelsPerFrameChange");
         f1.setAccessible(true);
         f1.setInt(jsw, numPixelsPerMovement);

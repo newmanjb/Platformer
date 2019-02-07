@@ -82,7 +82,7 @@ public class MongoDBAdapter implements DatabaseAdapter {
         documents.forEach(new Consumer<Document>() {
             public void accept(Document d) {
                 try {
-                    rootObjects.add(new RootObject(buildFromDocument(d), d.getLong("_id")));
+                    rootObjects.add(new RootObject(buildFromDocument(d)));
                 }
                 catch(Exception e) {
                     e.printStackTrace();
@@ -103,8 +103,8 @@ public class MongoDBAdapter implements DatabaseAdapter {
         Map<String, String> attributes = (Map<String,String>)d.get("attributes");
         //The type of game object is represented as the full name of the underlying class so as it can be instantiated
         //using reflection
-        GameObject gameObject = (GameObject) Class.forName(classVal).getConstructor(Rectangle.class, Map.class).newInstance(
-                rectangle, attributes);
+        GameObject gameObject = (GameObject) Class.forName(classVal).getConstructor(Rectangle.class, Map.class, long.class).newInstance(
+                rectangle, attributes, d.getLong("_id"));
 
 
         List<List<String>> collisionAreasFromDB = d.get("collisionAreas", List.class);

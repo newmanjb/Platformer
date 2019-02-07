@@ -14,8 +14,8 @@ import java.util.Map;
 public class FinishingObject extends NonMovingObject {
 
 
-    public FinishingObject(Rectangle area, Map<String,String> attributes) {
-        super(area, attributes);
+    public FinishingObject(Rectangle area, Map<String,String> attributes, long id) {
+        super(area, attributes, id);
     }
 
     @Override
