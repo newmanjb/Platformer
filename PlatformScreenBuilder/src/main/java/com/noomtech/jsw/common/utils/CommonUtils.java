@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,7 +21,6 @@ public class CommonUtils {
 
     //Paths related to the config directory
     private static final String CONFIG_FOLDER_PATH = System.getProperty("config");
-    private static final File CONFIG_FOLDER_FILE = new File(CONFIG_FOLDER_PATH);
 
     //Should point to a folder where the user puts their images.  For convenience in the GUI.
     public static final File MY_IMAGES_FOLDER = new File(GlobalConfig.getInstance().getProperty("my_images_folder"));
@@ -38,13 +36,10 @@ public class CommonUtils {
     private static final MathContext MC_CONVERT_TO_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
     private static final MathContext MC_CONVERT_FROM_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
 
-    //The image directories.  These will all be in the config.
-
-    public static final File ANIMATION_FRAMES_FOLDER_FILE = new File(CONFIG_FOLDER_PATH + File.separator + "animationFrames");
-    private static final String ANIMATION_FRAMES_FOLDER_STRING = ANIMATION_FRAMES_FOLDER_FILE.getAbsolutePath() +
+    //The image directory
+    public static final File IMAGES_FOLDER_FILE = new File(CONFIG_FOLDER_PATH + File.separator + "images");
+    private static final String IMAGES_FOLDER_STRING = IMAGES_FOLDER_FILE.getAbsolutePath() +
             File.separator;
-    public static final File STATIC_OBJECT_IMAGES_FOLDER_FILE = new File(CONFIG_FOLDER_PATH + File.separator + "imagesForStaticObjects");
-    private static final String STATIC_OBJECT_IMAGES_FOLDER_STRING = STATIC_OBJECT_IMAGES_FOLDER_FILE.getAbsolutePath() + File.separator;
 
     public static volatile boolean gameIsRunning;
 
@@ -92,12 +87,12 @@ public class CommonUtils {
     }
 
     /**
-     * Searches the {@link #ANIMATION_FRAMES_FOLDER_STRING} directory for the images files
+     * Gets the image files from the {@link #IMAGES_FOLDER_STRING} directory
      * corresponding to the given animation categories for the given animation directory.  There will always be a set of image files
      * in the directory that function as the default image files for all objects of this particular type.  This can be
-     * overridden this for an individual object using its id.
+     * overridden for an individual object using its id.
       * @param animationDirectoryName The root directory for the game object's images.  This should be directly under
-     *                               the {@link CommonUtils#ANIMATION_FRAMES_FOLDER_STRING}
+     *                               the {@link CommonUtils#IMAGES_FOLDER_STRING}
      * @param animationCategories The names of the animation categories that the files are being collected for.  Each animation
      *                            category name must correspond to a directory under the animation directory name that is provided
      *                            for the first parameter.
@@ -112,7 +107,7 @@ public class CommonUtils {
      *         and image_3.jpg is the last.
      */
     public static Map<String,File[]> getAnimationImages(String animationDirectoryName, String[] animationCategories, long id) {
-        File f = new File(ANIMATION_FRAMES_FOLDER_STRING + animationDirectoryName);
+        File f = new File(IMAGES_FOLDER_STRING + animationDirectoryName);
         if(!f.exists() || !f.isDirectory()) {
             throw new IllegalArgumentException("Invalid file for " + f.getPath());
         }
@@ -134,7 +129,7 @@ public class CommonUtils {
     }
 
     /**
-     * Returns the image file under {@link #STATIC_OBJECT_IMAGES_FOLDER_STRING}  + {@link File#separator} +
+     * Returns the image file under {@link #IMAGES_FOLDER_STRING}  + {@link File#separator} +
      * directory name provided.  There will always be an image in this directory which functions as the default for all
      * objects of this type.  This default can be overridden for individual objects by creating a subdirectory
      * with that object's id as its name.  If such a subdirectory exists then the image within this directory
@@ -144,7 +139,7 @@ public class CommonUtils {
     // This is if all this starts to get slow because of too many sprites, as many sprites
     //will have the same image anyway
     public static File getImageForStaticObject(String directoryName, long id) {
-        File[] files = getImagesFromAbsolutePath(STATIC_OBJECT_IMAGES_FOLDER_STRING + directoryName, id);
+        File[] files = getImagesFromAbsolutePath(IMAGES_FOLDER_STRING + directoryName, id);
         if(files == null || files.length != 1) {
             throw new IllegalStateException("Only supposed to find one file");
         }

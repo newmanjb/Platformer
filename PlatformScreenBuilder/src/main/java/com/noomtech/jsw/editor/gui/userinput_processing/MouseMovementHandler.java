@@ -631,22 +631,20 @@ public class MouseMovementHandler extends MouseAdapter {
 
     private class SelectStaticImgFileAction extends UpdateImgFileAction {
         private SelectStaticImgFileAction() {
-            super(CommonUtils.STATIC_OBJECT_IMAGES_FOLDER_FILE, false);
+            super(false);
         }
     }
     private class SelectAnimationImgFilesAction extends UpdateImgFileAction {
         private SelectAnimationImgFilesAction() {
-            super(CommonUtils.ANIMATION_FRAMES_FOLDER_FILE, true);
+            super(true);
         }
     }
 
     private class UpdateImgFileAction implements Action {
 
 
-        private File destDir;
         private boolean allowMultiSelection;
-        private UpdateImgFileAction(File destDir, boolean allowMultiSelection) {
-            this.destDir = destDir;
+        private UpdateImgFileAction(boolean allowMultiSelection) {
             this.allowMultiSelection = allowMultiSelection;
         }
         private final Set<String> ACCEPTED_EXTENSIONS = new HashSet();
@@ -711,7 +709,7 @@ public class MouseMovementHandler extends MouseAdapter {
                 File[] chosenFiles = allowMultiSelection ? jFileChooser.getSelectedFiles() : new File[]{jFileChooser.getSelectedFile()};
                 JFileChooser destFileChooser = new JFileChooser();
                 destFileChooser.setMultiSelectionEnabled(false);
-                destFileChooser.setCurrentDirectory(destDir);
+                destFileChooser.setCurrentDirectory(CommonUtils.IMAGES_FOLDER_FILE);
                 destFileChooser.setDialogTitle("Choose Destination");
                 destFileChooser.setAcceptAllFileFilterUsed(false);
                 destFileChooser.setFileFilter(DESTINATION_FILE_FILTER);
