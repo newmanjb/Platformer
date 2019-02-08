@@ -7,12 +7,9 @@ import java.awt.Toolkit;
 import java.awt.Rectangle;
 import java.awt.Point;
 import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -165,24 +162,6 @@ public class CommonUtils {
             ).collect(Collectors.toList()).toArray(new File[0]);
 
             return files;
-        }
-    }
-
-    /**
-     * Add the new image files to the given image directory.  Any existing files in the directory will be deleted.
-     * @param chosenDestDir
-     * @param newFiles
-     */
-    public static void changeFilesInImageDir(File chosenDestDir, File ... newFiles) throws IOException  {
-
-        File[] filesToDelete = chosenDestDir.listFiles();
-        for(File toDelete : filesToDelete) {
-            Files.delete(Paths.get(toDelete.toURI()));
-        }
-
-        for(File newFile : newFiles) {
-            Files.copy(Paths.get(newFile.toURI()), Paths.get( chosenDestDir.getAbsolutePath() +
-                    File.separator + newFile.getName()));
         }
     }
 

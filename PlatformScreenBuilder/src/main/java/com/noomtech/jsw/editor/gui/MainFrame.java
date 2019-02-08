@@ -49,10 +49,21 @@ public class MainFrame extends JFrame {
         GridBagConstraints gbc1 = new GridBagConstraints();
         gbc1.gridx = 0;
         gbc1.gridy = 0;
+        gbc1.insets = new Insets(0,0,0, 10);
 
         JButton saveButton = new JButton("Save");
         saveButton.addActionListener(new SaveActionListener());
         buttonPanel.add(saveButton, gbc1);
+
+        gbc1.gridx++;
+        JButton refreshButton = new JButton("Refresh");
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                controller.refresh();
+            }
+        });
+        buttonPanel.add(refreshButton, gbc1);
 
         gbc0.gridy = 1;
         gbc0.fill = GridBagConstraints.NONE;
