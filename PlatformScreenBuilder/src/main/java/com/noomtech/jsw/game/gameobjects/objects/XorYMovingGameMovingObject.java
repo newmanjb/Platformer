@@ -1,9 +1,8 @@
 package com.noomtech.jsw.game.gameobjects.objects;
 
 import com.noomtech.jsw.common.utils.CommonUtils;
-import com.noomtech.jsw.game.gameobjects.AnimationFrame;
 import com.noomtech.jsw.game.gameobjects.GameObject;
-import com.noomtech.jsw.game.gameobjects.MovingGameObject;
+import com.noomtech.jsw.game.gameobjects.GameObjectStateFrame;
 import com.noomtech.jsw.game.movement.CollisionHandler;
 import com.noomtech.jsw.game.movement.SelfControlledMovingObject;
 
@@ -16,7 +15,7 @@ import java.util.Map;
  * determined from the value in the attributes under the key "{@link #ATTRIBUTE_AXIS_KEY}"
  * @author Joshua Newman
  */
-public abstract class XorYMovingGameMovingObject extends MovingGameObject implements SelfControlledMovingObject {
+public abstract class XorYMovingGameMovingObject extends GameObject implements SelfControlledMovingObject {
 
     //Which axis it moves along
     private static final String ATTRIBUTE_AXIS_KEY = "x_axis";
@@ -36,14 +35,14 @@ public abstract class XorYMovingGameMovingObject extends MovingGameObject implem
     private int lastOrdinate;
     //The num pixels that this object has moved since its last frame change
     private volatile int amountMovedSinceLastFrameChange;
-    private AnimationFrame[] animationFrames;
+    private GameObjectStateFrame[] animationFrames;
     private int currentFrameIdx;
     //How many pixes this moves each time a movement is made
     private int numPixelsPerMovement;
 
-    //There is only one type of movement category for this since it only has one type of movement
-    private static final String ANIM_CATEGORY_MOVE = "move";
-    private static final String[] ALL_ANIMATION_FRAME_CATEGORIES = new String[]{ANIM_CATEGORY_MOVE};
+    //There is only one state for this since it only has one type of movement and is always moving
+    private static final String STATE = "move";
+    private static final String[] ALL_STATES = new String[]{STATE};
 
 
     public XorYMovingGameMovingObject(Rectangle area, Map<String,String> attributes, long id) {
@@ -53,13 +52,13 @@ public abstract class XorYMovingGameMovingObject extends MovingGameObject implem
 
 
     @Override
-    public String[] getAnimationFrameCategories() {
-        return ALL_ANIMATION_FRAME_CATEGORIES;
+    protected String[] getGameObjectStateNames() {
+        return ALL_STATES;
     }
 
     @Override
-    public void refreshAfterImageUpdate() {
-        animationFrames = animationFramesMap.get(ANIM_CATEGORY_MOVE);
+    protected void refreshAfterImageUpdate() {
+        animationFrames = stateNameToStateObjectMap.get(STATE);
     }
 
     @Override
@@ -111,7 +110,7 @@ public abstract class XorYMovingGameMovingObject extends MovingGameObject implem
             amountMovedSinceLastFrameChange = totalAmountMovedSinceLastFrameChange % pixelsPerFrameChange;
             lastOrdinate = getCurrentOrdinateOnMovementAxis();
 
-            if(collisionHandler.hasMovingObjectHitJSW(this)) {
+            if(collisionHandler.hasSomethingHitJSW(this)) {
                 return true;
             }
         }

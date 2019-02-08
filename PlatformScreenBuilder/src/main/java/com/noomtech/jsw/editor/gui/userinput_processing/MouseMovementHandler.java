@@ -179,16 +179,9 @@ public class MouseMovementHandler extends MouseAdapter {
         @Override
         public void released(Editable pressedOn, int buttonPressed, Point pressedAt, MouseEvent e) {
             if(currentMode == Mode.NORMAL) {
-                GameObject defaultGameObject;
-                RootObject newRootObject;
                 long newID = System.currentTimeMillis();
-                try {
-                    defaultGameObject = new Platform(new Rectangle(VIEW.getBeingDrawn()), Collections.EMPTY_MAP, newID);
-                } catch (IOException ex) {
-                    throw new IllegalArgumentException("Couldn't load game object's resources" + ex);
-                }
-
-                newRootObject = new RootObject(defaultGameObject);
+                GameObject defaultGameObject = new Platform(new Rectangle(VIEW.getBeingDrawn()), Collections.EMPTY_MAP, newID);
+                RootObject newRootObject = new RootObject(defaultGameObject);
                 MODEL.add(newRootObject);
                 record_rootObjectAdded(newRootObject);
             }

@@ -1,7 +1,7 @@
 package com.noomtech.jsw.game.gameobjects.objects;
 
-import com.noomtech.jsw.game.gameobjects.MovingGameObject;
-import com.noomtech.jsw.game.gameobjects.AnimationFrame;
+import com.noomtech.jsw.game.gameobjects.GameObject;
+import com.noomtech.jsw.game.gameobjects.GameObjectStateFrame;
 
 import java.awt.*;
 import java.util.Map;
@@ -10,7 +10,7 @@ import java.util.Map;
  * The player
  * @author Joshua Newman
  */
-public class JSW extends MovingGameObject {
+public class JSW extends GameObject {
 
 
     //Running total of the amount of pixels that the player has moved since the last frame change
@@ -19,20 +19,19 @@ public class JSW extends MovingGameObject {
     //This is the num pixels that the player can move before the next frame is displayed
     private static int pixelsPerFrameChange = 12;
     //The frames for moving left
-    private AnimationFrame[] leftFrames;
+    private GameObjectStateFrame[] leftFrames;
     //The frames for moving right
-    private AnimationFrame[] rightFrames;
+    private GameObjectStateFrame[] rightFrames;
     //The current list of frames being used
-    private AnimationFrame[] currentFrameList;
+    private GameObjectStateFrame[] currentFrameList;
     //This points to the frame currently being displayed in the list
     private int currentFrameIdx;
     //The x ordinate of the JSW from the last movement
     private int lastXLocation;
 
-    private static final String ANIM_FRAMES_DIRECTORY = JSW.class.getSimpleName();
-    private static final String ANIM_CATEGORY_LEFT = "Left";
-    private static final String ANIM_CATEGORY_RIGHT = "Right";
-    private static String[] ALL_ANIMATION_FRAME_CATEGORIES = new String[]{ANIM_CATEGORY_LEFT, ANIM_CATEGORY_RIGHT};
+    private static final String STATE_LEFT = "Left";
+    private static final String STATE_RIGHT = "Right";
+    private static String[] ALL_STATES = new String[]{STATE_LEFT, STATE_RIGHT};
 
 
     public JSW(Rectangle area, Map<String,String> attributes, long id) {
@@ -43,8 +42,8 @@ public class JSW extends MovingGameObject {
 
     @Override
     protected void refreshAfterImageUpdate() {
-        leftFrames = animationFramesMap.get(ANIM_CATEGORY_LEFT);
-        rightFrames = animationFramesMap.get(ANIM_CATEGORY_RIGHT);
+        leftFrames = stateNameToStateObjectMap.get(STATE_LEFT);
+        rightFrames = stateNameToStateObjectMap.get(STATE_RIGHT);
         currentFrameList = rightFrames;
     }
 
@@ -54,8 +53,8 @@ public class JSW extends MovingGameObject {
     }
 
     @Override
-    protected String[] getAnimationFrameCategories() {
-        return ALL_ANIMATION_FRAME_CATEGORIES;
+    protected String[] getGameObjectStateNames() {
+        return ALL_STATES;
     }
 
     public void onMove() {

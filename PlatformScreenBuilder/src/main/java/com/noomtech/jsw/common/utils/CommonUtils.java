@@ -88,9 +88,9 @@ public class CommonUtils {
      * corresponding to the given animation categories for the given animation directory.  There will always be a set of image files
      * in the directory that function as the default image files for all objects of this particular type.  This can be
      * overridden for an individual object using its id.
-      * @param animationDirectoryName The root directory for the game object's images.  This should be directly under
+      * @param rootDirName The root directory for the game object's images.  This should be directly under
      *                               the {@link CommonUtils#IMAGES_FOLDER_STRING}
-     * @param animationCategories The names of the animation categories that the files are being collected for.  Each animation
+     * @param gameObjectStateNames The names of the animation categories that the files are being collected for.  Each animation
      *                            category name must correspond to a directory under the animation directory name that is provided
      *                            for the first parameter.
      * @param id The id of the object that the images correspond to.  If there is a subdirectory with this id as the name within the
@@ -103,8 +103,8 @@ public class CommonUtils {
      *         image_1.jpg, image_2.jpg and image_3.jpg respectively, so image_1.jpg is the first frame displayed in the cycle
      *         and image_3.jpg is the last.
      */
-    public static Map<String,File[]> getAnimationImages(String animationDirectoryName, String[] animationCategories, long id) {
-        File f = new File(IMAGES_FOLDER_STRING + animationDirectoryName);
+    public static Map<String,File[]> getGameObjectStateImages(String rootDirName, String[] gameObjectStateNames, long id) {
+        File f = new File(IMAGES_FOLDER_STRING + rootDirName);
         if(!f.exists() || !f.isDirectory()) {
             throw new IllegalArgumentException("Invalid file for " + f.getPath());
         }
@@ -114,33 +114,15 @@ public class CommonUtils {
             throw new IllegalArgumentException("No files in " + f.getPath());
         }
 
-        Map<String, File[]> animCategoryToFileList = new HashMap<>(categoryDirectories.length);
-        String animCategoriesDirPath = f.getPath();
-        for(String animCategory : animationCategories) {
-            File[] animFrameFiles =
-                    getImagesFromAbsolutePath(animCategoriesDirPath + File.separator + animCategory, id);
-            animCategoryToFileList.put(animCategory, animFrameFiles);
+        Map<String, File[]> stateToFileMap = new HashMap<>(categoryDirectories.length);
+        String rootDirPath = f.getPath();
+        for(String gameObjectStateName : gameObjectStateNames) {
+            File[] imageFiles =
+                    getImagesFromAbsolutePath(rootDirPath + File.separator + gameObjectStateName, id);
+            stateToFileMap.put(gameObjectStateName, imageFiles);
         }
 
-        return animCategoryToFileList;
-    }
-
-    /**
-     * Returns the image file under {@link #IMAGES_FOLDER_STRING}  + {@link File#separator} +
-     * directory name provided.  There will always be an image in this directory which functions as the default for all
-     * objects of this type.  This default can be overridden for individual objects by creating a subdirectory
-     * with that object's id as its name.  If such a subdirectory exists then the image within this directory
-     * will be returned as opposed to the default.
-     */
-    //@todo - cache the images under the dirname and do a look-up on the cache.  Only go to dirs if lookup fails.
-    // This is if all this starts to get slow because of too many sprites, as many sprites
-    //will have the same image anyway
-    public static File getImageForStaticObject(String directoryName, long id) {
-        File[] files = getImagesFromAbsolutePath(IMAGES_FOLDER_STRING + directoryName, id);
-        if(files == null || files.length != 1) {
-            throw new IllegalStateException("Only supposed to find one file");
-        }
-        return files[0];
+        return stateToFileMap;
     }
 
     private static File[] getImagesFromAbsolutePath(String absolutePath, long id) {

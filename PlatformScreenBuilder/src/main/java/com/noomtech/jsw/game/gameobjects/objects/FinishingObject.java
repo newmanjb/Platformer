@@ -1,9 +1,6 @@
 package com.noomtech.jsw.game.gameobjects.objects;
 
-import com.noomtech.jsw.game.gameobjects.NonMovingObject;
-
 import java.awt.*;
-import java.io.IOException;
 import java.util.Map;
 
 
@@ -11,18 +8,10 @@ import java.util.Map;
  * An object that the player has to collect in order to finish the game
  * @author Joshua Newman
  */
-public class FinishingObject extends NonMovingObject {
+public class FinishingObject extends IdleGameObject {
 
 
     public FinishingObject(Rectangle area, Map<String,String> attributes, long id) {
         super(area, attributes, id);
-    }
-
-
-    public void paintObject(Graphics g) {
-      //  if(!staticObjectsDontNeedToBeDrawnAgain) {
-        Rectangle r = getImageArea();
-        g.drawImage(image, r.x, r.y, r.width, r.height, Color.WHITE, null);
-      // }
     }
 }

@@ -1,7 +1,6 @@
 package com.noomtech.jsw.game.movement;
 
 import com.noomtech.jsw.game.gameobjects.GameObject;
-import com.noomtech.jsw.game.gameobjects.MovingGameObject;
 import com.noomtech.jsw.game.gameobjects.objects.JSW;
 
 import java.awt.*;
@@ -185,7 +184,8 @@ public class CollisionHandler {
         return null;
     }
 
-    public boolean hasMovingObjectHitJSW(MovingGameObject movingGameObject) {
+    //Has a moving object hit the JSW?
+    public boolean hasSomethingHitJSW(GameObject movingGameObject) {
         return jsw.getImageArea().intersects(movingGameObject.getImageArea());
     }
 

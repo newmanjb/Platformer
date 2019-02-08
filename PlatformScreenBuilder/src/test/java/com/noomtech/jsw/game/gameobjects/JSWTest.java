@@ -195,13 +195,13 @@ public class JSWTest {
     private void checkVals(JSW jsw, int expectedFrameIdx, boolean isLeft) throws NoSuchFieldException, IllegalAccessException {
         Field f1 = JSW.class.getDeclaredField("leftFrames");
         f1.setAccessible(true);
-        AnimationFrame[] left = (AnimationFrame[])f1.get(jsw);
+        GameObjectStateFrame[] left = (GameObjectStateFrame[])f1.get(jsw);
         Field f2 = JSW.class.getDeclaredField("rightFrames");
         f2.setAccessible(true);
-        AnimationFrame[] right = (AnimationFrame[])f2.get(jsw);
+        GameObjectStateFrame[] right = (GameObjectStateFrame[])f2.get(jsw);
         Field f3 = JSW.class.getDeclaredField("currentFrameList");
         f3.setAccessible(true);
-        AnimationFrame[] currentFrameList = (AnimationFrame[])f3.get(jsw);
+        GameObjectStateFrame[] currentFrameList = (GameObjectStateFrame[])f3.get(jsw);
         Field f4 = JSW.class.getDeclaredField("currentFrameIdx");
         f4.setAccessible(true);
         int frameIdx = f4.getInt(jsw);

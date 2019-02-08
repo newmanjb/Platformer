@@ -1,12 +1,32 @@
 package com.noomtech.jsw.game.gameobjects;
 
+import com.noomtech.jsw.common.utils.CommonUtils;
+
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 
 /**
  * Represents an object on the screen e.g. player, platform.
+ * A game object can have one or more states.  Each state corresponds to what it's currently
+ * doing e.g. the player could be walking left or walking right.  Static objects like platforms only have one state,
+ * since they are technically only ever doing one thing i.e. just sitting there (see {@link com.noomtech.jsw.game.gameobjects.objects.IdleGameObject}.
+ * The states are used, among other things, to paint the appropriate image for the object on the screen e.g. if the player is
+ * in the "walking left" state then the game knows to use the animation frames representing the player walking left.
+ *
+ * The images for a game object's state are stored in the images directory in the config under a directory named after the
+ * game object's class.  There be separate subdirectories for each state e.g. for the player moving left they could be
+ * in "C:/game/my_config/images/JSW/left", and for the player moving right they could be in "C:/game/my_config/images/JSW/right"
+ *
+ * @see GameObjectStateFrame
+ * @see com.noomtech.jsw.game.gameobjects.objects.IdleGameObject
+ * @see com.noomtech.jsw.game.gameobjects.objects.XorYMovingGameMovingObject
+ * @see com.noomtech.jsw.game.gameobjects.objects.JSW
  * @author Joshua Newman
  */
 public abstract class GameObject {
@@ -14,15 +34,14 @@ public abstract class GameObject {
 
     //Unique id of this game object
     private long id;
-    /** A rectangle representing the boundaries and location of the object's image.  This is used to define its location **/
+    //A rectangle representing the boundaries and location of the object's image.  This is used to define its location
     private Rectangle imageArea;
     //The properties of the object
     protected Map<String,String> attributes;
     //This is where the game object is first located when the game starts
     protected Point startingLocation;
-    //-- Reinstate if needed --
-    //Set to true once this object has been drawn.  Used by objects that never change in appearance during the game
-    //protected boolean staticObjectsDontNeedToBeDrawnAgain;
+    //Stores lists of the frames appertaining to each state
+    protected Map<String, GameObjectStateFrame[]> stateNameToStateObjectMap;
 
     protected Rectangle[] collisionAreas;
 
@@ -33,12 +52,11 @@ public abstract class GameObject {
         }
 
         this.imageArea = imageArea;
-
         this.attributes = attributes;
         startingLocation = imageArea.getLocation();
         this.id = id;
 
-        //Default the collision areas to just be the entire area of the game object's image
+        //Default the collision areas to be the entire area of the game object's image
         this.collisionAreas = new Rectangle[]{imageArea};
         onImageUpdated();
     }
@@ -46,15 +64,36 @@ public abstract class GameObject {
 
     protected abstract void paintObject(Graphics g);
 
-    public abstract void onImageUpdated();
+    //Build the map containing lists of state frames stored under their state names
+    public final void onImageUpdated() {
+        try {
+            String imageDir = getImageFolderName();
+            String[] stateNames = getGameObjectStateNames();
+            //This method obtains the files for each image and they are then converted to image objects that are used in the state frames
+            //when the map is built below
+            Map<String, File[]> statesToFiles = CommonUtils.getGameObjectStateImages(imageDir, stateNames, getId());
+
+            stateNameToStateObjectMap = new HashMap(statesToFiles.size());
+            for (Map.Entry<String, File[]> entries : statesToFiles.entrySet()) {
+                File[] files = entries.getValue();
+                GameObjectStateFrame[] theGameObjectStates = new GameObjectStateFrame[files.length];
+                for (int i = 0; i < theGameObjectStates.length; i++) {
+                    BufferedImage b = ImageIO.read(files[i]);
+                    theGameObjectStates[i] = (g, r) -> {
+                        g.drawImage(b, r.x, r.y, r.width, r.height, Color.WHITE, null);
+                    };
+                }
+                stateNameToStateObjectMap.put(entries.getKey(), theGameObjectStates);
+            }
+
+            refreshAfterImageUpdate();
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not set attributes", e);
+        }
+    }
 
     public final void doPainting(Graphics g) {
         paintObject(g);
-
-        //----Reinstate if needed----
-        //Set to true if the painting is part of the actual game where these types of object won't change.  Otherwise don't
-        //e.g. if the painting is part of the editor where these objects can be moved
-        //staticObjectsDontNeedToBeDrawnAgain = CommonUtils.gameIsRunning;
     }
 
     public final long getId() {
@@ -116,23 +155,28 @@ public abstract class GameObject {
         }
     }
 
-    public Point getLocation() {
-        return imageArea.getLocation();
-    }
-
     /**
-     * @return The name of the root directory that holds this objects images
+     * @return The name of the root directory that holds this object's state subdirectories
      */
     public final String getImageFolderName() {
         return getClass().getSimpleName();
     }
 
+    /**
+     * @return The names of all the possible states for this game object
+     */
+    protected abstract String[] getGameObjectStateNames();
+
+    protected abstract void refreshAfterImageUpdate();
+
     @Override
     public String toString() {
         return "GameObject{" +
-                "imageArea=" + imageArea +
+                "id=" + id +
+                ", imageArea=" + imageArea +
                 ", attributes=" + attributes +
                 ", startingLocation=" + startingLocation +
+                ", stateNameToStateObjectMap=" + stateNameToStateObjectMap +
                 ", collisionAreas=" + Arrays.toString(collisionAreas) +
                 '}';
     }
