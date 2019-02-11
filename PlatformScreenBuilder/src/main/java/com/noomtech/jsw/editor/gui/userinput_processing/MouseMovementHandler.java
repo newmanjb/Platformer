@@ -598,7 +598,12 @@ public class MouseMovementHandler extends MouseAdapter {
     //Force all objects to reload their images e.g. after an image has been edited or a new one has been copied to
     //one of the image directories.
     public void refreshAllImages() {
-        VIEW.refreshAllImages();
+        //@todo - doing ALL root objects here.  If this ever gets slow then we'll need to add a mechanism which
+        //only does the root objects whos images have been updated.
+        for(RootObject rootObject : MODEL) {
+            rootObject.onImageUpdated();
+        }
+        VIEW.repaint();
     }
 
     private boolean canDrawOrMove(Rectangle r) {

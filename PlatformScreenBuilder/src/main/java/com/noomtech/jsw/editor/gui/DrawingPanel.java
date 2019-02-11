@@ -81,15 +81,6 @@ public class DrawingPanel extends JPanel {
         return false;
     }
 
-    public void refreshAllImages() {
-        //@todo - doing ALL root objects here.  If this ever gets slow then we'll need to add a mechanism which
-        //only does the root objects whos images have been updated.
-        for(RootObject rootObject : rootObjects) {
-            rootObject.onImageUpdated();
-        }
-        repaint();
-    }
-
     public Dimension getScreenSize() {
         return getSize();
     }
