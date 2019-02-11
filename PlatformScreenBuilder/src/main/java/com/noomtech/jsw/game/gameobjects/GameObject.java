@@ -165,7 +165,7 @@ public abstract class GameObject {
     /**
      * @return The names of all the possible states for this game object
      */
-    protected abstract String[] getGameObjectStateNames();
+    public abstract String[] getGameObjectStateNames();
 
     protected abstract void refreshAfterImageUpdate();
 

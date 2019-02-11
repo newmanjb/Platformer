@@ -52,7 +52,7 @@ public abstract class XorYMovingGameMovingObject extends GameObject implements S
 
 
     @Override
-    protected String[] getGameObjectStateNames() {
+    public String[] getGameObjectStateNames() {
         return ALL_STATES;
     }
 

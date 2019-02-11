@@ -60,7 +60,7 @@ public class MainFrame extends JFrame {
         refreshButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                controller.refresh();
+                controller.refreshAllImages();
             }
         });
         buttonPanel.add(refreshButton, gbc1);

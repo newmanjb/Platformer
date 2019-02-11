@@ -1,5 +1,6 @@
 package com.noomtech.jsw.common.utils;
 
+import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.objects.JSW;
 
 import java.awt.Dimension;
@@ -7,9 +8,12 @@ import java.awt.Toolkit;
 import java.awt.Rectangle;
 import java.awt.Point;
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,7 +38,7 @@ public class CommonUtils {
     private static final MathContext MC_CONVERT_FROM_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
 
     //The image directory
-    public static final File IMAGES_FOLDER_FILE = new File(CONFIG_FOLDER_PATH + File.separator + "images");
+    private static final File IMAGES_FOLDER_FILE = new File(CONFIG_FOLDER_PATH + File.separator + "images");
     private static final String IMAGES_FOLDER_STRING = IMAGES_FOLDER_FILE.getAbsolutePath() +
             File.separator;
 
@@ -156,5 +160,38 @@ public class CommonUtils {
             return defaultVal;
         }
         return existing;
+    }
+
+    /**
+     * Copy the image files provided to the state directory for the state provided of the game object provided.  The image files
+     * will be stored in a subdirectory named after the game object's id e.g. for a platform with id 12345 having the images for its
+     * "nada" state overridden with an image file img1.png the file would be placed in
+     *
+     * CONFIG_DIR/images/Platform/nada/12345/img1.png
+     *
+     * If the subdirectory 12345 already existed then the file in it would be deleted before the new one was copied over.
+     */
+    public static void addImageOverrides(GameObject gameObject, String stateToOverride, File[] images) throws IOException {
+        File overrideDirectory = new File(IMAGES_FOLDER_STRING + gameObject.getImageFolderName() +
+                File.separator + stateToOverride + File.separator + gameObject.getId());
+        if(overrideDirectory.exists()) {
+            //Remove everything in there
+            for(File f : overrideDirectory.listFiles()) {
+                f.delete();
+            }
+        }
+        else {
+            overrideDirectory.mkdir();
+        }
+
+        String overrideDirectoryString = overrideDirectory.getAbsolutePath();
+        for(File imageFile : images) {
+            Files.copy(Paths.get(imageFile.toURI()), Paths.get(overrideDirectoryString + File.separator +
+                    imageFile.getName()));
+        }
+    }
+
+    public static File getImagesFolderFor(GameObject go) {
+        return new File(IMAGES_FOLDER_STRING + go.getImageFolderName());
     }
 }

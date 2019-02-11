@@ -53,7 +53,7 @@ public class JSW extends GameObject {
     }
 
     @Override
-    protected String[] getGameObjectStateNames() {
+    public String[] getGameObjectStateNames() {
         return ALL_STATES;
     }
 

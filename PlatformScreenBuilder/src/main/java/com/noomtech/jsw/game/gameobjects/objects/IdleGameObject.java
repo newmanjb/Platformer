@@ -35,7 +35,7 @@ public class IdleGameObject extends GameObject {
     }
 
     @Override
-    protected String[] getGameObjectStateNames() {
+    public String[] getGameObjectStateNames() {
         return ALL_STATES;
     }
 }
