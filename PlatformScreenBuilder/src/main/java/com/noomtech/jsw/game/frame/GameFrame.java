@@ -29,7 +29,7 @@ public class GameFrame extends JFrame {
             throw new IllegalArgumentException("No config specified");
         }
         databaseAdapter = MongoDBAdapter.getInstance();
-        List<GameObject> gameObjects = databaseAdapter.loadGameObjects();
+        List<GameObject> gameObjects = databaseAdapter.loadGameObjectsForCurrentLevel();
 
 //        Useful for drawing test platforms and nasties if we can't connect to the db
 //

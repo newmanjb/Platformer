@@ -17,11 +17,34 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 public class CommonUtils {
 
 
-    //Paths related to the config directory
     private static final String CONFIG_FOLDER_PATH = System.getProperty("config");
+
+    //The image directory for the current level
+    private static File imagesFolderFile;
+    private static String imagesFolderString;
+
+    //This is used as the global reference to what level we're on
+    public static int getCurrentLevel() {
+        return currentLevel;
+    }
+    public static void setCurrentLevel(int newLevel) {
+        currentLevel = newLevel;
+        imagesFolderFile = new File(CONFIG_FOLDER_PATH + File.separator + "levels" +
+                File.separator + "level" + currentLevel + File.separator + "images");
+        imagesFolderString = imagesFolderFile.getAbsolutePath() +
+                File.separator;
+        currentGameObjectsCollection = "level" + currentLevel;
+    }
+    private static int currentLevel = System.getProperty("start_at_level") == null ? 1 : Integer.parseInt(System.getProperty("start_at_level"));
+    static {
+        setCurrentLevel(currentLevel);
+    }
+    //The collection that holds the game objects for the current level
+    public static String currentGameObjectsCollection;
 
     //Should point to a folder where the user puts their images.  For convenience in the GUI.
     public static final File MY_IMAGES_FOLDER = new File(GlobalConfig.getInstance().getProperty("my_images_folder"));
@@ -37,13 +60,12 @@ public class CommonUtils {
     private static final MathContext MC_CONVERT_TO_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
     private static final MathContext MC_CONVERT_FROM_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
 
-    //The image directory
-    private static final File IMAGES_FOLDER_FILE = new File(CONFIG_FOLDER_PATH + File.separator + "images");
-    private static final String IMAGES_FOLDER_STRING = IMAGES_FOLDER_FILE.getAbsolutePath() +
-            File.separator;
-
     public static volatile boolean gameIsRunning;
 
+
+    public static final String getGameObjectCollectionNameForLevel(int level) {
+        return "level" + level;
+    }
 
     private static String[] getGameObjectOptions() {
         
@@ -88,12 +110,12 @@ public class CommonUtils {
     }
 
     /**
-     * Gets the image files from the {@link #IMAGES_FOLDER_STRING} directory
+     * Gets the image files from the {@link #imagesFolderString} directory
      * corresponding to the given animation categories for the given animation directory.  There will always be a set of image files
      * in the directory that function as the default image files for all objects of this particular type.  This can be
      * overridden for an individual object using its id.
       * @param rootDirName The root directory for the game object's images.  This should be directly under
-     *                               the {@link CommonUtils#IMAGES_FOLDER_STRING}
+     *                               the {@link CommonUtils#imagesFolderString}
      * @param gameObjectStateNames The names of the animation categories that the files are being collected for.  Each animation
      *                            category name must correspond to a directory under the animation directory name that is provided
      *                            for the first parameter.
@@ -108,7 +130,7 @@ public class CommonUtils {
      *         and image_3.jpg is the last.
      */
     public static Map<String,File[]> getGameObjectStateImages(String rootDirName, String[] gameObjectStateNames, long id) {
-        File f = new File(IMAGES_FOLDER_STRING + rootDirName);
+        File f = new File(imagesFolderString + rootDirName);
         if(!f.exists() || !f.isDirectory()) {
             throw new IllegalArgumentException("Invalid file for " + f.getPath());
         }
@@ -164,15 +186,15 @@ public class CommonUtils {
 
     /**
      * Copy the image files provided to the state directory for the state provided of the game object provided.  The image files
-     * will be stored in a subdirectory named after the game object's id e.g. for a platform with id 12345 having the images for its
-     * "nada" state overridden with an image file img1.png the file would be placed in
+     * will be stored in a subdirectory named after the game object's id e.g. for a platform on level 2 with id 12345, having the images for its
+     * "nada" state overridden with an image file img1.png would result in the following file being created
      *
-     * CONFIG_DIR/images/Platform/nada/12345/img1.png
+     * CONFIG_DIR/levels/level2/images/Platform/nada/12345/img1.png
      *
      * If the subdirectory 12345 already existed then the file in it would be deleted before the new one was copied over.
      */
     public static void addImageOverrides(GameObject gameObject, String stateToOverride, File[] images) throws IOException {
-        File overrideDirectory = new File(IMAGES_FOLDER_STRING + gameObject.getImageFolderName() +
+        File overrideDirectory = new File(imagesFolderString + gameObject.getImageFolderName() +
                 File.separator + stateToOverride + File.separator + gameObject.getId());
         if(overrideDirectory.exists()) {
             //Remove everything in there
@@ -192,6 +214,6 @@ public class CommonUtils {
     }
 
     public static File getImagesFolderFor(GameObject go) {
-        return new File(IMAGES_FOLDER_STRING + go.getImageFolderName());
+        return new File(imagesFolderString + go.getImageFolderName());
     }
 }

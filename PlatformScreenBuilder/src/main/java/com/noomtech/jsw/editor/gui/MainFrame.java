@@ -1,5 +1,6 @@
 package com.noomtech.jsw.editor.gui;
 
+import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.common.utils.db.DatabaseAdapter;
 import com.noomtech.jsw.common.utils.db.MongoDBAdapter;
 import com.noomtech.jsw.editor.building_blocks.RootObject;
@@ -7,69 +8,62 @@ import com.noomtech.jsw.editor.gui.userinput_processing.MouseMovementHandler;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 
 public class MainFrame extends JFrame {
 
 
-    private DatabaseAdapter dbAdapter;
+    private final DatabaseAdapter dbAdapter = MongoDBAdapter.getInstance();
     private MouseMovementHandler controller;
 
 
-    public MainFrame() throws Exception {
+    public MainFrame() {
 
         setTitle("Collision Editor");
-
-        dbAdapter = MongoDBAdapter.getInstance();
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         screenSize.height = (int)Math.rint(screenSize.height * 0.92);
         getContentPane().setSize(screenSize);
         getContentPane().setMinimumSize(screenSize);
         getContentPane().setPreferredSize(screenSize);
-        List<RootObject> data = dbAdapter.loadEditorObjects();
-        DrawingPanel view = new DrawingPanel(data);
-        controller = new MouseMovementHandler(view, data);
-        view.addMouseListener(controller);
-        view.addMouseMotionListener(controller);
 
         setLayout(new GridBagLayout());
-        GridBagConstraints gbc0 = new GridBagConstraints();
-        gbc0.gridx = 0;
-        gbc0.gridy = 0;
-        gbc0.fill = GridBagConstraints.BOTH;
-        gbc0.weightx = 1.0;
-        gbc0.weighty = 1.0;
-        getContentPane().add(view, gbc0);
 
         JPanel buttonPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc1 = new GridBagConstraints();
-        gbc1.gridx = 0;
-        gbc1.gridy = 0;
-        gbc1.insets = new Insets(0,0,0, 10);
-
+        GridBagConstraints gbcButtonPanel = new GridBagConstraints();
+        gbcButtonPanel.gridx = 0;
+        gbcButtonPanel.gridy = 0;
+        gbcButtonPanel.insets = new Insets(0,0,0, 10);
         JButton saveButton = new JButton("Save");
-        saveButton.addActionListener(new SaveActionListener());
-        buttonPanel.add(saveButton, gbc1);
-
-        gbc1.gridx++;
+        buttonPanel.add(saveButton, gbcButtonPanel);
+        gbcButtonPanel.gridx++;
         JButton refreshButton = new JButton("Refresh");
-        refreshButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                controller.refreshAllImages();
-            }
-        });
-        buttonPanel.add(refreshButton, gbc1);
+        buttonPanel.add(refreshButton, gbcButtonPanel);
+        gbcButtonPanel.gridx++;
+        JButton previousLevel = new JButton("Prev Level");
+        buttonPanel.add(previousLevel, gbcButtonPanel);
+        gbcButtonPanel.gridx++;
+        JLabel levelLabel = new JLabel(Integer.toString(CommonUtils.getCurrentLevel()));
+        buttonPanel.add(levelLabel, gbcButtonPanel);
+        gbcButtonPanel.gridx++;
+        JButton nextLevel = new JButton("Next Level");
+        buttonPanel.add(nextLevel, gbcButtonPanel);
 
-        gbc0.gridy = 1;
-        gbc0.fill = GridBagConstraints.NONE;
-        gbc0.weightx = 0.0;
-        gbc0.weighty = 0.0;
-        getContentPane().add(buttonPanel, gbc0);
+        GridBagConstraints gbcMainPanel = new GridBagConstraints();
+        gbcMainPanel.gridx = 0;
+        gbcMainPanel.gridy = 0;
+        gbcMainPanel.fill = GridBagConstraints.BOTH;
+        gbcMainPanel.weightx = 1.0;
+        gbcMainPanel.weighty = 1.0;
+
+        JPanel[] drawingPanel = new JPanel[]{buildPanelForCurrentLevel()};
+        getContentPane().add(drawingPanel[0], gbcMainPanel);
+        GridBagConstraints gbcAddButtonPanel = new GridBagConstraints();
+        gbcAddButtonPanel.gridx = 0;
+        gbcAddButtonPanel.gridy = 1;
+        gbcAddButtonPanel.fill = GridBagConstraints.BOTH;
+        getContentPane().add(buttonPanel, gbcAddButtonPanel);
 
         setLocation(new Point(0,0));
 
@@ -77,12 +71,10 @@ public class MainFrame extends JFrame {
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        setVisible(true);
-    }
-
-    private class SaveActionListener implements ActionListener {
-
-        public void actionPerformed(ActionEvent e) {
+        refreshButton.addActionListener(ae -> {
+            controller.refreshAllImages();
+        });
+        saveButton.addActionListener(ae -> {
             try {
                 dbAdapter.save(controller);
                 controller.clearUpdates();
@@ -91,6 +83,41 @@ public class MainFrame extends JFrame {
                 System.out.println("Save did not run properly");
                 ex.printStackTrace();
             }
+        });
+        nextLevel.addActionListener(ae -> {
+            CommonUtils.setCurrentLevel(CommonUtils.getCurrentLevel() + 1);
+            getContentPane().remove(drawingPanel[0]);
+            drawingPanel[0] = buildPanelForCurrentLevel();
+            getContentPane().add(drawingPanel[0], gbcMainPanel);
+            levelLabel.setText(Integer.toString(CommonUtils.getCurrentLevel()));
+            pack();
+        });
+        previousLevel.addActionListener(ae -> {
+            CommonUtils.setCurrentLevel(CommonUtils.getCurrentLevel() - 1);
+            getContentPane().remove(drawingPanel[0]);
+            drawingPanel[0] = buildPanelForCurrentLevel();
+            getContentPane().add(drawingPanel[0], gbcMainPanel);
+            levelLabel.setText(Integer.toString(CommonUtils.getCurrentLevel()));
+            pack();
+        });
+
+        setVisible(true);
+    }
+
+    private JPanel buildPanelForCurrentLevel() {
+
+        try {
+            List<RootObject> data = dbAdapter.loadEditorObjectsForLevel(CommonUtils.getCurrentLevel());
+            DrawingPanel view = new DrawingPanel(data);
+            controller = new MouseMovementHandler(view, data);
+            view.addMouseListener(controller);
+            view.addMouseMotionListener(controller);
+            return view;
         }
+        catch(Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        return null;
     }
 }

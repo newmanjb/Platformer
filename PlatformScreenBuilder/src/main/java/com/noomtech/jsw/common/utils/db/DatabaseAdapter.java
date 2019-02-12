@@ -14,9 +14,9 @@ import java.util.List;
 public interface DatabaseAdapter {
 
 
-    List<GameObject> loadGameObjects() throws Exception;
+    List<GameObject> loadGameObjectsForCurrentLevel() throws Exception;
 
-    List<RootObject> loadEditorObjects() throws Exception;
+    List<RootObject> loadEditorObjectsForLevel(int level) throws Exception;
 
     void save(MouseMovementHandler controller) throws Exception;
 

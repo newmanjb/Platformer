@@ -1,6 +1,6 @@
 package com.noomtech.jsw.editor.building_blocks;
 
-import com.noomtech.jsw.common.utils.db.DBConstants;
+import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.editor.gui.DrawingSettings;
 import com.noomtech.jsw.editor.gui.Editable;
 import com.noomtech.jsw.editor.gui.Saveable;
@@ -21,7 +21,6 @@ public class RootObject implements Editable, Saveable {
     private boolean isSelected;
     private GameObject gameObject;
     private List<CollisionAreaEditableObject> collisionAreaEditableObjectList;
-    private static final String COLLECTION_NAME = DBConstants.COLLECTION_NAME_GAME_OBJECTS;
 
     public RootObject(GameObject gameObject) {
         setGameObject(gameObject);
@@ -113,7 +112,7 @@ public class RootObject implements Editable, Saveable {
     }
 
     public String getCollectionName() {
-        return COLLECTION_NAME;
+        return CommonUtils.currentGameObjectsCollection;
     }
 
     @Override

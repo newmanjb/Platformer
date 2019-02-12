@@ -3,7 +3,6 @@ package com.noomtech.jsw.common.utils.db;
 import com.datastax.driver.core.*;
 import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.editor.building_blocks.RootObject;
-import com.noomtech.jsw.editor.gui.DrawingPanel;
 import com.noomtech.jsw.editor.gui.userinput_processing.MouseMovementHandler;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 
@@ -48,7 +47,7 @@ public class CassandraDBAdapter implements DatabaseAdapter {
     }
 
     @Override
-    public List<GameObject> loadGameObjects() throws Exception {
+    public List<GameObject> loadGameObjectsForCurrentLevel() throws Exception {
         String selectStatement = "SELECT class,id,attributes,rectangle FROM jsw.COLLISION_AREAS";
         BoundStatement b = cassandraSession.prepare(selectStatement).bind();
         ResultSet rs = cassandraSession.execute(b);
@@ -139,7 +138,7 @@ public class CassandraDBAdapter implements DatabaseAdapter {
 //        }
     }
 
-    public List<RootObject> loadEditorObjects() throws Exception {
+    public List<RootObject> loadEditorObjectsForLevel(int level) throws Exception {
         String selectStatement = "SELECT class,id,attributes,rectangle FROM jsw.COLLISION_AREAS";
         BoundStatement b = cassandraSession.prepare(selectStatement).bind();
         ResultSet rs = cassandraSession.execute(b);

@@ -53,9 +53,9 @@ public class MongoDBAdapter implements DatabaseAdapter {
 
 
     @Override
-    public List<GameObject> loadGameObjects() throws Exception {
+    public List<GameObject> loadGameObjectsForCurrentLevel() throws Exception {
 
-        MongoCollection<Document> collection = getCollection(DBConstants.COLLECTION_NAME_GAME_OBJECTS);
+        MongoCollection<Document> collection = getCollection(CommonUtils.currentGameObjectsCollection);
         FindIterable<Document> documents = collection.find();
         List<GameObject> gameObjects = new ArrayList<>();
         documents.forEach(new Consumer<Document>() {
@@ -74,9 +74,9 @@ public class MongoDBAdapter implements DatabaseAdapter {
     }
 
     @Override
-    public List<RootObject> loadEditorObjects() throws Exception {
+    public List<RootObject> loadEditorObjectsForLevel(int level) {
 
-        MongoCollection<Document> collection = getCollection(DBConstants.COLLECTION_NAME_GAME_OBJECTS);
+        MongoCollection<Document> collection = getCollection(CommonUtils.getGameObjectCollectionNameForLevel(level));
         FindIterable<Document> documents = collection.find();
         List<RootObject> rootObjects = new ArrayList<>();
         documents.forEach(new Consumer<Document>() {
@@ -219,8 +219,6 @@ public class MongoDBAdapter implements DatabaseAdapter {
     }
 
     private MongoCollection<Document> getCollection(String name) {
-
-
 
         if(!collectionMap.containsKey(name)) {
             MongoIterable<String> collections = database.listCollectionNames();
