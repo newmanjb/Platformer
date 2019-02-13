@@ -1,5 +1,6 @@
 package com.noomtech.jsw.game.gamethread;
 
+import com.noomtech.jsw.game.frame.GameFrame;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.Lethal;
 import com.noomtech.jsw.game.gameobjects.objects.*;
@@ -25,6 +26,9 @@ import java.util.function.Consumer;
  */
 public class GamePanel extends JPanel {
 
+
+    //This receives notifications from this class
+    private GameFrame parent;
 
     /**
      * This handles collisions between objects during the game
@@ -76,9 +80,10 @@ public class GamePanel extends JPanel {
     private Thread nastiesThread;
 
 
-    public GamePanel(
+    public GamePanel(GameFrame parent,
             List<GameObject> gameObjects) {
 
+        this.parent = parent;
         this.platforms = new ArrayList<>();
         this.nasties = new ArrayList<>();
         this.staticLethalObjects = new ArrayList<>();
@@ -122,10 +127,12 @@ public class GamePanel extends JPanel {
         COLLISION_HANDLER = new CollisionHandler(staticObjects, 4000, jsw);
 
         setFocusable(true);
+
+        start();
     }
 
-    //Starts the game
-    public void start() {
+    //Starts the game panel
+    private void start() {
 
         synchronized (START_STOP_MUTEX) {
             if(started) {
@@ -142,8 +149,8 @@ public class GamePanel extends JPanel {
         }
     }
 
-    //Quits the game
-    public void stop() throws InterruptedException {
+    //Stops the game panel
+    private void stop() throws InterruptedException {
         synchronized (START_STOP_MUTEX) {
             if(!started) {
                 throw new IllegalArgumentException("Application has not been started");
@@ -168,7 +175,6 @@ public class GamePanel extends JPanel {
         jSWControlsHandler = new JSWControlsHandler(new LeftMover(), new RightMover(), new JumpMover());
         nastiesHandler = new NastiesHandler(this, nasties, COLLISION_HANDLER);
         addKeyListener(jSWControlsHandler);
-
         stopNastiesThread = false;
         nastiesThread = new Thread(nastiesHandler);
         nastiesThread.setName("Nasties Handler");
@@ -221,23 +227,23 @@ public class GamePanel extends JPanel {
     //Callback for when the the player has hit a finishing object
     public void playerHitFinishingObject(GameObject finishingObject) {
 
-        messagePainter.backgroundColor = Color.BLUE;
-        messagePainter.message = "WELL DONE!!";
-        painter = messagePainter;
+        try {
+            messagePainter.backgroundColor = Color.BLUE;
+            messagePainter.message = "WELL DONE!!";
+            painter = messagePainter;
 
-        try {stopMovementComponents();} catch(InterruptedException e) {
-            e.printStackTrace();
-            System.exit(1);
+            GameUtils.sleepAndCatchInterrupt(500);
+            messagePainter.backgroundColor = Color.GREEN;
+            GameUtils.sleepAndCatchInterrupt(500);
+            messagePainter.backgroundColor = Color.WHITE;
+
+            stop();
+
+            parent.onLevelFinished();
         }
-
-        GameUtils.sleepAndCatchInterrupt(500);
-        messagePainter.backgroundColor = Color.GREEN;
-        GameUtils.sleepAndCatchInterrupt(500);
-        messagePainter.backgroundColor = Color.WHITE;
-
-        setGameObjectsToStartingState();
-        painter = standardPainter;
-        startMovementComponents();
+        catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
