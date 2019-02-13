@@ -1,6 +1,7 @@
 package com.noomtech.jsw.game.gameobjects;
 
 import com.noomtech.jsw.common.utils.CommonUtils;
+import com.noomtech.jsw.game.gameobjects.objects.XorYMovingGameObject;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -25,7 +26,7 @@ import java.util.Map;
  *
  * @see GameObjectStateFrame
  * @see com.noomtech.jsw.game.gameobjects.objects.IdleGameObject
- * @see com.noomtech.jsw.game.gameobjects.objects.XorYMovingGameMovingObject
+ * @see XorYMovingGameObject
  * @see com.noomtech.jsw.game.gameobjects.objects.JSW
  * @author Joshua Newman
  */

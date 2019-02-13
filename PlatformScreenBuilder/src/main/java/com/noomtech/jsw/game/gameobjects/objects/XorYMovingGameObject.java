@@ -4,7 +4,7 @@ import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.GameObjectStateFrame;
 import com.noomtech.jsw.game.movement.CollisionHandler;
-import com.noomtech.jsw.game.movement.SelfControlledMovingObject;
+import com.noomtech.jsw.game.movement.ComputerControlledObject;
 
 import java.awt.*;
 import java.util.Map;
@@ -15,7 +15,7 @@ import java.util.Map;
  * determined from the value in the attributes under the key "{@link #ATTRIBUTE_AXIS_KEY}"
  * @author Joshua Newman
  */
-public abstract class XorYMovingGameMovingObject extends GameObject implements SelfControlledMovingObject {
+public abstract class XorYMovingGameObject extends GameObject implements ComputerControlledObject {
 
     //Which axis it moves along
     private static final String ATTRIBUTE_AXIS_KEY = "x_axis";
@@ -45,7 +45,7 @@ public abstract class XorYMovingGameMovingObject extends GameObject implements S
     private static final String[] ALL_STATES = new String[]{STATE};
 
 
-    public XorYMovingGameMovingObject(Rectangle area, Map<String,String> attributes, long id) {
+    public XorYMovingGameObject(Rectangle area, Map<String,String> attributes, long id) {
         super(area, attributes, id);
         setToStartingState();
     }
