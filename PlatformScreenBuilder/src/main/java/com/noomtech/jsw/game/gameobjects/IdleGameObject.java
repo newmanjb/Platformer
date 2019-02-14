@@ -1,4 +1,4 @@
-package com.noomtech.jsw.game.gameobjects.objects;
+package com.noomtech.jsw.game.gameobjects;
 
 import java.awt.*;
 import java.util.Map;

@@ -17,4 +17,9 @@ public class Nasty extends XorYMovingGameObject implements Lethal {
     public Nasty(Rectangle area, Map<String,String> attributes, long id) {
         super(area, attributes, id);
     }
+
+    protected boolean hittingPlayerIsShowstopper() {
+        return true;
+    }
+
 }

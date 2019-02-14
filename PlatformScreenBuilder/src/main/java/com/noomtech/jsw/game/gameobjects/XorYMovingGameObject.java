@@ -1,4 +1,4 @@
-package com.noomtech.jsw.game.gameobjects.objects;
+package com.noomtech.jsw.game.gameobjects;
 
 import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.game.handlers.CollisionHandler;

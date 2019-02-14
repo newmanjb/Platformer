@@ -2,6 +2,8 @@ package com.noomtech.jsw.game.gameobjects.concrete_objects;
 
 import com.noomtech.jsw.game.gameobjects.IdleGameObject;
 
+import com.noomtech.jsw.game.gameobjects.IdleGameObject;
+
 import java.awt.*;
 import java.util.Map;
 
