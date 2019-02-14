@@ -1,7 +1,7 @@
 package com.noomtech.jsw.game.gameobjects;
 
 import com.noomtech.jsw.common.utils.CommonUtils;
-import com.noomtech.jsw.game.gameobjects.objects.XorYMovingGameObject;
+import com.noomtech.jsw.game.handlers.CollisionHandler;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -16,7 +16,7 @@ import java.util.Map;
  * Represents an object on the screen e.g. player, platform.
  * A game object can have one or more states.  Each state corresponds to what it's currently
  * doing e.g. the player could be walking left or walking right.  Static objects like platforms only have one state,
- * since they are technically only ever doing one thing i.e. just sitting there (see {@link com.noomtech.jsw.game.gameobjects.objects.IdleGameObject}.
+ * since they are technically only ever doing one thing i.e. just sitting there (see {@link com.noomtech.jsw.game.gameobjects.IdleGameObject}.
  * The states are used, among other things, to paint the appropriate image for the object on the screen e.g. if the player is
  * in the "walking left" state then the game knows to use the animation frames representing the player walking left.
  *
@@ -25,7 +25,7 @@ import java.util.Map;
  * in "C:/game/my_config/images/JSW/left", and for the player moving right they could be in "C:/game/my_config/images/JSW/right"
  *
  * @see GameObjectStateFrame
- * @see com.noomtech.jsw.game.gameobjects.objects.IdleGameObject
+ * @see com.noomtech.jsw.game.gameobjects.IdleGameObject
  * @see XorYMovingGameObject
  * @see com.noomtech.jsw.game.gameobjects.concrete_objects.JSW
  * @author Joshua Newman

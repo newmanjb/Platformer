@@ -9,7 +9,8 @@ import com.noomtech.jsw.game.handlers.CollisionHandler;
  */
 public interface ComputerControlledObject {
     /**
-     * Called by the application logic.  Move the object and return true if the move has hit the player
+     * Called by the application logic.  Move the object and return true if the move has resulted in the object hitting the player
      */
     boolean doMove(CollisionHandler collisionHandler);
+    void setToStartingState();
 }
