@@ -1,7 +1,7 @@
-package com.noomtech.jsw.game.movement;
+package com.noomtech.jsw.game.handlers;
 
 import com.noomtech.jsw.game.gameobjects.GameObject;
-import com.noomtech.jsw.game.gameobjects.objects.JSW;
+import com.noomtech.jsw.game.gameobjects.concrete_objects.JSW;
 
 import java.awt.*;
 import java.util.List;
@@ -227,5 +227,24 @@ public class CollisionHandler {
             }
         }
         return null;
+    }
+
+    private static class CollisionAreaToGameObject {
+
+        private Rectangle collisionArea;
+        private GameObject gameObject;
+
+        public CollisionAreaToGameObject(Rectangle collisionArea, GameObject gameObject) {
+            this.collisionArea = collisionArea;
+            this.gameObject = gameObject;
+        }
+
+        public Rectangle getCollisionArea() {
+            return collisionArea;
+        }
+
+        public GameObject getGameObject() {
+            return gameObject;
+        }
     }
 }

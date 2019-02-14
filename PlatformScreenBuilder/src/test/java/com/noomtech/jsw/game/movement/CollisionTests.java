@@ -1,11 +1,6 @@
 package com.noomtech.jsw.game.movement;
 
 import com.noomtech.jsw.game.gameobjects.GameObject;
-import com.noomtech.jsw.game.gameobjects.objects.Nasty;
-import com.noomtech.jsw.game.gameobjects.objects.Platform;
-import org.junit.Test;
-
-import java.awt.*;
 
 public class CollisionTests {
 

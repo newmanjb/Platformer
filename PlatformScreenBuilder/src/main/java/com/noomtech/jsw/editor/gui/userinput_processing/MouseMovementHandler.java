@@ -8,7 +8,7 @@ import com.noomtech.jsw.editor.gui.DrawingPanel;
 import com.noomtech.jsw.editor.gui.Editable;
 import com.noomtech.jsw.editor.gui.Saveable;
 import com.noomtech.jsw.game.gameobjects.GameObject;
-import com.noomtech.jsw.game.gameobjects.objects.Platform;
+import com.noomtech.jsw.game.gameobjects.concrete_objects.Platform;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;

@@ -1,17 +1,14 @@
 package com.noomtech.jsw.game.gameobjects.objects;
 
-import com.noomtech.jsw.game.gameobjects.GameObject;
-import com.noomtech.jsw.game.gameobjects.GameObjectStateFrame;
-
 import java.awt.*;
 import java.util.Map;
 
 
 /**
- * Represents an object that doesn't move, isn't animated and that has only one state ("nade) e.g. a static platform
+ * Represents an object that doesn't move, isn't animated and that has only one state ("nada") e.g. a static platform
  * @author Joshua Newman
  */
-public class IdleGameObject extends GameObject {
+public class IdleGameObject extends GameObject implements Static {
 
 
     public static final String ONLY_STATE_NAME = "nada";

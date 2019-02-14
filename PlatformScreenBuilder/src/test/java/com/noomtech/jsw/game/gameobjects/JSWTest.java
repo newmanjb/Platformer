@@ -1,6 +1,6 @@
 package com.noomtech.jsw.game.gameobjects;
 
-import com.noomtech.jsw.game.gameobjects.objects.JSW;
+import com.noomtech.jsw.game.gameobjects.concrete_objects.JSW;
 import org.junit.Test;
 
 import java.awt.*;

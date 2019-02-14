@@ -1,6 +1,7 @@
 package com.noomtech.jsw.editor;
 
 import com.noomtech.jsw.editor.gui.MainFrame;
+import com.noomtech.jsw.game.Game_Main;
 
 
 /**
@@ -12,7 +13,7 @@ import com.noomtech.jsw.editor.gui.MainFrame;
  * This is also where all the images for the game objects will be stored.
  *
  * @see com.noomtech.jsw.common.utils.db.DatabaseAdapter
- * @see com.noomtech.jsw.game.Game
+ * @see Game_Main
  * @see com.noomtech.jsw.common.utils.CommonUtils
  */
 public class Main {

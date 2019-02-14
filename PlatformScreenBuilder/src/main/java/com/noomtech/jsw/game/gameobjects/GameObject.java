@@ -27,7 +27,7 @@ import java.util.Map;
  * @see GameObjectStateFrame
  * @see com.noomtech.jsw.game.gameobjects.objects.IdleGameObject
  * @see XorYMovingGameObject
- * @see com.noomtech.jsw.game.gameobjects.objects.JSW
+ * @see com.noomtech.jsw.game.gameobjects.concrete_objects.JSW
  * @author Joshua Newman
  */
 public abstract class GameObject {
@@ -133,7 +133,7 @@ public abstract class GameObject {
      * If a collision area from one object is touching the collision are of another object then the two objects are
      * considered as touching each other by the game
      * @return The collision areas of this game object
-     * @see com.noomtech.jsw.game.movement.CollisionHandler
+     * @see CollisionHandler
      */
     public Rectangle[] getCollisionAreas() {
         return collisionAreas;

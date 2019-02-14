@@ -1,10 +1,7 @@
 package com.noomtech.jsw.game.gameobjects.objects;
 
 import com.noomtech.jsw.common.utils.CommonUtils;
-import com.noomtech.jsw.game.gameobjects.GameObject;
-import com.noomtech.jsw.game.gameobjects.GameObjectStateFrame;
-import com.noomtech.jsw.game.movement.CollisionHandler;
-import com.noomtech.jsw.game.movement.ComputerControlledObject;
+import com.noomtech.jsw.game.handlers.CollisionHandler;
 
 import java.awt.*;
 import java.util.Map;
@@ -76,9 +73,6 @@ public abstract class XorYMovingGameObject extends GameObject implements Compute
         currentFrameIdx = 0;
     }
 
-    /**
-     * Move the object and return true if the move has hit the player
-     */
     public boolean doMove(CollisionHandler collisionHandler) {
 
         for(int i = 0 ; i < numPixelsPerMovement; i++) {
