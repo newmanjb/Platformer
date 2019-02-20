@@ -2,9 +2,12 @@ package com.noomtech.jsw.editor.gui;
 
 import com.noomtech.jsw.editor.building_blocks.RootObject;
 import com.noomtech.jsw.editor.gui.userinput_processing.MouseMovementHandler;
+import com.noomtech.jsw.editor.utils.EditorUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.List;
 
 
@@ -23,18 +26,29 @@ public class DrawingPanel extends JPanel {
 
     private DrawingSettings drawingSettings = new DrawingSettings();
 
+    private BufferedImage backgroundImage;
 
-    DrawingPanel(List<RootObject> rootObjects) {
+    DrawingPanel(List<RootObject> rootObjects) throws IOException {
         this.rootObjects = rootObjects;
+        refreshBackgroundFile();
     }
 
+    public void refreshBackgroundFile() throws IOException {
+        backgroundImage = EditorUtils.getBackgroundImage();
+        repaint();
+    }
 
     @Override
     public void paint(Graphics g) {
         super.paint(g);
-        g.setColor(Color.WHITE);
         Dimension size = getSize();
-        g.fillRect(0,0,size.width,size.height);
+        if(backgroundImage == null) {
+            g.setColor(Color.WHITE);
+            g.fillRect(0, 0, size.width, size.height);
+        }
+        else {
+            g.drawImage(backgroundImage, 0, 0, size.width, size.height, null);
+        }
 
         for(Editable c : rootObjects) {
             Rectangle r = c.getArea();

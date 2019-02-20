@@ -20,8 +20,9 @@ import java.util.stream.Collectors;
 
 public class CommonUtils {
 
+    public static final String PROPERTY_NAME_CONFIG = "config";
 
-    private static final String CONFIG_FOLDER_PATH = System.getProperty("config");
+    private static final String CONFIG_FOLDER_PATH = System.getProperty(PROPERTY_NAME_CONFIG);
 
     //The image directory for the current level
     private static File imagesFolderFile;

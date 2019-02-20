@@ -7,6 +7,7 @@ import com.noomtech.jsw.editor.building_blocks.RootObject;
 import com.noomtech.jsw.editor.gui.DrawingPanel;
 import com.noomtech.jsw.editor.gui.Editable;
 import com.noomtech.jsw.editor.gui.Saveable;
+import com.noomtech.jsw.editor.utils.EditorUtils;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.concrete_objects.Platform;
 
@@ -419,6 +420,63 @@ public class MouseMovementHandler extends MouseAdapter {
         }
     }
 
+    private class SetBackgroundAction implements Action {
+
+
+        private final Set<String> ACCEPTED_EXTENSIONS = new HashSet();
+        {
+            ACCEPTED_EXTENSIONS.add(".png");
+            ACCEPTED_EXTENSIONS.add(".jpg");
+            ACCEPTED_EXTENSIONS.add(".JPG");
+            ACCEPTED_EXTENSIONS.add(".jpeg");
+            ACCEPTED_EXTENSIONS.add(".JPEG");
+        }
+        private final FileFilter IMAGE_FILE_FILTER = new FileFilter() {
+            public boolean accept(File f) {
+                String fileName = f.getName();
+                int indexOfDot = fileName.indexOf(".");
+                if(indexOfDot > -1) {
+                    String extension = fileName.substring(fileName.lastIndexOf("."), fileName.length());
+                    return ACCEPTED_EXTENSIONS.contains(extension);
+                }
+                return f.isDirectory();
+            }
+            public String getDescription() {
+                return "Image Files";
+            }
+        };
+
+        public Object getValue(String key) { return null; }
+        public void putValue(String key, Object value) { }
+        public void setEnabled(boolean b) { }
+        public boolean isEnabled() { return true; }
+        public void addPropertyChangeListener(PropertyChangeListener listener) { }
+        public void removePropertyChangeListener(PropertyChangeListener listener) { }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+
+            JFileChooser jFileChooser = new JFileChooser();
+            jFileChooser.setMultiSelectionEnabled(false);
+            jFileChooser.setAcceptAllFileFilterUsed(false);
+            jFileChooser.setDialogTitle("Choose Image File For Background");
+            jFileChooser.addChoosableFileFilter(IMAGE_FILE_FILTER);
+            jFileChooser.setCurrentDirectory(CommonUtils.MY_IMAGES_FOLDER);
+
+            if(jFileChooser.showDialog(null, null) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    File newImageFile = jFileChooser.getSelectedFile();
+                    EditorUtils.setBackgroundFile(newImageFile);
+                    VIEW.refreshBackgroundFile();
+                }
+                catch(Exception ex) {
+                    System.out.println("Cannot set background");
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
     private class CollisionAreaMenuPopup implements ReleaseAction {
         @Override
         public void released(Editable pressedOn, int buttonPressed, Point pressedAt, MouseEvent e) {
@@ -450,6 +508,11 @@ public class MouseMovementHandler extends MouseAdapter {
                 itemList.add(pasteMenuItem);
             }
 
+            JMenuItem pasteMenuItem = new JMenuItem();
+            pasteMenuItem.addActionListener(new SetBackgroundAction());
+            pasteMenuItem.setText("Set Background");
+            itemList.add(pasteMenuItem);
+
             JPopupMenu popupMenu = new JPopupMenu();
             for(JMenuItem jMenuItem : itemList) {
                 popupMenu.add(jMenuItem);
@@ -472,8 +535,6 @@ public class MouseMovementHandler extends MouseAdapter {
             return false;
         }
     }
-
-
 
     private class AttributesPopup extends JDialog {
         AttributesPopup(final RootObject rootObject) {
