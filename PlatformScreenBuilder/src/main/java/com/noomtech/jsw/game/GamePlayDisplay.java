@@ -239,7 +239,7 @@ public class GamePlayDisplay extends JPanel {
 
         public void accept(Graphics g) {
 
-            g.setColor(backgroundColor);
+            g.setColor(Color.lightGray);
             Dimension screenSize = getSize();
             //@todo - if there is an issue with slowness then it could be that the static objects like the platforms are being
             //repainted every time when they don't need to be.  See the GameObject.doPainting and the static game object's paintObject methods.  There is

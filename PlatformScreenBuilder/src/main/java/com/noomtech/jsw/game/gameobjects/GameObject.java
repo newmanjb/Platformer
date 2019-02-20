@@ -81,7 +81,7 @@ public abstract class GameObject {
                 for (int i = 0; i < theGameObjectStates.length; i++) {
                     BufferedImage b = ImageIO.read(files[i]);
                     theGameObjectStates[i] = (g, r) -> {
-                        g.drawImage(b, r.x, r.y, r.width, r.height, Color.WHITE, null);
+                        g.drawImage(b, r.x, r.y, r.width, r.height, null);
                     };
                 }
                 stateNameToStateObjectMap.put(entries.getKey(), theGameObjectStates);
