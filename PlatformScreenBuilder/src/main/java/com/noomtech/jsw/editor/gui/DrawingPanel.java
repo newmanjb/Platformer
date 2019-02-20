@@ -1,8 +1,8 @@
 package com.noomtech.jsw.editor.gui;
 
+import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.editor.building_blocks.RootObject;
 import com.noomtech.jsw.editor.gui.userinput_processing.MouseMovementHandler;
-import com.noomtech.jsw.editor.utils.EditorUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,7 +34,7 @@ public class DrawingPanel extends JPanel {
     }
 
     public void refreshBackgroundFile() throws IOException {
-        backgroundImage = EditorUtils.getBackgroundImage();
+        backgroundImage = CommonUtils.getBackgroundImage();
         repaint();
     }
 

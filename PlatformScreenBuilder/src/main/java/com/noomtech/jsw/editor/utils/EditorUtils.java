@@ -40,16 +40,4 @@ public class EditorUtils {
         Files.copy(Paths.get(imageFile.toURI()), Paths.get(backgroundFileDestination.getAbsolutePath() + File.separator +
                 imageFile.getName()));
     }
-
-    public static BufferedImage getBackgroundImage() throws IOException {
-        File backgroundFileFolder = new File(CONFIG_FOLDER_PATH + File.separator + "levels" + File.separator +
-                CommonUtils.getGameObjectCollectionNameForLevel(CommonUtils.getCurrentLevel()) + File.separator + "images" + File.separator + "background");
-        if(!backgroundFileFolder.exists()) {
-            return null;
-        }
-        else if(backgroundFileFolder.listFiles().length != 1) {
-            throw new IllegalStateException("Only supposed to have one background file.");
-        }
-        return ImageIO.read(backgroundFileFolder.listFiles()[0]);
-    }
 }

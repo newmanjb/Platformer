@@ -3,10 +3,12 @@ package com.noomtech.jsw.common.utils;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.concrete_objects.JSW;
 
+import javax.imageio.ImageIO;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.Rectangle;
 import java.awt.Point;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -216,5 +218,16 @@ public class CommonUtils {
 
     public static File getImagesFolderFor(GameObject go) {
         return new File(imagesFolderString + go.getImageFolderName());
+    }
+
+    public static BufferedImage getBackgroundImage() throws IOException {
+        File backgroundFileFolder = new File(imagesFolderString + File.separator + "background");
+        if(!backgroundFileFolder.exists()) {
+            return null;
+        }
+        else if(backgroundFileFolder.listFiles().length != 1) {
+            throw new IllegalStateException("Only supposed to have one background file.");
+        }
+        return ImageIO.read(backgroundFileFolder.listFiles()[0]);
     }
 }

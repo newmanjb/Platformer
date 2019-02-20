@@ -1,5 +1,6 @@
 package com.noomtech.jsw.game;
 
+import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.Lethal;
 import com.noomtech.jsw.game.gameobjects.Static;
@@ -13,6 +14,8 @@ import com.noomtech.jsw.game.utils.GameUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -62,9 +65,11 @@ public class GamePlayDisplay extends JPanel {
     private ComputerControlledMovementHandler computerControlledMovementHandler;
     private final List<ComputerControlledObject> computerControlledGameObjects = new ArrayList<>();
 
+    private final BufferedImage BACKGROUND_IMAGE;
+
 
     public GamePlayDisplay(GameFrame parent,
-                           List<GameObject> gameObjects) {
+                           List<GameObject> gameObjects) throws IOException {
 
         this.GAME_FRAME = parent;
         this.ALL_GAME_OBJECTS_EXCEPT_JSW = gameObjects;
@@ -95,6 +100,7 @@ public class GamePlayDisplay extends JPanel {
         JSW = tempJSW;
         //Build the collision handler using the game objects that don't move
         COLLISION_HANDLER = new CollisionHandler(staticGameObjectsForCollisionHandler, 4000, JSW);
+        BACKGROUND_IMAGE = CommonUtils.getBackgroundImage();
 
         setFocusable(true);
 
@@ -239,15 +245,21 @@ public class GamePlayDisplay extends JPanel {
 
         public void accept(Graphics g) {
 
-            g.setColor(Color.lightGray);
-            Dimension screenSize = getSize();
             //@todo - if there is an issue with slowness then it could be that the static objects like the platforms are being
             //repainted every time when they don't need to be.  See the GameObject.doPainting and the static game object's paintObject methods.  There is
             //commented out code in these methods that only paints the object once.  This didn't work when it was implemented because the
             //object would get painted once and then, when the next iteration of the game loop was called and this code here was called,
-            //they would get wiped out by the rectangle drawn below and then never painted again.  So if there is slowness then this code could be reinstated and
+            //they would get wiped out by the background drawn below and then never painted again.  So if there is slowness then this code could be reinstated and
             //this rectangle should never be drawn.  Instead the moving objects only could be rubbed out and repainted.
-            g.fillRect(0, 0, screenSize.width, screenSize.height);
+            Dimension screenSize = getSize();
+            if(BACKGROUND_IMAGE == null) {
+                g.setColor(Color.lightGray);
+                g.fillRect(0, 0, screenSize.width, screenSize.height);
+            }
+            else {
+                g.drawImage(BACKGROUND_IMAGE, 0, 0, screenSize.width, screenSize.height, null);
+            }
+
 
             JSW.doPainting(g);
 
