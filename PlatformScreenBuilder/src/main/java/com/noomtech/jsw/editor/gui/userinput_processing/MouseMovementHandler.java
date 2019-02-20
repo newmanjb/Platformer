@@ -341,7 +341,7 @@ public class MouseMovementHandler extends MouseAdapter {
             jFileChooser.setDialogTitle("Choose Image File(s)");
             jFileChooser.addChoosableFileFilter(IMAGE_FILE_FILTER);
             jFileChooser.setAcceptAllFileFilterUsed(false);
-            jFileChooser.setCurrentDirectory(CommonUtils.MY_IMAGES_FOLDER);
+            jFileChooser.setCurrentDirectory(EditorUtils.MY_IMAGES_FOLDER);
 
             if(jFileChooser.showDialog(null, null) == JFileChooser.APPROVE_OPTION) {
 
@@ -367,7 +367,7 @@ public class MouseMovementHandler extends MouseAdapter {
 
                 if(chosenStateForImage != null) {
                     try {
-                        CommonUtils.addImageOverrides(rootObjectPressedOn.getGameObject(), chosenStateForImage, chosenImageFiles);
+                        EditorUtils.addImageOverrides(rootObjectPressedOn.getGameObject(), chosenStateForImage, chosenImageFiles);
                         rootObjectPressedOn.getGameObject().onImageUpdated();
                         VIEW.repaint();
                     }
@@ -461,7 +461,7 @@ public class MouseMovementHandler extends MouseAdapter {
             jFileChooser.setAcceptAllFileFilterUsed(false);
             jFileChooser.setDialogTitle("Choose Image File For Background");
             jFileChooser.addChoosableFileFilter(IMAGE_FILE_FILTER);
-            jFileChooser.setCurrentDirectory(CommonUtils.MY_IMAGES_FOLDER);
+            jFileChooser.setCurrentDirectory(EditorUtils.MY_IMAGES_FOLDER);
 
             if(jFileChooser.showDialog(null, null) == JFileChooser.APPROVE_OPTION) {
                 try {
@@ -540,7 +540,7 @@ public class MouseMovementHandler extends MouseAdapter {
         AttributesPopup(final RootObject rootObject) {
             super((JFrame)null, "Attributes for game object " + rootObject.getId(), true);
             setLayout(new BorderLayout());
-            JComboBox<String> classBox = new JComboBox(CommonUtils.SELECTABLE_GAME_OBJECTS);
+            JComboBox<String> classBox = new JComboBox(EditorUtils.SELECTABLE_GAME_OBJECTS);
             JTextArea textArea = new JTextArea();
             JButton saveButton = new JButton("Save");
             saveButton.addActionListener(ae -> {
@@ -559,7 +559,7 @@ public class MouseMovementHandler extends MouseAdapter {
                 }
                 //The type of game object is represented as the full name of the underlying class so as it can be instantiated
                 //using reflection when it's loaded
-                String theClass = CommonUtils.SELECTABLE_GAME_OBJECT_PACKAGE + "." + classBox.getSelectedItem();
+                String theClass = EditorUtils.SELECTABLE_GAME_OBJECT_PACKAGE + "." + classBox.getSelectedItem();
                 GameObject newGameObject;
                 GameObject oldGameObject = rootObject.getGameObject();
                 try {

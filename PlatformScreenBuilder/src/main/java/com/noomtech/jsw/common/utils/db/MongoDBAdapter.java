@@ -14,6 +14,7 @@ import com.noomtech.jsw.common.utils.GlobalConfig;
 import com.noomtech.jsw.editor.building_blocks.RootObject;
 import com.noomtech.jsw.editor.gui.Saveable;
 import com.noomtech.jsw.editor.gui.userinput_processing.MouseMovementHandler;
+import com.noomtech.jsw.editor.utils.EditorUtils;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import org.bson.BsonArray;
 import org.bson.BsonDocument;
@@ -76,7 +77,7 @@ public class MongoDBAdapter implements DatabaseAdapter {
     @Override
     public List<RootObject> loadEditorObjectsForLevel(int level) {
 
-        MongoCollection<Document> collection = getCollection(CommonUtils.getGameObjectCollectionNameForLevel(level));
+        MongoCollection<Document> collection = getCollection(EditorUtils.getGameObjectCollectionNameForLevel(level));
         FindIterable<Document> documents = collection.find();
         List<RootObject> rootObjects = new ArrayList<>();
         documents.forEach(new Consumer<Document>() {

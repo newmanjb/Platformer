@@ -1,7 +1,6 @@
 package com.noomtech.jsw.common.utils;
 
 import com.noomtech.jsw.game.gameobjects.GameObject;
-import com.noomtech.jsw.game.gameobjects.concrete_objects.JSW;
 
 import javax.imageio.ImageIO;
 import java.awt.Dimension;
@@ -14,8 +13,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,68 +46,15 @@ public class CommonUtils {
     //The collection that holds the game objects for the current level
     public static String currentGameObjectsCollection;
 
-    //Should point to a folder where the user puts their images.  For convenience in the GUI.
-    public static final File MY_IMAGES_FOLDER = new File(GlobalConfig.getInstance().getProperty("my_images_folder"));
-    public static final String SELECTABLE_GAME_OBJECT_PACKAGE = JSW.class.getPackage().getName();
-    public static final String SELECTABLE_GAME_OBJECT_DIRECTORY = SELECTABLE_GAME_OBJECT_PACKAGE.replace(".", File.separator);
-    //The list of game objects available for selection in the editor.
-    public static final String[] SELECTABLE_GAME_OBJECTS = getGameObjectOptions();
-    //The size of the screen
-    public static final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
-    public static final BigDecimal SCREEN_SIZE_WIDTH = new BigDecimal(SCREEN_SIZE.width);
-    public static final BigDecimal SCREEN_SIZE_HEIGHT = new BigDecimal(SCREEN_SIZE.height);
+    public static volatile boolean gameIsRunning;
 
     private static final MathContext MC_CONVERT_TO_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
     private static final MathContext MC_CONVERT_FROM_FRACTION_ROUNDING = new MathContext(15,RoundingMode.HALF_UP);
+    //The size of the screen
+    private static final Dimension SCREEN_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
+    public static final BigDecimal SCREEN_SIZE_WIDTH = new BigDecimal(SCREEN_SIZE.width);
+    public static final BigDecimal SCREEN_SIZE_HEIGHT = new BigDecimal(SCREEN_SIZE.height);
 
-    public static volatile boolean gameIsRunning;
-
-
-    public static final String getGameObjectCollectionNameForLevel(int level) {
-        return "level" + level;
-    }
-
-    private static String[] getGameObjectOptions() {
-        
-        //Go through the files in the game object package and construct each one's full name
-        
-        String classDirectory = new File(JSW.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getPath();
-        String packagePath = new StringBuilder(classDirectory).append(
-                File.separator).append(SELECTABLE_GAME_OBJECT_DIRECTORY).toString();
-        File[] classNames = new File(packagePath).listFiles();
-        String[] gameObjectClasses = new String[classNames.length];
-        for (int i = 0; i < gameObjectClasses.length; i++) {
-            gameObjectClasses[i] = classNames[i].getName().subSequence(0, classNames[i].getName().indexOf(".")).toString();
-        }
-        return gameObjectClasses;
-    }
-
-    /**
-     * Convertes the width and location of the given rectangle to proportions of the screen size.
-     * @return An array containing the converted values as follows [X,Y,WIDTH,HEIGHT]
-     */
-    public static BigDecimal[] convertToProportionOfScreenSize(Rectangle rectangleToConvert) {
-        BigDecimal[] convertedVals = new BigDecimal[4];
-        Point location = rectangleToConvert.getLocation();
-        convertedVals[0] = new BigDecimal(location.x).divide(SCREEN_SIZE_WIDTH, MC_CONVERT_TO_FRACTION_ROUNDING);
-        convertedVals[1] = new BigDecimal(location.y).divide(SCREEN_SIZE_HEIGHT, MC_CONVERT_TO_FRACTION_ROUNDING);
-        convertedVals[2] = new BigDecimal(rectangleToConvert.width).divide(SCREEN_SIZE_WIDTH, MC_CONVERT_TO_FRACTION_ROUNDING);
-        convertedVals[3] = new BigDecimal(rectangleToConvert.height).divide(SCREEN_SIZE_HEIGHT, MC_CONVERT_TO_FRACTION_ROUNDING);
-
-        return convertedVals;
-    }
-
-    /**
-     * The reverse of {@link #convertToProportionOfScreenSize(Rectangle)}
-     */
-    public static Rectangle convertFromProportionOfScreenSize(BigDecimal startX, BigDecimal startY, BigDecimal endX, BigDecimal endY) {
-        Rectangle converted = new Rectangle();
-        converted.x = startX.multiply(SCREEN_SIZE_WIDTH, MC_CONVERT_FROM_FRACTION_ROUNDING).setScale(0, RoundingMode.HALF_UP).intValue();
-        converted.y = startY.multiply(SCREEN_SIZE_HEIGHT, MC_CONVERT_FROM_FRACTION_ROUNDING).setScale(0, RoundingMode.HALF_UP).intValue();
-        converted.width = endX.subtract(startX).multiply(SCREEN_SIZE_WIDTH, MC_CONVERT_FROM_FRACTION_ROUNDING).setScale(0, RoundingMode.HALF_UP).intValue();
-        converted.height = endY.subtract(startY).multiply(SCREEN_SIZE_HEIGHT, MC_CONVERT_FROM_FRACTION_ROUNDING).setScale(0, RoundingMode.HALF_UP).intValue();
-        return converted;
-    }
 
     /**
      * Gets the image files from the {@link #imagesFolderString} directory
@@ -187,35 +131,6 @@ public class CommonUtils {
         return existing;
     }
 
-    /**
-     * Copy the image files provided to the state directory for the state provided of the game object provided.  The image files
-     * will be stored in a subdirectory named after the game object's id e.g. for a platform on level 2 with id 12345, having the images for its
-     * "nada" state overridden with an image file img1.png would result in the following file being created
-     *
-     * CONFIG_DIR/levels/level2/images/Platform/nada/12345/img1.png
-     *
-     * If the subdirectory 12345 already existed then the file in it would be deleted before the new one was copied over.
-     */
-    public static void addImageOverrides(GameObject gameObject, String stateToOverride, File[] images) throws IOException {
-        File overrideDirectory = new File(imagesFolderString + gameObject.getImageFolderName() +
-                File.separator + stateToOverride + File.separator + gameObject.getId());
-        if(overrideDirectory.exists()) {
-            //Remove everything in there
-            for(File f : overrideDirectory.listFiles()) {
-                f.delete();
-            }
-        }
-        else {
-            overrideDirectory.mkdir();
-        }
-
-        String overrideDirectoryString = overrideDirectory.getAbsolutePath();
-        for(File imageFile : images) {
-            Files.copy(Paths.get(imageFile.toURI()), Paths.get(overrideDirectoryString + File.separator +
-                    imageFile.getName()));
-        }
-    }
-
     public static File getImagesFolderFor(GameObject go) {
         return new File(imagesFolderString + go.getImageFolderName());
     }
@@ -229,5 +144,36 @@ public class CommonUtils {
             throw new IllegalStateException("Only supposed to have one background file.");
         }
         return ImageIO.read(backgroundFileFolder.listFiles()[0]);
+    }
+
+    public static String getImagesFolderString() {
+        return imagesFolderString;
+    }
+
+    /**
+     * Convertes the width and location of the given rectangle to proportions of the screen size.
+     * @return An array containing the converted values as follows [X,Y,WIDTH,HEIGHT]
+     */
+    public static BigDecimal[] convertToProportionOfScreenSize(Rectangle rectangleToConvert) {
+        BigDecimal[] convertedVals = new BigDecimal[4];
+        Point location = rectangleToConvert.getLocation();
+        convertedVals[0] = new BigDecimal(location.x).divide(SCREEN_SIZE_WIDTH, MC_CONVERT_TO_FRACTION_ROUNDING);
+        convertedVals[1] = new BigDecimal(location.y).divide(SCREEN_SIZE_HEIGHT, MC_CONVERT_TO_FRACTION_ROUNDING);
+        convertedVals[2] = new BigDecimal(rectangleToConvert.width).divide(SCREEN_SIZE_WIDTH, MC_CONVERT_TO_FRACTION_ROUNDING);
+        convertedVals[3] = new BigDecimal(rectangleToConvert.height).divide(SCREEN_SIZE_HEIGHT, MC_CONVERT_TO_FRACTION_ROUNDING);
+
+        return convertedVals;
+    }
+
+    /**
+     * The reverse of {@link #convertToProportionOfScreenSize(Rectangle)}
+     */
+    public static Rectangle convertFromProportionOfScreenSize(BigDecimal startX, BigDecimal startY, BigDecimal endX, BigDecimal endY) {
+        Rectangle converted = new Rectangle();
+        converted.x = startX.multiply(SCREEN_SIZE_WIDTH, MC_CONVERT_FROM_FRACTION_ROUNDING).setScale(0, RoundingMode.HALF_UP).intValue();
+        converted.y = startY.multiply(SCREEN_SIZE_HEIGHT, MC_CONVERT_FROM_FRACTION_ROUNDING).setScale(0, RoundingMode.HALF_UP).intValue();
+        converted.width = endX.subtract(startX).multiply(SCREEN_SIZE_WIDTH, MC_CONVERT_FROM_FRACTION_ROUNDING).setScale(0, RoundingMode.HALF_UP).intValue();
+        converted.height = endY.subtract(startY).multiply(SCREEN_SIZE_HEIGHT, MC_CONVERT_FROM_FRACTION_ROUNDING).setScale(0, RoundingMode.HALF_UP).intValue();
+        return converted;
     }
 }
