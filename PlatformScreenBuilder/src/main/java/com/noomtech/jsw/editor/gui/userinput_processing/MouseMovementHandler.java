@@ -1,25 +1,18 @@
 package com.noomtech.jsw.editor.gui.userinput_processing;
 
-import com.noomtech.jsw.common.utils.CommonUtils;
 import com.noomtech.jsw.common.utils.db.DBupdateType;
 import com.noomtech.jsw.editor.building_blocks.CollisionAreaEditableObject;
 import com.noomtech.jsw.editor.building_blocks.RootObject;
 import com.noomtech.jsw.editor.gui.DrawingPanel;
 import com.noomtech.jsw.editor.gui.Editable;
 import com.noomtech.jsw.editor.gui.Saveable;
-import com.noomtech.jsw.editor.utils.EditorUtils;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.concrete_objects.Platform;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -32,16 +25,16 @@ public class MouseMovementHandler extends MouseAdapter {
 
 
     private Point pressedAt;
-    private RootObject rootObjectPressedOn;
+    RootObject rootObjectPressedOn;
     private CollisionAreaEditableObject collisionAreaPressedOn;
     private int buttonPressed;
-    private Mode currentMode = Mode.NORMAL;
+    Mode currentMode = Mode.NORMAL;
     //If something has been copied it is held here ready to be pasted
-    private RootObject copied;
+    RootObject copied;
 
     private static final String NEWLINE = System.getProperty("line.separator");
 
-    private enum Mode {
+    enum Mode {
         NORMAL,
         COLLISION_AREA;
     }
@@ -55,10 +48,10 @@ public class MouseMovementHandler extends MouseAdapter {
     private final ReleaseAction addEditable = new AddEditable();
     private final ReleaseAction updateEditable = new UpdateEditable();
 
-    private final Action overrideDefaultImgAction = new OverrideDefaultImgAction();
+    private final Action overrideDefaultImgAction = new OverrideDefaultImgAction(this);
 
-    private final DrawingPanel VIEW;
-    private final List<RootObject> MODEL;
+    final DrawingPanel VIEW;
+    final List<RootObject> MODEL;
 
 
     public MouseMovementHandler(DrawingPanel view, List<RootObject> model) {
@@ -163,7 +156,7 @@ public class MouseMovementHandler extends MouseAdapter {
             if(currentMode == Mode.NORMAL) {
                 RootObject doubleClickedOn = getRootObjectForPoint(m.getPoint());
                 if (doubleClickedOn != null) {
-                    AttributesPopup attributesPopup = new AttributesPopup(doubleClickedOn);
+                    AttributesPopup attributesPopup = new AttributesPopup(doubleClickedOn, this);
                     VIEW.setSelected(doubleClickedOn, true);
                     attributesPopup.setLocation(m.getPoint());
                     attributesPopup.setVisible(true);
@@ -219,13 +212,13 @@ public class MouseMovementHandler extends MouseAdapter {
             if (releasedOn == pressedOn) {
                 List<JMenuItem> itemList = new ArrayList<>();
                 JMenuItem deleteMenuItem = new JMenuItem();
-                deleteMenuItem.addActionListener(new DeleteAction(pressedOn));
+                deleteMenuItem.addActionListener(new DeleteAction(pressedOn, MouseMovementHandler.this));
                 deleteMenuItem.setText("Delete");
                 itemList.add(deleteMenuItem);
 
                 if(pressedOn.supportsCopy()) {
                     JMenuItem copyMenuItem = new JMenuItem();
-                    copyMenuItem.addActionListener(new CopyAction((RootObject) pressedOn));
+                    copyMenuItem.addActionListener(new CopyAction((RootObject) pressedOn, MouseMovementHandler.this));
                     copyMenuItem.setText("Copy");
                     itemList.add(copyMenuItem);
                 }
@@ -246,244 +239,13 @@ public class MouseMovementHandler extends MouseAdapter {
         }
     }
 
-    private class CopyAction implements Action {
-        private RootObject pressedOn;
-        private CopyAction(RootObject pressedOn) {
-            this.pressedOn = pressedOn;
-        }
-        @Override
-        public Object getValue(String key) {
-            return null;
-        }
-        @Override
-        public void putValue(String key, Object value) {
-        }
-        @Override
-        public void setEnabled(boolean b) {
-        }
-        @Override
-        public boolean isEnabled() {
-            return true;
-        }
-        @Override
-        public void addPropertyChangeListener(PropertyChangeListener listener) {
-        }
-        @Override
-        public void removePropertyChangeListener(PropertyChangeListener listener) {
-        }
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            copied = pressedOn;
-        }
-    }
-
-    //Lets the user choose an image(s) and then choose the state directory within that object type's images directory
-    // that they want the images to be copied to.  It will then create a new directory with a name of the selected
-    // object's id within this chosen state directory and copy the selected image files to this new directory i.e.
-    // overriding the default image(s), for this object only, with these new images.  If this id subdirectory already
-    //exists then all the files in this directory will be deleted before the new ones are copied over.
-    private class OverrideDefaultImgAction implements Action {
-
-
-        private final Set<String> ACCEPTED_EXTENSIONS = new HashSet();
-        {
-            ACCEPTED_EXTENSIONS.add(".png");
-            ACCEPTED_EXTENSIONS.add(".jpg");
-            ACCEPTED_EXTENSIONS.add(".JPG");
-            ACCEPTED_EXTENSIONS.add(".jpeg");
-            ACCEPTED_EXTENSIONS.add(".JPEG");
-        }
-        private final FileFilter IMAGE_FILE_FILTER = new FileFilter() {
-            public boolean accept(File f) {
-                String fileName = f.getName();
-                int indexOfDot = fileName.indexOf(".");
-                if(indexOfDot > -1) {
-                    String extension = fileName.substring(fileName.lastIndexOf("."), fileName.length());
-                    return ACCEPTED_EXTENSIONS.contains(extension);
-                }
-                return f.isDirectory();
-            }
-            public String getDescription() {
-                return "Image Files";
-            }
-        };
-        private final FileFilter DESTINATION_FILE_FILTER = new FileFilter() {
-            public boolean accept(File f) {
-                if(f.isDirectory()) {
-                    boolean isNotIdDir = false;
-                    try {
-                        Long.parseLong(f.getName());
-                    }
-                    catch(NumberFormatException nfe) {
-                        isNotIdDir = true;
-                    }
-                    return isNotIdDir;
-                }
-                return false;
-            }
-            public String getDescription() {
-                return "Image Directories";
-            }
-        };
-
-        public Object getValue(String key) { return null; }
-        public void putValue(String key, Object value) { }
-        public void setEnabled(boolean b) { }
-        public boolean isEnabled() { return true; }
-        public void addPropertyChangeListener(PropertyChangeListener listener) { }
-        public void removePropertyChangeListener(PropertyChangeListener listener) { }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-
-            JFileChooser jFileChooser = new JFileChooser();
-            jFileChooser.setMultiSelectionEnabled(true);
-            jFileChooser.setDialogTitle("Choose Image File(s)");
-            jFileChooser.addChoosableFileFilter(IMAGE_FILE_FILTER);
-            jFileChooser.setAcceptAllFileFilterUsed(false);
-            jFileChooser.setCurrentDirectory(EditorUtils.MY_IMAGES_FOLDER);
-
-            if(jFileChooser.showDialog(null, null) == JFileChooser.APPROVE_OPTION) {
-
-                File[] chosenImageFiles = jFileChooser.getSelectedFiles();
-                String[] states = rootObjectPressedOn.getGameObject().getGameObjectStateNames();
-                String chosenStateForImage = null;
-                if(states.length > 1) {
-
-                    JFileChooser stateDirChooser = new JFileChooser();
-                    stateDirChooser.setMultiSelectionEnabled(false);
-                    stateDirChooser.setCurrentDirectory(CommonUtils.getImagesFolderFor(rootObjectPressedOn.getGameObject()));
-                    stateDirChooser.setDialogTitle("Choose state to override");
-                    stateDirChooser.setAcceptAllFileFilterUsed(false);
-                    stateDirChooser.setFileFilter(DESTINATION_FILE_FILTER);
-                    stateDirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                    if (stateDirChooser.showDialog(null, null) == JFileChooser.APPROVE_OPTION) {
-                        chosenStateForImage = stateDirChooser.getSelectedFile().getName();
-                    }
-                }
-                else {
-                    chosenStateForImage = states[0];
-                }
-
-                if(chosenStateForImage != null) {
-                    try {
-                        EditorUtils.addImageOverrides(rootObjectPressedOn.getGameObject(), chosenStateForImage, chosenImageFiles);
-                        rootObjectPressedOn.getGameObject().onImageUpdated();
-                        VIEW.repaint();
-                    }
-                    catch(IOException ioe) {
-                        ioe.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
-
-    private class PasteAction implements Action {
-        private Point pastedAt;
-
-        public PasteAction(Point pastedAt) {
-            this.pastedAt = pastedAt;
-        }
-
-        @Override
-        public Object getValue(String key) {
-            return null;
-        }
-        @Override
-        public void putValue(String key, Object value) {
-        }
-        @Override
-        public void setEnabled(boolean b) {
-        }
-        @Override
-        public boolean isEnabled() {
-            return true;
-        }
-        @Override
-        public void addPropertyChangeListener(PropertyChangeListener listener) {
-        }
-        @Override
-        public void removePropertyChangeListener(PropertyChangeListener listener) {
-        }
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            try {
-                RootObject copy = (RootObject) copied.copy();
-                copy.setLocation(new Rectangle(pastedAt.x, pastedAt.y, copy.getArea().width, copy.getArea().height));
-                MODEL.add(copy);
-                record_rootObjectAdded(copy);
-            }
-            catch(Exception ex) {
-                System.out.println("Problem copying object:  " + ex);
-            }
-        }
-    }
-
-    private class SetBackgroundAction implements Action {
-
-
-        private final Set<String> ACCEPTED_EXTENSIONS = new HashSet();
-        {
-            ACCEPTED_EXTENSIONS.add(".png");
-            ACCEPTED_EXTENSIONS.add(".jpg");
-            ACCEPTED_EXTENSIONS.add(".JPG");
-            ACCEPTED_EXTENSIONS.add(".jpeg");
-            ACCEPTED_EXTENSIONS.add(".JPEG");
-        }
-        private final FileFilter IMAGE_FILE_FILTER = new FileFilter() {
-            public boolean accept(File f) {
-                String fileName = f.getName();
-                int indexOfDot = fileName.indexOf(".");
-                if(indexOfDot > -1) {
-                    String extension = fileName.substring(fileName.lastIndexOf("."), fileName.length());
-                    return ACCEPTED_EXTENSIONS.contains(extension);
-                }
-                return f.isDirectory();
-            }
-            public String getDescription() {
-                return "Image Files";
-            }
-        };
-
-        public Object getValue(String key) { return null; }
-        public void putValue(String key, Object value) { }
-        public void setEnabled(boolean b) { }
-        public boolean isEnabled() { return true; }
-        public void addPropertyChangeListener(PropertyChangeListener listener) { }
-        public void removePropertyChangeListener(PropertyChangeListener listener) { }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-
-            JFileChooser jFileChooser = new JFileChooser();
-            jFileChooser.setMultiSelectionEnabled(false);
-            jFileChooser.setAcceptAllFileFilterUsed(false);
-            jFileChooser.setDialogTitle("Choose Image File For Background");
-            jFileChooser.addChoosableFileFilter(IMAGE_FILE_FILTER);
-            jFileChooser.setCurrentDirectory(EditorUtils.MY_IMAGES_FOLDER);
-
-            if(jFileChooser.showDialog(null, null) == JFileChooser.APPROVE_OPTION) {
-                try {
-                    File newImageFile = jFileChooser.getSelectedFile();
-                    EditorUtils.setBackgroundFile(newImageFile);
-                    VIEW.refreshBackgroundFile();
-                }
-                catch(Exception ex) {
-                    System.out.println("Cannot set background");
-                    ex.printStackTrace();
-                }
-            }
-        }
-    }
-
     private class CollisionAreaMenuPopup implements ReleaseAction {
         @Override
         public void released(Editable pressedOn, int buttonPressed, Point pressedAt, MouseEvent e) {
             Editable releasedOn = getRootObjectForPoint(e.getPoint());
             if(releasedOn == pressedOn) {
                 JMenuItem jMenuItem = new JMenuItem();
-                jMenuItem.addActionListener(new DeleteAction(collisionAreaPressedOn));
+                jMenuItem.addActionListener(new DeleteAction(collisionAreaPressedOn, MouseMovementHandler.this));
                 jMenuItem.setText("Delete");
                 JPopupMenu popupMenu = new JPopupMenu();
                 popupMenu.add(jMenuItem);
@@ -497,19 +259,19 @@ public class MouseMovementHandler extends MouseAdapter {
         public void released(Editable pressedOn, int buttonPressed, Point pressedAt, MouseEvent e) {
             List<JMenuItem> itemList = new ArrayList<>();
             JMenuItem modeItem = new JMenuItem();
-            modeItem.addActionListener(new ChangeModeAction());
+            modeItem.addActionListener(new ChangeModeAction(MouseMovementHandler.this));
             modeItem.setText(currentMode == Mode.NORMAL ? "Collision Area Mode" : "Normal Mode");
             itemList.add(modeItem);
             //Only add the paste action if its appropiate
             if(canPaste(pressedAt)) {
                 JMenuItem pasteMenuItem = new JMenuItem();
-                pasteMenuItem.addActionListener(new PasteAction(pressedAt));
+                pasteMenuItem.addActionListener(new PasteAction(pressedAt, MouseMovementHandler.this));
                 pasteMenuItem.setText("Paste");
                 itemList.add(pasteMenuItem);
             }
 
             JMenuItem pasteMenuItem = new JMenuItem();
-            pasteMenuItem.addActionListener(new SetBackgroundAction());
+            pasteMenuItem.addActionListener(new SetBackgroundAction(MouseMovementHandler.this));
             pasteMenuItem.setText("Set Background");
             itemList.add(pasteMenuItem);
 
@@ -536,78 +298,6 @@ public class MouseMovementHandler extends MouseAdapter {
         }
     }
 
-    private class AttributesPopup extends JDialog {
-        AttributesPopup(final RootObject rootObject) {
-            super((JFrame)null, "Attributes for game object " + rootObject.getId(), true);
-            setLayout(new BorderLayout());
-            JComboBox<String> classBox = new JComboBox(EditorUtils.SELECTABLE_GAME_OBJECTS);
-            JTextArea textArea = new JTextArea();
-            JButton saveButton = new JButton("Save");
-            saveButton.addActionListener(ae -> {
-                String attributeString = textArea.getText();
-                Map<String,String> attributes = new HashMap<>();
-                if(attributeString != null && !attributeString.equals("")) {
-                    String[] keyValPairs = attributeString.split("[" + NEWLINE + "]");
-                    for(String keyValPair : keyValPairs) {
-                        //Check this in case the user has hit return at the end of typing the last property,
-                        //meaning that the above split call has resulted in the last entry being an empty string
-                        if(keyValPair.length() > 0) {
-                            String[] keyValArray = keyValPair.split("=");
-                            attributes.put(keyValArray[0], keyValArray[1]);
-                        }
-                    }
-                }
-                //The type of game object is represented as the full name of the underlying class so as it can be instantiated
-                //using reflection when it's loaded
-                String theClass = EditorUtils.SELECTABLE_GAME_OBJECT_PACKAGE + "." + classBox.getSelectedItem();
-                GameObject newGameObject;
-                GameObject oldGameObject = rootObject.getGameObject();
-                try {
-                    newGameObject = (GameObject)Class.forName(theClass).getConstructor(Rectangle.class, Map.class, long.class).newInstance(
-                            rootObject.getArea(), attributes, oldGameObject.getId());
-                    newGameObject.setCollisionAreas(oldGameObject.getCollisionAreas());
-                    newGameObject.setLocation(oldGameObject.getX(), oldGameObject.getY());
-                }
-                catch(Exception c) {
-                    throw new IllegalArgumentException("Couldn't create game object", c);
-                }
-
-                rootObject.setGameObject(newGameObject);
-                record_rootObjectUpdated(rootObject);
-
-                setVisible(false);
-                dispose();
-            });
-
-            GameObject gameObject = rootObject.getGameObject();
-            if(gameObject != null) {
-                Map<String, String> attributes = gameObject.getAttributes();
-                if (!attributes.isEmpty()) {
-                    StringBuilder sb = new StringBuilder();
-                    for (Map.Entry<String, String> entry : attributes.entrySet()) {
-                        sb.append(entry.getKey() + "=" + entry.getValue() + NEWLINE);
-                    }
-                    textArea.setText(sb.substring(0, sb.length() - NEWLINE.length()));
-                }
-
-                classBox.setSelectedItem(gameObject.getClass().getSimpleName());
-            }
-            else {
-                classBox.setSelectedItem(classBox.getItemAt(0));
-            }
-
-            add(classBox, BorderLayout.NORTH);
-            add(textArea, BorderLayout.CENTER);
-            add(saveButton, BorderLayout.SOUTH);
-            Dimension size = new Dimension(350,350);
-            setPreferredSize(size);
-            setMinimumSize(size);
-            setMaximumSize(size);
-
-            pack();
-        }
-    }
-
     private RootObject getRootObjectForPoint(Point p) {
         for(RootObject c : MODEL) {
             if(c.getArea().contains(p)) {
@@ -621,7 +311,7 @@ public class MouseMovementHandler extends MouseAdapter {
         return UPDATES;
     }
 
-    private void record_rootObjectUpdated(RootObject parent) {
+    void record_rootObjectUpdated(RootObject parent) {
         DBupdateType existing = UPDATES.get(parent);
         if(existing != DBupdateType.ADD) {
             UPDATES.put(parent, DBupdateType.UPDATE);
@@ -630,7 +320,7 @@ public class MouseMovementHandler extends MouseAdapter {
         VIEW.repaint();
     }
 
-    private void record_rootObjectAdded(RootObject c) {
+    void record_rootObjectAdded(RootObject c) {
         UPDATES.put(c, DBupdateType.ADD);
         VIEW.repaint();
     }
@@ -705,85 +395,5 @@ public class MouseMovementHandler extends MouseAdapter {
         }
 
         return null;
-    }
-
-    private class DeleteAction implements Action {
-
-        private Editable toDelete;
-        private DeleteAction(Editable toDelete) {
-            this.toDelete = toDelete;
-        }
-
-        public Object getValue(String key) {
-            return null;
-        }
-        public void putValue(String key, Object value) { }
-        public void setEnabled(boolean b) {
-        }
-
-        @Override
-        public boolean isEnabled() {
-            return true;
-        }
-
-        @Override
-        public void addPropertyChangeListener(PropertyChangeListener listener) {
-        }
-        @Override
-        public void removePropertyChangeListener(PropertyChangeListener listener) {
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if(currentMode == Mode.NORMAL) {
-                MODEL.remove(toDelete);
-                record_editableRemoved(rootObjectPressedOn, rootObjectPressedOn);
-            }
-            else if(currentMode == Mode.COLLISION_AREA){
-                rootObjectPressedOn.removeCollisionArea((CollisionAreaEditableObject)toDelete);
-                record_editableRemoved(rootObjectPressedOn, toDelete);
-            }
-            else {
-                throw new IllegalStateException("Unsupported mode");
-            }
-        }
-    }
-
-    private class ChangeModeAction implements Action {
-
-
-        public Object getValue(String key) {
-            return null;
-        }
-        public void putValue(String key, Object value) { }
-        public void setEnabled(boolean b) {
-        }
-
-        @Override
-        public boolean isEnabled() {
-            return true;
-        }
-
-        @Override
-        public void addPropertyChangeListener(PropertyChangeListener listener) {
-        }
-        @Override
-        public void removePropertyChangeListener(PropertyChangeListener listener) {
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if(currentMode == Mode.NORMAL) {
-                currentMode = Mode.COLLISION_AREA;
-                VIEW.setDrawCollisionAreas(true);
-            }
-            else if(currentMode == Mode.COLLISION_AREA){
-                currentMode = Mode.NORMAL;
-                VIEW.setDrawCollisionAreas(false);
-            }
-            else {
-                throw new UnsupportedOperationException("Unknown mode " + currentMode);
-            }
-        }
     }
 }
