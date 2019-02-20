@@ -49,7 +49,7 @@ public class GamePlayDisplay extends JPanel {
     //Does the painting.  This can be swapped around according to what we need
     private volatile Consumer<Graphics> painter;
     private final MessagePainter MESSAGE_PAINTER = new MessagePainter();
-    private final StandardPainter STANDARD_PAINTER = new StandardPainter(Color.WHITE);
+    private final StandardPainter STANDARD_PAINTER = new StandardPainter();
 
     private final List<GameObject> ALL_GAME_OBJECTS_EXCEPT_JSW;
     //Used for symchronization around the starting and stopping of the game
@@ -65,7 +65,6 @@ public class GamePlayDisplay extends JPanel {
     private ComputerControlledMovementHandler computerControlledMovementHandler;
     private final List<ComputerControlledObject> computerControlledGameObjects = new ArrayList<>();
 
-    private final BufferedImage BACKGROUND_IMAGE;
 
 
     public GamePlayDisplay(GameFrame parent,
@@ -100,7 +99,6 @@ public class GamePlayDisplay extends JPanel {
         JSW = tempJSW;
         //Build the collision handler using the game objects that don't move
         COLLISION_HANDLER = new CollisionHandler(staticGameObjectsForCollisionHandler, 4000, JSW);
-        BACKGROUND_IMAGE = CommonUtils.getBackgroundImage();
 
         setFocusable(true);
 
@@ -235,14 +233,10 @@ public class GamePlayDisplay extends JPanel {
 
     //Paints the game objects in their respective location etc..  Does the painting most of the time.
     private class StandardPainter implements Consumer<Graphics> {
-
-        //The colour of the background in the game
-        private Color backgroundColor;
-
-        public StandardPainter(Color backgroundColor) {
-            this.backgroundColor = backgroundColor;
+        private final BufferedImage BACKGROUND_IMAGE;
+        private StandardPainter() throws IOException {
+            BACKGROUND_IMAGE = CommonUtils.getBackgroundImage();
         }
-
         public void accept(Graphics g) {
 
             //@todo - if there is an issue with slowness then it could be that the static objects like the platforms are being
