@@ -11,7 +11,7 @@ import java.beans.PropertyChangeListener;
     private Point pastedAt;
     private MouseMovementHandler PARENT;
 
-    public PasteAction(Point pastedAt, MouseMovementHandler parent) {
+    PasteAction(Point pastedAt, MouseMovementHandler parent) {
         this.pastedAt = pastedAt;
         this.PARENT = parent;
     }
