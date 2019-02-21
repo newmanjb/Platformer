@@ -1,5 +1,6 @@
 package com.noomtech.jsw.game.movement.jsw;
 
+import com.noomtech.jsw.game.events.GameEventReceiver;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.concrete_objects.JSW;
 import com.noomtech.jsw.game.handlers.JSWControlsHandler;
@@ -94,6 +95,7 @@ public class JumpMover extends JSWMover {
         int [][]trajectoryBeingUsed = JSW_CONTROLS_HANDLER.leftKeyPressed ? trajectoryLeft :
                 JSW_CONTROLS_HANDLER.rightKeyPressed ? trajectoryRight : trajectoryUp;
 
+        GameEventReceiver.getInstance().onPlayerJumping();
 
         //Step along the trajectory array making the increments to the sprite's location.  If something blocks
         //our path then refer to the controller.
@@ -143,7 +145,7 @@ public class JumpMover extends JSWMover {
         if(i == trajectoryBeingUsed.length && !stoppedBeforeFinishing) {
             JSW_CONTROLS_HANDLER.jumpFinishedWithoutBeingStopped();
         }
-
+        GameEventReceiver.getInstance().onPlayerStoppedJumping();
         running = false;
     }
 

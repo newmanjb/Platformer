@@ -1,5 +1,6 @@
 package com.noomtech.jsw.game.movement.jsw;
 
+import com.noomtech.jsw.game.events.GameEventReceiver;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.concrete_objects.JSW;
 import com.noomtech.jsw.game.handlers.JSWControlsHandler;
@@ -31,6 +32,7 @@ public class FallMover extends JSWMover {
     @Override
     public void run() {
 
+        GameEventReceiver.getInstance().onPlayerFalling();
         stopRequestReceived = false;
         boolean stopMoving = false;
         int numPixelsFallen = 0;
@@ -46,10 +48,12 @@ public class FallMover extends JSWMover {
             }
 
             stopMoving = stopMoving || stopRequestReceived;
+
             if (!stopMoving && (numPixelsFallen % numPixelsBetweenSleeps == 0)) {
                 GameUtils.sleepAndCatchInterrupt(numMillisBetweenMovements);
             }
         }
         running = false;
+        GameEventReceiver.getInstance().onPlayerStoppedFalling();
     }
 }

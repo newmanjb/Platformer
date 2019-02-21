@@ -3,6 +3,9 @@ package com.noomtech.jsw.common.utils;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.Rectangle;
@@ -175,5 +178,43 @@ public class CommonUtils {
         converted.width = endX.subtract(startX).multiply(SCREEN_SIZE_WIDTH, MC_CONVERT_FROM_FRACTION_ROUNDING).setScale(0, RoundingMode.HALF_UP).intValue();
         converted.height = endY.subtract(startY).multiply(SCREEN_SIZE_HEIGHT, MC_CONVERT_FROM_FRACTION_ROUNDING).setScale(0, RoundingMode.HALF_UP).intValue();
         return converted;
+    }
+
+    /**
+     * Returns a map of {@link GameClip} instances keyed on their name.  The clips are taken from the
+     * CONFIG DIRECTORY/sounds directory.  The name is simply the file name without the extension.  If the file name
+     * ends in "___c" then this is taken as an indication that the clip should be played continuously, meaning that the
+     * resulting {@link GameClip}'s {@link GameClip#playContinuously()} method will return true.  The "___c" will also be
+     * removed from the file name in order to make the clip's name e.g. "playerDies___c.wav" will result in
+     * "playerDies" as will "playerDies.wav".
+     * @see GameClip
+     * @see SoundPlayer
+     */
+    public static Map<String,GameClip> getSounds() {
+        File soundsDir = new File(CONFIG_FOLDER_PATH + File.separator + "sounds");
+        if(!soundsDir.exists()) {
+            return Collections.emptyMap();
+        }
+
+        File[] files = soundsDir.listFiles();
+        Map<String,GameClip> soundMap = new HashMap<>();
+        Arrays.stream(files).forEach(file -> {
+            try {
+                String fileNameNoExtension = file.getName().substring(0, file.getName().indexOf("."));
+                String[] splits = fileNameNoExtension.split("___");
+                String clipName = splits[0];
+                boolean playContinously = splits.length > 1;
+                AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(file);
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInputStream);
+                soundMap.put(clipName, new GameClip(clip, playContinously));
+            }
+            catch(Exception e) {
+                e.printStackTrace();
+                throw new IllegalStateException("Could not load sound clip");
+            }
+        });
+
+        return soundMap;
     }
 }

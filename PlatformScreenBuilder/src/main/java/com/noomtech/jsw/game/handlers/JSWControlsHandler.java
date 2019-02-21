@@ -34,7 +34,7 @@ public class JSWControlsHandler implements KeyListener {
 
     private final JSW JSW;
 
-    private final GamePlayDisplay GAME_PANEL;
+    private final GamePlayDisplay GAME_PLAY_DISPLAY;
 
     public volatile boolean leftKeyPressed;
     public volatile boolean rightKeyPressed;
@@ -61,8 +61,9 @@ public class JSWControlsHandler implements KeyListener {
         this.FALL_OVER = new FallMover(jsw, this, FALL_NUM_PIXELS_PER_MOVEMENT, FALL_NUM_MILLIS_BETWEEN_MOVEMENTS, collisionHandler);
         this.COLLISION_HANDLER = collisionHandler;
         this.JSW = jsw;
-        this.GAME_PANEL = gameDisplay;
+        this.GAME_PLAY_DISPLAY = gameDisplay;
     }
+
 
     @Override
     public void keyTyped(KeyEvent e) {
@@ -113,7 +114,7 @@ public class JSWControlsHandler implements KeyListener {
     //be stopped.
     public boolean hitWhileFalling(GameObject hit) {
 
-        if (GAME_PANEL.playerHitSomething(hit)) {
+        if (GAME_PLAY_DISPLAY.playerHitSomething(hit)) {
             return true;
         }
 
@@ -127,7 +128,7 @@ public class JSWControlsHandler implements KeyListener {
 
     //Called to notify the controller that the jsw has hit something while walking
     public boolean hitWhileWalking(GameObject hit, PlayerMovementType playerMovementType) {
-        if (GAME_PANEL.playerHitSomething(hit)) {
+        if (GAME_PLAY_DISPLAY.playerHitSomething(hit)) {
             return true;
         }
 
@@ -143,7 +144,7 @@ public class JSWControlsHandler implements KeyListener {
     //both the X and Y directions this callback needs to behave differently depending on which direction the
     //player was moving at the time.
     public JumpMovementResult hitWhileJumping(GameObject hit, int[] movements, boolean movingInYDirection) {
-        if (GAME_PANEL.playerHitSomething(hit)) {
+        if (GAME_PLAY_DISPLAY.playerHitSomething(hit)) {
             return JumpMovementResult.STOP_COMPLETELY;
         }
 

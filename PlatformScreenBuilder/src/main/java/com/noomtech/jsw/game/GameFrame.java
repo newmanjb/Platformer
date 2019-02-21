@@ -1,10 +1,12 @@
 package com.noomtech.jsw.game;
 
 import com.noomtech.jsw.common.utils.CommonUtils;
+import com.noomtech.jsw.common.utils.SoundPlayer;
 import com.noomtech.jsw.common.utils.db.DatabaseAdapter;
 import com.noomtech.jsw.common.utils.db.MongoDBAdapter;
+import com.noomtech.jsw.game.events.GameEventReceiver;
+import com.noomtech.jsw.game.events.GamePlayListener;
 import com.noomtech.jsw.game.gameobjects.GameObject;
-import com.noomtech.jsw.game.GamePlayDisplay;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,10 +14,11 @@ import java.util.List;
 
 
 /**
- * Holds the {@link GamePlayDisplay} and is responsible for loading the game objects from the database that it uses.
- * This class also handles higher-level operations such as moving on a level.
+ * Holds the {@link GamePlayDisplay} and is responsible for coordinating the higher level operations of the game such as
+ * such as moving on a level, loading the game objects or playing the appropriate sounds.
+ * @see GamePlayListener
  */
-public class GameFrame extends JFrame {
+public class GameFrame extends JFrame implements GamePlayListener {
 
 
     private GamePlayDisplay gameDisplay;
@@ -30,6 +33,8 @@ public class GameFrame extends JFrame {
         if(config == null || config.equals("")) {
             throw new IllegalArgumentException("No config specified");
         }
+
+        GameEventReceiver.getInstance().addListener(this);
 
         setTitle("Game");
 
@@ -76,11 +81,15 @@ public class GameFrame extends JFrame {
 
     //Called when the user has completed the current level.  Increments the level (if neccessary) and builds a new panel
     //for the next level and displays it
-    public void onLevelFinished() {
-        CommonUtils.setCurrentLevel(CommonUtils.getCurrentLevel() + 1);
+    public void onLevelComplete() {
         try {
             SwingUtilities.invokeAndWait(() -> {
-                try {refreshGamePanel();} catch(Exception e) {
+                try {
+                    SoundPlayer.getInstance().startSound("levelComplete");
+                    gameDisplay.stop();
+                    Thread.sleep(1000);
+                    CommonUtils.setCurrentLevel(CommonUtils.getCurrentLevel() + 1);
+                    refreshGamePanel();} catch(Exception e) {
                     e.printStackTrace();
                     System.exit(1);
                 }
@@ -91,6 +100,45 @@ public class GameFrame extends JFrame {
             System.exit(1);
         }
     }
+    public void onPlayerFalling() {
+        SoundPlayer.getInstance().startSound("playerFalling");
+    }
+    public void onPlayerStoppedFalling() {
+        SoundPlayer.getInstance().stopSound("playerFalling");
+    }
+    public void onPlayerDied() {
+        try {
+            SwingUtilities.invokeAndWait(() -> {
+                try {
+                    SoundPlayer.getInstance().startSound("playerDied");
+                    gameDisplay.stopMovementComponents();
+                    Thread.sleep(700);
+                    gameDisplay.setGameObjectsToStartingState();
+                    gameDisplay.startMovementComponents();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+            });
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+    public void onPlayerJumping() {
+        SoundPlayer.getInstance().startSound("playerJumping");
+    }
+    public void onPlayerStoppedJumping() {
+        SoundPlayer.getInstance().stopSound("playerJumping");
+    }
+    public void onPlayerWalking() {
+        SoundPlayer.getInstance().startSound("playerWalking");
+    }
+    public void onPlayerStoppedWalking() {
+        SoundPlayer.getInstance().stopSound("playerWalking");
+    }
+
 
     private void refreshGamePanel() throws Exception {
         if(gameDisplay != null) {
@@ -114,4 +162,6 @@ public class GameFrame extends JFrame {
 
         gameDisplay.requestFocusInWindow();
     }
+
+
 }

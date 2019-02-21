@@ -1,5 +1,6 @@
 package com.noomtech.jsw.game.movement.jsw;
 
+import com.noomtech.jsw.game.events.GameEventReceiver;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.concrete_objects.JSW;
 import com.noomtech.jsw.game.handlers.JSWControlsHandler;
@@ -39,14 +40,16 @@ public class LeftMover extends JSWMover {
             GameObject touching = COLLISION_HANDLER.checkIfTouchingAnythingGoingLeft(JSW);
             if (touching == null) {
                 //Not touching anything so jsw can move
+                GameEventReceiver.getInstance().onPlayerWalking();
                 numPixelsMoved = move(numPixelsMoved);
                 //Now that it's moved dheck if JSW should fall
                 hasBeenStopped = JSW_CONTROLS_HANDLER.doFallCheck();
             }
             else {
-                //Jsw is touching something so see if this is something that will stop up
+                //Jsw is touching something so see if this is something that will stop us
                 hasBeenStopped = JSW_CONTROLS_HANDLER.hitWhileWalking(touching, PlayerMovementType.WALK_LEFT);
                 if(!hasBeenStopped) {
+                    GameEventReceiver.getInstance().onPlayerWalking();
                     numPixelsMoved = move(numPixelsMoved);
                     //Now that it's moved dheck if JSW should fall
                     hasBeenStopped = JSW_CONTROLS_HANDLER.doFallCheck();
@@ -69,6 +72,7 @@ public class LeftMover extends JSWMover {
             }
         }
         running = false;
+        GameEventReceiver.getInstance().onPlayerStoppedWalking();
     }
 
     private int move(int numberPixelsMoved) {

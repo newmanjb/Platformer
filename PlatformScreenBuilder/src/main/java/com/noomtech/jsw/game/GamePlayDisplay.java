@@ -1,16 +1,16 @@
 package com.noomtech.jsw.game;
 
 import com.noomtech.jsw.common.utils.CommonUtils;
+import com.noomtech.jsw.game.events.GameEventReceiver;
+import com.noomtech.jsw.game.gameobjects.ComputerControlledObject;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.Lethal;
 import com.noomtech.jsw.game.gameobjects.Static;
 import com.noomtech.jsw.game.gameobjects.concrete_objects.FinishingObject;
 import com.noomtech.jsw.game.gameobjects.concrete_objects.JSW;
-import com.noomtech.jsw.game.handlers.JSWControlsHandler;
 import com.noomtech.jsw.game.handlers.CollisionHandler;
 import com.noomtech.jsw.game.handlers.ComputerControlledMovementHandler;
-import com.noomtech.jsw.game.gameobjects.ComputerControlledObject;
-import com.noomtech.jsw.game.utils.GameUtils;
+import com.noomtech.jsw.game.handlers.JSWControlsHandler;
 
 import javax.swing.*;
 import java.awt.*;
@@ -133,7 +133,7 @@ public class GamePlayDisplay extends JPanel {
     }
 
     //Stops the game panel
-    private void stop() throws InterruptedException {
+    public void stop() throws InterruptedException {
         synchronized (START_STOP_MUTEX) {
             if(!started) {
                 throw new IllegalArgumentException("Application has not been started");
@@ -143,7 +143,7 @@ public class GamePlayDisplay extends JPanel {
         }
     }
 
-    private void startMovementComponents() {
+    public void startMovementComponents() {
         jSWControlsHandler = new JSWControlsHandler(JSW, COLLISION_HANDLER, this);
         computerControlledMovementHandler = new ComputerControlledMovementHandler(this,
                 computerControlledGameObjects, COLLISION_HANDLER);
@@ -151,14 +151,14 @@ public class GamePlayDisplay extends JPanel {
         computerControlledMovementHandler.start();
     }
 
-    private void stopMovementComponents() throws InterruptedException {
+    public void stopMovementComponents() throws InterruptedException {
         removeKeyListener(jSWControlsHandler);
         jSWControlsHandler.shutdown();
         computerControlledMovementHandler.stop();
     }
 
     //This might be called after the player has died and needs to go back to the start, for example
-    private void setGameObjectsToStartingState() {
+    public void setGameObjectsToStartingState() {
         computerControlledMovementHandler.setEverythingToStartingState();
         jSWControlsHandler.setJSWToStartingState();
     }
@@ -170,48 +170,14 @@ public class GamePlayDisplay extends JPanel {
         painter.accept(g);
     }
 
-    //Callback for when the the player has hit a lethal object
-    private void playerHitLethalObject(Lethal lethalThatWasHit) {
-
-        MESSAGE_PAINTER.backgroundColor = Color.RED;
-        MESSAGE_PAINTER.message = null;
-        painter = MESSAGE_PAINTER;
-
-        try {stopMovementComponents();} catch(InterruptedException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        GameUtils.sleepAndCatchInterrupt(300);
-        MESSAGE_PAINTER.backgroundColor = Color.ORANGE;
-        GameUtils.sleepAndCatchInterrupt(300);
-        MESSAGE_PAINTER.backgroundColor = Color.WHITE;
-
-        setGameObjectsToStartingState();
-        painter = STANDARD_PAINTER;
-        startMovementComponents();
+    //Callback for when the the player has died
+    private void playerDied(Lethal lethalThatWasHit) {
+        GameEventReceiver.getInstance().onPlayerDied();
     }
 
     //Callback for when the the player has hit a finishing object
-    private void playerHitFinishingObject(GameObject finishingObject) {
-
-        try {
-            MESSAGE_PAINTER.backgroundColor = Color.BLUE;
-            MESSAGE_PAINTER.message = "WELL DONE!!";
-            painter = MESSAGE_PAINTER;
-
-            GameUtils.sleepAndCatchInterrupt(500);
-            MESSAGE_PAINTER.backgroundColor = Color.GREEN;
-            GameUtils.sleepAndCatchInterrupt(500);
-            MESSAGE_PAINTER.backgroundColor = Color.WHITE;
-
-            stop();
-
-            GAME_FRAME.onLevelFinished();
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
+    private void levelComplete(GameObject finishingObject) {
+        GameEventReceiver.getInstance().onLevelComplete();
     }
 
     //Check if anything needs to be done depending on what's been hit.  Return true if it's a show-stopper e.g.
@@ -219,12 +185,14 @@ public class GamePlayDisplay extends JPanel {
     public boolean playerHitSomething(Object beenHit) {
         if(beenHit instanceof Lethal) {
             removeKeyListener(jSWControlsHandler);
-            Executors.newSingleThreadExecutor().submit(()->{playerHitLethalObject((Lethal)beenHit);});
+            Executors.newSingleThreadExecutor().submit(()->{
+                playerDied((Lethal)beenHit);});
             return true;
         }
         else if(beenHit instanceof FinishingObject){
             removeKeyListener(jSWControlsHandler);
-            Executors.newSingleThreadExecutor().submit(()->{playerHitFinishingObject((FinishingObject)beenHit);});
+            Executors.newSingleThreadExecutor().submit(()->{
+                levelComplete((FinishingObject)beenHit);});
             return true;
         }
 

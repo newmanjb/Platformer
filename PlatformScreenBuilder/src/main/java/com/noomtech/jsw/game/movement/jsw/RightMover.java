@@ -1,6 +1,7 @@
 package com.noomtech.jsw.game.movement.jsw;
 
 
+import com.noomtech.jsw.game.events.GameEventReceiver;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.concrete_objects.JSW;
 import com.noomtech.jsw.game.handlers.JSWControlsHandler;
@@ -39,12 +40,14 @@ public class RightMover extends JSWMover {
         while(!hasBeenStopped) {
             GameObject touching = COLLISION_HANDLER.checkIfTouchingAnythingGoingRight(JSW);
             if (touching == null) {
+                GameEventReceiver.getInstance().onPlayerWalking();
                 numPixelsMoved = move(numPixelsMoved);
                 hasBeenStopped = JSW_CONTROLS_HANDLER.doFallCheck();
             }
             else {
                 hasBeenStopped = JSW_CONTROLS_HANDLER.hitWhileWalking(touching, PlayerMovementType.WALK_RIGHT);
                 if(!hasBeenStopped) {
+                    GameEventReceiver.getInstance().onPlayerWalking();
                     numPixelsMoved = move(numPixelsMoved);
                     hasBeenStopped = JSW_CONTROLS_HANDLER.doFallCheck();
                 }
@@ -63,6 +66,7 @@ public class RightMover extends JSWMover {
             }
         }
         running = false;
+        GameEventReceiver.getInstance().onPlayerStoppedWalking();
     }
 
     private int move(int numberPixelsMoved) {
