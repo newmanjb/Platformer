@@ -43,13 +43,13 @@ public class JSWControlsHandler implements KeyListener {
     //Constants for movements
     private final int LEFT_RIGHT_NUM_PIXELS_PER_MOVEMENT = 1;
     private final int JUMP_NUM_PIXELS_PER_MOVEMENT = 1;
-    private final int FALL_NUM_PIXELS_PER_MOVEMENT = 5;
+    private final int FALL_NUM_PIXELS_PER_MOVEMENT = 1;
     //The speed of the movements is scaled based on the existing screen size in relation to a 1920 x 1080 size e.g.
     //if this was being run on a much smaller screen of half the resolution (960 x 540) then these delays would have to
     //be twice as long as the distance for the player to walk across the screen for example would be half as much.
-    private final int LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(new BigDecimal("8"));
-    private final int JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(new BigDecimal("8"));
-    private final int FALL_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenHeightValue(new BigDecimal("50"));
+    private final int LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(new BigDecimal("6"));
+    private final int JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(new BigDecimal("6"));
+    private final int FALL_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenHeightValue(new BigDecimal("6"));
 
 
     public JSWControlsHandler(JSW jsw, CollisionHandler collisionHandler, GamePlayDisplay gameDisplay) {

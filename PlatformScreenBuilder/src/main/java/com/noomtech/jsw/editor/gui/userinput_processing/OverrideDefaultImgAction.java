@@ -27,6 +27,7 @@ class OverrideDefaultImgAction implements Action {
     private final Set<String> ACCEPTED_EXTENSIONS = new HashSet();
     {
         ACCEPTED_EXTENSIONS.add(".png");
+        ACCEPTED_EXTENSIONS.add(".PNG");
         ACCEPTED_EXTENSIONS.add(".jpg");
         ACCEPTED_EXTENSIONS.add(".JPG");
         ACCEPTED_EXTENSIONS.add(".jpeg");
