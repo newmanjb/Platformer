@@ -1,5 +1,7 @@
 # Platformer
 
+An editor and an engine that allows users to create and play their own Manic-Miner/Jet Set Willy style platform game (I started this for my children but some of it was nostalgia-driven).  The data created in the editor is saved and loaded using a mongdo db database.  A screen can be created with platforms and nasties, and the user can move and jump the player around it.  Using the editor the user can create their own player, objects and nasties and specify the boundaries of each one.
+
 TODOS -   
 
 1: todos in the code (for smaller issues) 
