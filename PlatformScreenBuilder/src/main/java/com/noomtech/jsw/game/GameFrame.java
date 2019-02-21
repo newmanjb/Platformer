@@ -55,6 +55,8 @@ public class GameFrame extends JFrame implements GamePlayListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         setVisible(true);
+
+        SoundPlayer.getInstance().startSound("inGameMusic");
     }
 
     private void quit() {
@@ -69,11 +71,14 @@ public class GameFrame extends JFrame implements GamePlayListener {
         try {
             SwingUtilities.invokeAndWait(() -> {
                 try {
+                    SoundPlayer.getInstance().stopSound("inGameMusic");
                     SoundPlayer.getInstance().startSound("levelComplete");
                     gameDisplay.stop();
                     Thread.sleep(1000);
                     CommonUtils.setCurrentLevel(CommonUtils.getCurrentLevel() + 1);
-                    refreshGamePanel();} catch(Exception e) {
+                    SoundPlayer.getInstance().startSound("inGameMusic");
+                    refreshGamePanel();
+                } catch(Exception e) {
                     e.printStackTrace();
                     System.exit(1);
                 }
@@ -94,11 +99,13 @@ public class GameFrame extends JFrame implements GamePlayListener {
         try {
             SwingUtilities.invokeAndWait(() -> {
                 try {
+                    SoundPlayer.getInstance().stopSound("inGameMusic");
                     SoundPlayer.getInstance().startSound("playerDied");
                     gameDisplay.stopMovementComponents();
                     Thread.sleep(700);
                     gameDisplay.setGameObjectsToStartingState();
                     gameDisplay.startMovementComponents();
+                    SoundPlayer.getInstance().startSound("inGameMusic");
                 } catch (Exception e) {
                     e.printStackTrace();
                     System.exit(1);
