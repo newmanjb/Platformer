@@ -45,24 +45,8 @@ public class GameFrame extends JFrame implements GamePlayListener {
         getContentPane().setPreferredSize(screenSize);
         setLayout(new GridBagLayout());
 
-        JPanel buttonPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints buttonPanelConstraints = new GridBagConstraints();
-        buttonPanelConstraints.gridx = 0;
-        buttonPanelConstraints.gridy = 0;
-        JButton quitButton = new JButton("Quit");
-        quitButton.addActionListener(ae -> {quit();});
-        buttonPanel.add(quitButton, buttonPanelConstraints);
-
         //Build and add the game panel
         refreshGamePanel();
-
-        GridBagConstraints addButtonPanelConstraints = new GridBagConstraints();
-        addButtonPanelConstraints.gridx = 0;
-        addButtonPanelConstraints.gridy = 1;
-        addButtonPanelConstraints.fill = GridBagConstraints.NONE;
-        addButtonPanelConstraints.weightx = 0.0;
-        addButtonPanelConstraints.weighty = 0.0;
-        getContentPane().add(buttonPanel, addButtonPanelConstraints);
 
         setLocation(new Point(0,0));
 

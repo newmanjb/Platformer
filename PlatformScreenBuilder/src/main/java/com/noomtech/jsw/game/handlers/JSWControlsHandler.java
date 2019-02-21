@@ -49,7 +49,7 @@ public class JSWControlsHandler implements KeyListener {
     //be twice as long as the distance for the player to walk across the screen for example would be half as much.
     private final int LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(new BigDecimal("6"));
     private final int JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenWidthValue(new BigDecimal("6"));
-    private final int FALL_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenHeightValue(new BigDecimal("6"));
+    private final int FALL_NUM_MILLIS_BETWEEN_MOVEMENTS = GameUtils.getScaledMsToScreenHeightValue(new BigDecimal("2"));
 
 
     public JSWControlsHandler(JSW jsw, CollisionHandler collisionHandler, GamePlayDisplay gameDisplay) {
