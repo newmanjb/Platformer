@@ -129,6 +129,10 @@ public class GameFrame extends JFrame implements GamePlayListener {
     public void onPlayerStoppedWalking() {
         SoundPlayer.getInstance().stopSound("playerWalking");
     }
+    public void onPlayerLandedOnSolid() {
+        SoundPlayer.getInstance().startSound("playerLandedOnSolid");
+    }
+
 
 
     private void refreshGamePanel() throws Exception {

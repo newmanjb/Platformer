@@ -1,7 +1,6 @@
 package com.noomtech.jsw.game.handlers;
 
 import com.noomtech.jsw.common.utils.GlobalConfig;
-import com.noomtech.jsw.game.gameobjects.concrete_objects.Nasty;
 import com.noomtech.jsw.game.GamePlayDisplay;
 import com.noomtech.jsw.game.gameobjects.ComputerControlledObject;
 import com.noomtech.jsw.game.utils.GameUtils;
@@ -51,7 +50,7 @@ public class ComputerControlledMovementHandler {
                     for (int i = 0; i < COMPUTER_CONTROLLED_GAME_OBJECTS.size() && run; i++) {
                         ComputerControlledObject computerControlledObject = COMPUTER_CONTROLLED_GAME_OBJECTS.get(i);
                         if(computerControlledObject.doMove(COLLISION_HANDLER)) {
-                            GAME_PANEL.playerHitSomething(computerControlledObject);
+                            GAME_PANEL.isThisAShowstopper(computerControlledObject);
                         }
                     }
 

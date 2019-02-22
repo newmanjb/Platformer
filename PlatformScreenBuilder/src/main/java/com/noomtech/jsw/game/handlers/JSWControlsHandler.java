@@ -1,5 +1,6 @@
 package com.noomtech.jsw.game.handlers;
 
+import com.noomtech.jsw.game.events.GameEventReceiver;
 import com.noomtech.jsw.game.gameobjects.GameObject;
 import com.noomtech.jsw.game.gameobjects.concrete_objects.JSW;
 import com.noomtech.jsw.game.gameobjects.concrete_objects.Platform;
@@ -27,7 +28,7 @@ public class JSWControlsHandler implements KeyListener {
     private final JSWMover LEFT_MOVER;
     private final JSWMover RIGHT_MOVER;
     //Handles the movement for when the player sprite is falling
-    private final JSWMover FALL_OVER;
+    private final JSWMover FALL_MOVER;
     private final JSWMover JUMP_OVER;
 
     private final CollisionHandler COLLISION_HANDLER;
@@ -58,7 +59,7 @@ public class JSWControlsHandler implements KeyListener {
         this.RIGHT_MOVER = new RightMover(collisionHandler, this, jsw, LEFT_RIGHT_NUM_PIXELS_PER_MOVEMENT,
                 LEFT_RIGHT_NUM_MILLIS_BETWEEM_MOVEMENTS);
         this.JUMP_OVER = new JumpMover(jsw, JUMP_NUM_PIXELS_PER_MOVEMENT, JUMP_NUM_MILLIS_BETWEEN_MOVEMENTS, collisionHandler, this);
-        this.FALL_OVER = new FallMover(jsw, this, FALL_NUM_PIXELS_PER_MOVEMENT, FALL_NUM_MILLIS_BETWEEN_MOVEMENTS, collisionHandler);
+        this.FALL_MOVER = new FallMover(jsw, this, FALL_NUM_PIXELS_PER_MOVEMENT, FALL_NUM_MILLIS_BETWEEN_MOVEMENTS, collisionHandler);
         this.COLLISION_HANDLER = collisionHandler;
         this.JSW = jsw;
         this.GAME_PLAY_DISPLAY = gameDisplay;
@@ -76,7 +77,7 @@ public class JSWControlsHandler implements KeyListener {
             case (KEY_LEFT): {
                 leftKeyPressed = true;
                 //Can't move left if we're already moving left or already moving in any other direction
-                if (!LEFT_MOVER.isRunning() && !RIGHT_MOVER.isRunning() && !JUMP_OVER.isRunning() && !FALL_OVER.isRunning()) {
+                if (!LEFT_MOVER.isRunning() && !RIGHT_MOVER.isRunning() && !JUMP_OVER.isRunning() && !FALL_MOVER.isRunning()) {
                     LEFT_MOVER.start();
                 }
 
@@ -84,7 +85,7 @@ public class JSWControlsHandler implements KeyListener {
             }
             case (KEY_RIGHT): {
                 rightKeyPressed = true;
-                if (!LEFT_MOVER.isRunning() && !RIGHT_MOVER.isRunning() && !JUMP_OVER.isRunning() && !FALL_OVER.isRunning()) {
+                if (!LEFT_MOVER.isRunning() && !RIGHT_MOVER.isRunning() && !JUMP_OVER.isRunning() && !FALL_MOVER.isRunning()) {
                     RIGHT_MOVER.start();
                 }
                 break;
@@ -92,7 +93,7 @@ public class JSWControlsHandler implements KeyListener {
             case (KEY_JUMP): {
                 jumpKeyPressed = true;
                 //Can't jump if we're falling or already jumping
-                if (!FALL_OVER.isRunning() && !JUMP_OVER.isRunning()) {
+                if (!FALL_MOVER.isRunning() && !JUMP_OVER.isRunning()) {
                     //If we're already moving left or right we will jump in that direction but we must stop the
                     //movement first otherwise it will interfere with the jumping movment
                     if (LEFT_MOVER.isRunning()) {
@@ -114,12 +115,13 @@ public class JSWControlsHandler implements KeyListener {
     //be stopped.
     public boolean hitWhileFalling(GameObject hit) {
 
-        if (GAME_PLAY_DISPLAY.playerHitSomething(hit)) {
+        if (GAME_PLAY_DISPLAY.isThisAShowstopper(hit)) {
             return true;
         }
 
         if (hit instanceof Platform) {
             movementFinished(PlayerMovementType.FALL);
+            GameEventReceiver.getInstance().onPlayerLandedOnSolid();
             return true;
         }
 
@@ -128,7 +130,7 @@ public class JSWControlsHandler implements KeyListener {
 
     //Called to notify the controller that the jsw has hit something while walking
     public boolean hitWhileWalking(GameObject hit, PlayerMovementType playerMovementType) {
-        if (GAME_PLAY_DISPLAY.playerHitSomething(hit)) {
+        if (GAME_PLAY_DISPLAY.isThisAShowstopper(hit)) {
             return true;
         }
 
@@ -144,7 +146,7 @@ public class JSWControlsHandler implements KeyListener {
     //both the X and Y directions this callback needs to behave differently depending on which direction the
     //player was moving at the time.
     public JumpMovementResult hitWhileJumping(GameObject hit, int[] movements, boolean movingInYDirection) {
-        if (GAME_PLAY_DISPLAY.playerHitSomething(hit)) {
+        if (GAME_PLAY_DISPLAY.isThisAShowstopper(hit)) {
             return JumpMovementResult.STOP_COMPLETELY;
         }
 
@@ -171,6 +173,7 @@ public class JSWControlsHandler implements KeyListener {
         if (result == JumpMovementResult.STOP_COMPLETELY) {
             //The jump is stopped so check if the jsw needs to fall
             if (!doFallCheck()) {
+                GameEventReceiver.getInstance().onPlayerLandedOnSolid();
                 //The jump got stopped and the jsw does not need to fall, so the movement's finished
                 movementFinished(PlayerMovementType.JUMP);
             }
@@ -182,6 +185,7 @@ public class JSWControlsHandler implements KeyListener {
     //Called when a jump movement completed without being stopped prematurely e.g. by the player hitting a platform
     public void jumpFinishedWithoutBeingStopped() {
         if (!doFallCheck()) {
+            GameEventReceiver.getInstance().onPlayerLandedOnSolid();
             movementFinished(PlayerMovementType.JUMP);
         }
     }
@@ -197,7 +201,7 @@ public class JSWControlsHandler implements KeyListener {
     public boolean doFallCheck() {
         GameObject standingOn = COLLISION_HANDLER.checkIfTouchingAnythingGoingDown(JSW);
         if (standingOn == null || !(standingOn instanceof Platform)) {
-            FALL_OVER.start();
+            FALL_MOVER.start();
             return true;
         }
         return false;
@@ -276,6 +280,6 @@ public class JSWControlsHandler implements KeyListener {
         LEFT_MOVER.shutdown();
         RIGHT_MOVER.shutdown();
         JUMP_OVER.shutdown();
-        FALL_OVER.shutdown();
+        FALL_MOVER.shutdown();
     }
 }

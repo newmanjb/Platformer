@@ -180,9 +180,9 @@ public class GamePlayDisplay extends JPanel {
         GameEventReceiver.getInstance().onLevelComplete();
     }
 
-    //Check if anything needs to be done depending on what's been hit.  Return true if it's a show-stopper e.g.
+    //Check if anything needs to be done depending on what the player's hit.  Return true if it's a show-stopper e.g.
     //player has died
-    public boolean playerHitSomething(Object beenHit) {
+    public boolean isThisAShowstopper(Object beenHit) {
         if(beenHit instanceof Lethal) {
             removeKeyListener(jSWControlsHandler);
             Executors.newSingleThreadExecutor().submit(()->{

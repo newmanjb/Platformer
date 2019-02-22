@@ -52,6 +52,7 @@ public class GameEventReceiver {
     public void onPlayerStoppedWalking() {
         fireEvent(listener -> listener.onPlayerStoppedWalking());
     }
+    public void onPlayerLandedOnSolid() { fireEvent(listener -> {listener.onPlayerLandedOnSolid();});}
 
     private void fireEvent(Firer firer) {
         for(GamePlayListener listener : listeners) {

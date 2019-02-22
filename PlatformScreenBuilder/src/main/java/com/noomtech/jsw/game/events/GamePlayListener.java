@@ -14,4 +14,5 @@ public interface GamePlayListener {
     void onPlayerStoppedJumping();
     void onPlayerWalking();
     void onPlayerStoppedWalking();
+    void onPlayerLandedOnSolid();
 }
