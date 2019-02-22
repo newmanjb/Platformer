@@ -74,7 +74,7 @@ public class GameFrame extends JFrame implements GamePlayListener {
                     SoundPlayer.getInstance().stopSound("inGameMusic");
                     SoundPlayer.getInstance().startSound("levelComplete");
                     gameDisplay.stop();
-                    Thread.sleep(1000);
+                    Thread.sleep(2500);
                     CommonUtils.setCurrentLevel(CommonUtils.getCurrentLevel() + 1);
                     SoundPlayer.getInstance().startSound("inGameMusic");
                     refreshGamePanel();
