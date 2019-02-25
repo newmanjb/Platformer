@@ -121,7 +121,7 @@ public class GamePlayDisplay extends JPanel {
                 while(started) {
                     try {
                         SwingUtilities.invokeLater(() -> repaint());
-                        Thread.sleep(25);
+                        Thread.sleep(10);
                     }
                     catch(InterruptedException e) {
                         System.out.println("Game loop thread interrupted.  Stopping game");
